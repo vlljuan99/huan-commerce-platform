@@ -1,13 +1,27 @@
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.db.models import Sum
+from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse_lazy
 from django.utils import timezone
-from django.views.generic import DetailView, ListView, TemplateView
+from django.views.generic import DetailView, FormView, ListView, TemplateView
+from django.views.generic.edit import CreateView, UpdateView
 
-from apps.catalog.models import Product
-from apps.customers.models import Customer
+from apps.catalog.models import Product, ProductVariant
+from apps.customers.models import Customer, CustomerAddress
 from apps.invoicing.models import Invoice
 from apps.orders.models import Order
+
+from .forms import (
+    CustomerAddressForm,
+    CustomerCreateForm,
+    CustomerForm,
+    InvoiceStatusForm,
+    OrderStatusForm,
+    ProductForm,
+    ProductVariantForm,
+)
 
 
 class BackofficeRequiredMixin(LoginRequiredMixin):
@@ -20,6 +34,8 @@ class BackofficeRequiredMixin(LoginRequiredMixin):
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
 
+
+# ── Dashboard ─────────────────────────────────────────────────────────────────
 
 class DashboardView(BackofficeRequiredMixin, TemplateView):
     template_name = "backoffice/dashboard.html"
@@ -54,6 +70,8 @@ class DashboardView(BackofficeRequiredMixin, TemplateView):
         return ctx
 
 
+# ── Orders ────────────────────────────────────────────────────────────────────
+
 class OrderListView(BackofficeRequiredMixin, ListView):
     template_name = "backoffice/orders/list.html"
     context_object_name = "orders"
@@ -87,6 +105,22 @@ class OrderDetailView(BackofficeRequiredMixin, DetailView):
     def get_queryset(self):
         return Order.objects.select_related("customer__user").prefetch_related("items")
 
+
+class OrderUpdateView(BackofficeRequiredMixin, UpdateView):
+    template_name = "backoffice/orders/edit.html"
+    model = Order
+    form_class = OrderStatusForm
+    context_object_name = "order"
+
+    def form_valid(self, form):
+        messages.success(self.request, f"Pedido {self.object.order_number} actualizado.")
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy("backoffice:order_detail", kwargs={"pk": self.object.pk})
+
+
+# ── Customers ─────────────────────────────────────────────────────────────────
 
 class CustomerListView(BackofficeRequiredMixin, ListView):
     template_name = "backoffice/customers/list.html"
@@ -132,6 +166,85 @@ class CustomerDetailView(BackofficeRequiredMixin, DetailView):
         return ctx
 
 
+class CustomerCreateView(BackofficeRequiredMixin, FormView):
+    template_name = "backoffice/customers/edit.html"
+    form_class = CustomerCreateForm
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["is_new"] = True
+        ctx["page_title"] = "Nuevo cliente"
+        return ctx
+
+    def form_valid(self, form):
+        customer = form.save()
+        messages.success(self.request, f"Cliente {customer} creado correctamente.")
+        return redirect("backoffice:customer_detail", pk=customer.pk)
+
+
+class CustomerUpdateView(BackofficeRequiredMixin, UpdateView):
+    template_name = "backoffice/customers/edit.html"
+    model = Customer
+    form_class = CustomerForm
+    context_object_name = "customer"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["page_title"] = f"Editar cliente — {self.object}"
+        return ctx
+
+    def form_valid(self, form):
+        messages.success(self.request, f"Cliente {self.object} actualizado.")
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy("backoffice:customer_detail", kwargs={"pk": self.object.pk})
+
+
+class CustomerAddressCreateView(BackofficeRequiredMixin, CreateView):
+    template_name = "backoffice/customers/address_edit.html"
+    form_class = CustomerAddressForm
+
+    def get_customer(self):
+        return get_object_or_404(Customer, pk=self.kwargs["customer_pk"])
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["customer"] = self.get_customer()
+        ctx["is_new"] = True
+        return ctx
+
+    def form_valid(self, form):
+        address = form.save(commit=False)
+        address.customer = self.get_customer()
+        address.save()
+        messages.success(self.request, "Dirección guardada.")
+        return redirect("backoffice:customer_detail", pk=address.customer.pk)
+
+
+class CustomerAddressUpdateView(BackofficeRequiredMixin, UpdateView):
+    template_name = "backoffice/customers/address_edit.html"
+    model = CustomerAddress
+    form_class = CustomerAddressForm
+    context_object_name = "address"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["customer"] = self.object.customer
+        return ctx
+
+    def form_valid(self, form):
+        messages.success(self.request, "Dirección actualizada.")
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "backoffice:customer_detail", kwargs={"pk": self.object.customer.pk}
+        )
+
+
+# ── Invoices ──────────────────────────────────────────────────────────────────
+
 class InvoiceListView(BackofficeRequiredMixin, ListView):
     template_name = "backoffice/invoices/list.html"
     context_object_name = "invoices"
@@ -170,6 +283,24 @@ class InvoiceDetailView(BackofficeRequiredMixin, DetailView):
         ).prefetch_related("items__tax_rate")
 
 
+class InvoiceUpdateView(BackofficeRequiredMixin, UpdateView):
+    template_name = "backoffice/invoices/edit.html"
+    model = Invoice
+    form_class = InvoiceStatusForm
+    context_object_name = "invoice"
+
+    def form_valid(self, form):
+        messages.success(
+            self.request, f"Factura {self.object.invoice_number} actualizada."
+        )
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy("backoffice:invoice_detail", kwargs={"pk": self.object.pk})
+
+
+# ── Catalog ───────────────────────────────────────────────────────────────────
+
 class CatalogListView(BackofficeRequiredMixin, ListView):
     template_name = "backoffice/catalog/list.html"
     context_object_name = "products"
@@ -190,3 +321,81 @@ class CatalogListView(BackofficeRequiredMixin, ListView):
         ctx = super().get_context_data(**kwargs)
         ctx["q"] = self.request.GET.get("q", "")
         return ctx
+
+
+class ProductCreateView(BackofficeRequiredMixin, CreateView):
+    template_name = "backoffice/catalog/edit.html"
+    model = Product
+    form_class = ProductForm
+    context_object_name = "product"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["is_new"] = True
+        return ctx
+
+    def form_valid(self, form):
+        messages.success(self.request, f'Producto "{form.instance.name}" creado.')
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy("backoffice:product_edit", kwargs={"pk": self.object.pk})
+
+
+class ProductUpdateView(BackofficeRequiredMixin, UpdateView):
+    template_name = "backoffice/catalog/edit.html"
+    model = Product
+    form_class = ProductForm
+    context_object_name = "product"
+
+    def get_queryset(self):
+        return Product.objects.prefetch_related("variants__additional_images")
+
+    def form_valid(self, form):
+        messages.success(self.request, f'Producto "{self.object.name}" actualizado.')
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy("backoffice:product_edit", kwargs={"pk": self.object.pk})
+
+
+class ProductVariantCreateView(BackofficeRequiredMixin, CreateView):
+    template_name = "backoffice/catalog/variant_edit.html"
+    form_class = ProductVariantForm
+
+    def get_product(self):
+        return get_object_or_404(Product, pk=self.kwargs["product_pk"])
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["product"] = self.get_product()
+        ctx["is_new"] = True
+        return ctx
+
+    def form_valid(self, form):
+        variant = form.save(commit=False)
+        variant.product = self.get_product()
+        variant.save()
+        messages.success(self.request, f'Variante "{variant.name}" creada.')
+        return redirect("backoffice:product_edit", pk=variant.product.pk)
+
+
+class ProductVariantUpdateView(BackofficeRequiredMixin, UpdateView):
+    template_name = "backoffice/catalog/variant_edit.html"
+    model = ProductVariant
+    form_class = ProductVariantForm
+    context_object_name = "variant"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["product"] = self.object.product
+        return ctx
+
+    def form_valid(self, form):
+        messages.success(self.request, f'Variante "{self.object.name}" actualizada.')
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "backoffice:product_edit", kwargs={"pk": self.object.product.pk}
+        )

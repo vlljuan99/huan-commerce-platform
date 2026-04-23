@@ -1,0 +1,89 @@
+{% extends "backoffice/base.html" %}
+
+{% block title %}{% if is_new %}Nuevo producto{% else %}Editar — {{ product.name }}{% endif %}{% endblock %}
+{% block page_title %}{% if is_new %}Nuevo producto{% else %}Editar producto{% endif %}{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'backoffice:catalog_list' %}" class="btn btn--ghost btn--sm">← Catálogo</a>
+{% endblock %}
+
+{% block content %}
+<div class="bo-form-layout">
+
+    <div class="bo-form-card">
+        <form method="post" novalidate>
+            {% csrf_token %}
+
+            <fieldset class="bo-form__section">
+                <legend class="bo-form__section-title">Datos principales</legend>
+                {% include "backoffice/_form_field.html" with field=form.name %}
+                {% include "backoffice/_form_field.html" with field=form.description %}
+                <div class="bo-form__row">
+                    {% include "backoffice/_form_field.html" with field=form.category %}
+                    {% include "backoffice/_form_field.html" with field=form.brand %}
+                </div>
+            </fieldset>
+
+            <fieldset class="bo-form__section">
+                <legend class="bo-form__section-title">Referencia y medidas</legend>
+                <div class="bo-form__row">
+                    {% include "backoffice/_form_field.html" with field=form.sku_base %}
+                    {% include "backoffice/_form_field.html" with field=form.unit_of_measure %}
+                </div>
+                {% include "backoffice/_form_field.html" with field=form.weight %}
+            </fieldset>
+
+            <fieldset class="bo-form__section">
+                <legend class="bo-form__section-title">Visibilidad</legend>
+                <div class="bo-form__check-group">
+                    {{ form.is_active }}
+                    <label class="bo-form__check-label" for="{{ form.is_active.id_for_label }}">{{ form.fields.is_active.label }}</label>
+                </div>
+                <div class="bo-form__check-group">
+                    {{ form.is_featured }}
+                    <label class="bo-form__check-label" for="{{ form.is_featured.id_for_label }}">{{ form.fields.is_featured.label }}</label>
+                </div>
+            </fieldset>
+
+            <fieldset class="bo-form__section">
+                <legend class="bo-form__section-title">SEO <span class="bo-form__section-optional">(opcional)</span></legend>
+                {% include "backoffice/_form_field.html" with field=form.seo_title %}
+                {% include "backoffice/_form_field.html" with field=form.seo_description %}
+            </fieldset>
+
+            <div class="bo-form__actions">
+                <button type="submit" class="btn btn--primary btn--lg">
+                    {% if is_new %}Crear producto{% else %}Guardar cambios{% endif %}
+                </button>
+                <a href="{% url 'backoffice:catalog_list' %}" class="btn btn--ghost btn--lg">Cancelar</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Variantes (solo en edición) -->
+    {% if not is_new %}
+    <aside class="bo-form-aside">
+        <div class="bo-card">
+            <div class="bo-section__header" style="margin-bottom:var(--space-md)">
+                <h2 class="bo-card__title" style="border:none;padding:0;margin:0">Variantes</h2>
+                <a href="{% url 'backoffice:variant_create' product.pk %}" class="btn btn--primary btn--sm">+ Nueva</a>
+            </div>
+            {% for variant in product.variants.all %}
+            <div class="bo-variant-row">
+                <div class="bo-variant-row__info">
+                    <span class="bo-variant-row__name">{{ variant.name }}</span>
+                    <code class="bo-variant-row__sku">{{ variant.sku }}</code>
+                    <span class="bo-variant-row__price">{{ variant.price_no_tax|floatformat:2 }} €</span>
+                    <span class="bo-variant-row__stock text-muted">Stock: {{ variant.stock_quantity }}</span>
+                </div>
+                <a href="{% url 'backoffice:variant_edit' variant.pk %}" class="btn btn--ghost btn--sm">Editar</a>
+            </div>
+            {% empty %}
+            <p class="text-muted" style="font-size:.875rem">Sin variantes. Añade al menos una.</p>
+            {% endfor %}
+        </div>
+    </aside>
+    {% endif %}
+
+</div>
+{% endblock %}

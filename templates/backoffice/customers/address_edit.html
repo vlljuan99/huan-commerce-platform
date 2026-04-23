@@ -1,0 +1,52 @@
+{% extends "backoffice/base.html" %}
+
+{% block title %}{% if is_new %}Nueva dirección{% else %}Editar dirección{% endif %} — {{ customer }}{% endblock %}
+{% block page_title %}{% if is_new %}Nueva dirección{% else %}Editar dirección{% endif %}{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'backoffice:customer_detail' customer.pk %}" class="btn btn--ghost btn--sm">← {{ customer }}</a>
+{% endblock %}
+
+{% block content %}
+<div class="bo-form-layout bo-form-layout--narrow">
+    <div class="bo-form-card">
+        <div class="bo-form-card__header">
+            <h2 class="bo-form-card__title">Dirección de {{ customer }}</h2>
+        </div>
+        <form method="post" novalidate>
+            {% csrf_token %}
+
+            <div class="bo-form__row">
+                {% include "backoffice/_form_field.html" with field=form.name %}
+                {% include "backoffice/_form_field.html" with field=form.address_type %}
+            </div>
+
+            {% include "backoffice/_form_field.html" with field=form.street_address %}
+
+            <div class="bo-form__row">
+                {% include "backoffice/_form_field.html" with field=form.postal_code %}
+                {% include "backoffice/_form_field.html" with field=form.city %}
+            </div>
+
+            <div class="bo-form__row">
+                {% include "backoffice/_form_field.html" with field=form.region %}
+                {% include "backoffice/_form_field.html" with field=form.country %}
+            </div>
+
+            <div class="bo-form__group bo-form__check-group">
+                {{ form.is_default }}
+                <label class="bo-form__check-label" for="{{ form.is_default.id_for_label }}">
+                    {{ form.fields.is_default.label }}
+                </label>
+            </div>
+
+            <div class="bo-form__actions">
+                <button type="submit" class="btn btn--primary btn--lg">
+                    {% if is_new %}Guardar dirección{% else %}Actualizar dirección{% endif %}
+                </button>
+                <a href="{% url 'backoffice:customer_detail' customer.pk %}" class="btn btn--ghost btn--lg">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

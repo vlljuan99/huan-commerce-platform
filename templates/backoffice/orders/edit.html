@@ -1,0 +1,56 @@
+{% extends "backoffice/base.html" %}
+
+{% block title %}Editar pedido {{ order.order_number }}{% endblock %}
+{% block page_title %}Pedido {{ order.order_number }}{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'backoffice:order_detail' order.pk %}" class="btn btn--ghost btn--sm">← Volver</a>
+{% endblock %}
+
+{% block content %}
+
+<div class="bo-form-layout">
+
+    <div class="bo-form-card">
+        <div class="bo-form-card__header">
+            <h2 class="bo-form-card__title">Actualizar estado</h2>
+            <p class="bo-form-card__subtitle">
+                Cliente: <strong>{{ order.customer }}</strong> &nbsp;·&nbsp;
+                Total: <strong>{{ order.total|floatformat:2 }} €</strong>
+            </p>
+        </div>
+
+        <form method="post" novalidate>
+            {% csrf_token %}
+
+            {% include "backoffice/_form_field.html" with field=form.status %}
+            {% include "backoffice/_form_field.html" with field=form.notes %}
+
+            <div class="bo-form__actions">
+                <button type="submit" class="btn btn--primary btn--lg">Guardar cambios</button>
+                <a href="{% url 'backoffice:order_detail' order.pk %}" class="btn btn--ghost btn--lg">Cancelar</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Resumen lateral -->
+    <aside class="bo-form-aside">
+        <div class="bo-card">
+            <h2 class="bo-card__title">Estado actual</h2>
+            <p><span class="badge badge--{{ order.status }}">{{ order.get_status_display }}</span></p>
+        </div>
+        <div class="bo-card">
+            <h2 class="bo-card__title">Flujo de estados</h2>
+            <ol class="bo-status-flow">
+                {% for value, label in form.fields.status.choices %}
+                <li class="bo-status-flow__item {% if order.status == value %}bo-status-flow__item--current{% endif %}">
+                    {{ label }}
+                </li>
+                {% endfor %}
+            </ol>
+        </div>
+    </aside>
+
+</div>
+
+{% endblock %}

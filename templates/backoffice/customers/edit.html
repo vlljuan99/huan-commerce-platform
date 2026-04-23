@@ -1,0 +1,96 @@
+{% extends "backoffice/base.html" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+{% block page_title %}{{ page_title }}{% endblock %}
+
+{% block topbar_actions %}
+{% if is_new %}
+    <a href="{% url 'backoffice:customer_list' %}" class="btn btn--ghost btn--sm">← Volver</a>
+{% else %}
+    <a href="{% url 'backoffice:customer_detail' customer.pk %}" class="btn btn--ghost btn--sm">← Volver</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="bo-form-layout">
+
+    <div class="bo-form-card">
+        <form method="post" novalidate>
+            {% csrf_token %}
+
+            {% if is_new %}
+            <fieldset class="bo-form__section">
+                <legend class="bo-form__section-title">Datos de acceso</legend>
+                <div class="bo-form__row">
+                    {% include "backoffice/_form_field.html" with field=form.first_name %}
+                    {% include "backoffice/_form_field.html" with field=form.last_name %}
+                </div>
+                {% include "backoffice/_form_field.html" with field=form.email %}
+            </fieldset>
+            {% endif %}
+
+            <fieldset class="bo-form__section">
+                <legend class="bo-form__section-title">Perfil comercial</legend>
+                {% include "backoffice/_form_field.html" with field=form.segment %}
+                <div class="bo-form__row">
+                    {% include "backoffice/_form_field.html" with field=form.company_name %}
+                    {% include "backoffice/_form_field.html" with field=form.fiscal_name %}
+                </div>
+                <div class="bo-form__row">
+                    {% include "backoffice/_form_field.html" with field=form.tax_id %}
+                    {% include "backoffice/_form_field.html" with field=form.phone %}
+                </div>
+                {% include "backoffice/_form_field.html" with field=form.contact_email %}
+            </fieldset>
+
+            <fieldset class="bo-form__section">
+                <legend class="bo-form__section-title">Notas internas</legend>
+                {% include "backoffice/_form_field.html" with field=form.notes %}
+            </fieldset>
+
+            {% if form.non_field_errors %}
+            <div class="bo-form__global-error">
+                {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="bo-form__actions">
+                <button type="submit" class="btn btn--primary btn--lg">
+                    {% if is_new %}Crear cliente{% else %}Guardar cambios{% endif %}
+                </button>
+                {% if is_new %}
+                    <a href="{% url 'backoffice:customer_list' %}" class="btn btn--ghost btn--lg">Cancelar</a>
+                {% else %}
+                    <a href="{% url 'backoffice:customer_detail' customer.pk %}" class="btn btn--ghost btn--lg">Cancelar</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    {% if not is_new %}
+    <aside class="bo-form-aside">
+        <div class="bo-card">
+            <h2 class="bo-card__title">Datos de acceso</h2>
+            <dl class="bo-dl">
+                <dt>Email</dt><dd>{{ customer.user.email }}</dd>
+                <dt>Alta</dt><dd>{{ customer.created_at|date:"d/m/Y" }}</dd>
+            </dl>
+        </div>
+        <div class="bo-card">
+            <h2 class="bo-card__title">Direcciones</h2>
+            {% for addr in customer.addresses.all %}
+                <p class="bo-aside-link">
+                    <a href="{% url 'backoffice:address_edit' addr.pk %}" class="bo-link">
+                        {{ addr.name }} <span class="text-muted">({{ addr.get_address_type_display }})</span>
+                    </a>
+                </p>
+            {% empty %}
+                <p class="text-muted" style="font-size:.875rem">Sin direcciones.</p>
+            {% endfor %}
+            <a href="{% url 'backoffice:customer_address_create' customer.pk %}" class="btn btn--ghost btn--sm" style="margin-top:.5rem">+ Añadir dirección</a>
+        </div>
+    </aside>
+    {% endif %}
+
+</div>
+{% endblock %}
