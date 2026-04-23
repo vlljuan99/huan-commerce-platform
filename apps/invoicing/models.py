@@ -38,10 +38,14 @@ class InvoiceSeries(BaseModel):
         return f"{self.name} ({self.prefix})"
 
     def get_next_number(self):
-        """Get next invoice number and increment counter."""
-        num = self.next_number
-        self.next_number += 1
-        self.save()
+        """Get next invoice number and increment counter atomically."""
+        from django.db import transaction
+        with transaction.atomic():
+            series = InvoiceSeries.objects.select_for_update().get(pk=self.pk)
+            num = series.next_number
+            series.next_number += 1
+            series.save(update_fields=['next_number'])
+        self.refresh_from_db()
         return num
 
 
@@ -111,13 +115,39 @@ class Invoice(BaseModel):
         verbose_name=_('Total (with tax)')
     )
     
+    # Fiscal snapshot — frozen at invoice issuance
+    billing_name_snapshot = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name=_('Billing name (snapshot)'),
+        help_text=_('Customer name as captured at invoice time')
+    )
+    tax_id_snapshot = models.CharField(
+        max_length=50,
+        blank=True,
+        verbose_name=_('Tax ID (snapshot)'),
+        help_text=_('Customer CIF/NIF as captured at invoice time')
+    )
+    billing_address_snapshot = models.TextField(
+        blank=True,
+        verbose_name=_('Billing address (snapshot)'),
+        help_text=_('Billing address as captured at invoice time')
+    )
+
+    due_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name=_('Due date')
+    )
+    notes = models.TextField(blank=True, verbose_name=_('Notes'))
+
     pdf_file = models.FileField(
         upload_to='invoices/',
         null=True,
         blank=True,
         verbose_name=_('PDF file')
     )
-    
+
     class Meta:
         verbose_name = _('Invoice')
         verbose_name_plural = _('Invoices')
@@ -166,7 +196,20 @@ class InvoiceLineItem(BaseModel):
         blank=True,
         verbose_name=_('Tax rate')
     )
-    
+    tax_rate_pct = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        verbose_name=_('Tax rate (%)'),
+        help_text=_('Tax percentage at invoice time, e.g. 21.00')
+    )
+    tax_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        verbose_name=_('Tax amount (line)')
+    )
+
     class Meta:
         verbose_name = _('Invoice Line Item')
         verbose_name_plural = _('Invoice Line Items')

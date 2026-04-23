@@ -84,6 +84,10 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'apps.core.context_processors.branding',
+                'apps.core.context_processors.features',
+                'apps.core.context_processors.instance',
+                'apps.core.context_processors.cart_count',
             ],
         },
     },
@@ -182,6 +186,11 @@ LOGGING = {
         'level': 'INFO',
     },
 }
+
+# Auth URLs
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/mi-cuenta/'
+LOGOUT_REDIRECT_URL = '/'
 
 # Custom User Model
 AUTH_USER_MODEL = 'accounts.User'

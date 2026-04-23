@@ -30,19 +30,33 @@ class Customer(BaseModel):
         max_length=255,
         blank=True,
         verbose_name=_('Company name'),
-        help_text=_('For B2B customers')
+        help_text=_('Nombre comercial. For B2B customers')
     )
-    
+
+    fiscal_name = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name=_('Fiscal name'),
+        help_text=_('Nombre que aparece en facturas. B2C: nombre y apellidos. B2B: razón social.')
+    )
+
     tax_id = models.CharField(
         max_length=50,
         blank=True,
+        null=True,
         unique=True,
         verbose_name=_('Tax ID'),
         help_text=_('CIF/NIF')
     )
-    
+
     phone = models.CharField(max_length=20, blank=True, verbose_name=_('Phone'))
-    
+
+    contact_email = models.EmailField(
+        blank=True,
+        verbose_name=_('Contact email'),
+        help_text=_('Email de contacto para facturas y comunicaciones. Puede diferir del email de acceso.')
+    )
+
     segment = models.CharField(
         max_length=10,
         choices=SEGMENT_CHOICES,
@@ -60,7 +74,21 @@ class Customer(BaseModel):
     def __str__(self):
         if self.company_name:
             return f"{self.company_name} ({self.user.get_full_name()})"
-        return self.user.get_full_name()
+        return self.user.get_full_name() or self.user.email
+
+    @property
+    def display_name(self):
+        """Nombre visible principal: comercial o nombre completo."""
+        return self.company_name or self.user.get_full_name() or self.user.email
+
+    @property
+    def billing_name(self):
+        """Nombre para facturas: fiscal_name > company_name > nombre completo."""
+        return self.fiscal_name or self.company_name or self.user.get_full_name()
+
+    @property
+    def is_company(self):
+        return self.segment == 'b2b'
 
     def is_b2b(self):
         return self.segment == 'b2b'

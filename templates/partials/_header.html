@@ -1,0 +1,23 @@
+{% load static %}
+<header class="site-header">
+    <div class="container">
+        <a href="{% url 'index' %}" class="logo" aria-label="{{ branding.commercial_name|default:'Huan' }} — Inicio">
+            {% if branding.logo %}
+                <img src="{{ branding.logo }}" alt="{{ branding.commercial_name }}" class="logo-img" height="36">
+            {% else %}
+                <span class="logo-text">{{ branding.commercial_name|default:'Huan' }}</span>
+            {% endif %}
+        </a>
+        <nav class="main-nav" aria-label="Navegación principal">
+            <a href="{% url 'index' %}"
+               {% if request.resolver_match.url_name == 'index' %}aria-current="page"{% endif %}>
+                Inicio
+            </a>
+            <a href="{% url 'catalog:product_list' %}"
+               {% if request.resolver_match.namespace == 'catalog' %}aria-current="page"{% endif %}>
+                Catálogo
+            </a>
+            <a href="{% url 'admin:index' %}">Admin</a>
+        </nav>
+    </div>
+</header>

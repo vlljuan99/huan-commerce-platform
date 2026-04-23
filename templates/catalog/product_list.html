@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Catálogo — {{ branding.commercial_name }}{% endblock %}
+{% block meta_description %}Catálogo completo de {{ branding.commercial_name }}. {{ branding.tagline }}{% endblock %}
+
+{% block content %}
+
+<section class="catalog-hero">
+    <div class="container">
+        <h1 class="page-title">Catálogo</h1>
+        {% if branding.tagline %}
+            <p class="page-subtitle">{{ branding.tagline }}</p>
+        {% endif %}
+    </div>
+</section>
+
+<section class="catalog-section">
+    <div class="container">
+        <div class="catalog-layout">
+
+            {% if categories %}
+            <aside class="catalog-filters" aria-label="Filtros de categoría">
+                <h2 class="filters-title">Categorías</h2>
+                <nav>
+                    <a href="{% url 'catalog:product_list' %}"
+                       class="filter-pill {% if not active_category %}filter-pill--active{% endif %}">
+                        Todos
+                    </a>
+                    {% for cat in categories %}
+                    <a href="{% url 'catalog:product_list' %}?categoria={{ cat.slug }}"
+                       class="filter-pill {% if active_category == cat.slug %}filter-pill--active{% endif %}">
+                        {{ cat.name }}
+                    </a>
+                    {% endfor %}
+                </nav>
+            </aside>
+            {% endif %}
+
+            <div class="catalog-main">
+
+                {% if products %}
+                <p class="results-count">
+                    {{ paginator.count }} producto{{ paginator.count|pluralize }}
+                    {% if active_category %}en esta categoría{% endif %}
+                </p>
+
+                <div class="product-grid">
+                    {% for product in products %}
+                    {% with variant=product.primary_variant %}
+                    <article class="product-card">
+                        <a href="{% url 'catalog:product_detail' product.slug %}" class="product-card__link">
+                            <div class="product-card__image-wrap">
+                                {% if variant and variant.image %}
+                                    <img src="{{ variant.image.url }}"
+                                         alt="{{ product.name }}"
+                                         class="product-card__img"
+                                         loading="lazy"
+                                         width="400" height="400">
+                                {% else %}
+                                    <div class="product-card__placeholder" aria-hidden="true">
+                                        <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <rect x="8"  y="8"  width="28" height="28" rx="3" fill="currentColor" opacity="0.18"/>
+                                            <rect x="44" y="8"  width="28" height="28" rx="3" fill="currentColor" opacity="0.12"/>
+                                            <rect x="8"  y="44" width="28" height="28" rx="3" fill="currentColor" opacity="0.12"/>
+                                            <rect x="44" y="44" width="28" height="28" rx="3" fill="currentColor" opacity="0.18"/>
+                                        </svg>
+                                    </div>
+                                {% endif %}
+                                {% if product.is_featured %}
+                                    <span class="product-card__badge badge badge--accent">Destacado</span>
+                                {% endif %}
+                            </div>
+                            <div class="product-card__body">
+                                <span class="product-card__category">{{ product.category.name }}</span>
+                                <h3 class="product-card__name">{{ product.name }}</h3>
+                                {% if product.brand %}
+                                    <span class="product-card__brand">{{ product.brand.name }}</span>
+                                {% endif %}
+                                {% if variant and features.ENABLE_B2B_PRICING %}
+                                    <p class="product-card__price">
+                                        {{ variant.price_no_tax }} €<span class="price-note"> / {{ product.unit_of_measure }}</span>
+                                    </p>
+                                {% endif %}
+                            </div>
+                        </a>
+                    </article>
+                    {% endwith %}
+                    {% endfor %}
+                </div>
+
+                {% if is_paginated %}
+                <nav class="pagination" aria-label="Páginas de catálogo">
+                    {% if page_obj.has_previous %}
+                        <a href="?{% if active_category %}categoria={{ active_category }}&{% endif %}page={{ page_obj.previous_page_number }}"
+                           class="pagination__link">&laquo; Anterior</a>
+                    {% endif %}
+                    <span class="pagination__info">Página {{ page_obj.number }} de {{ paginator.num_pages }}</span>
+                    {% if page_obj.has_next %}
+                        <a href="?{% if active_category %}categoria={{ active_category }}&{% endif %}page={{ page_obj.next_page_number }}"
+                           class="pagination__link">Siguiente &raquo;</a>
+                    {% endif %}
+                </nav>
+                {% endif %}
+
+                {% else %}
+                <div class="empty-state">
+                    <p class="empty-state__text">
+                        No hay productos disponibles{% if active_category %} en esta categoría{% endif %}.
+                    </p>
+                    {% if active_category %}
+                        <a href="{% url 'catalog:product_list' %}" class="btn btn--outline">
+                            Ver todos los productos
+                        </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

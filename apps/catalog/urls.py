@@ -9,8 +9,6 @@ from .views import (
     ProductCategoryViewSet, ProductBrandViewSet
 )
 
-app_name = 'catalog'
-
 router = DefaultRouter()
 router.register(r'products', ProductViewSet, basename='product')
 router.register(r'variants', ProductVariantViewSet, basename='variant')

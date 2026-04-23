@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs -I {} sh -c 'echo \"=== {} ===\" && cat {}')",
+      "Read(//c/Users/jvill/AppData/Roaming/Claude/local-agent-mode-sessions/skills-plugin/481c2f67-d7a3-4d20-8759-752766b541fc/cee2a8c1-8ef4-4b09-9765-505e10da321f/skills/docx/**)",
+      "Bash(python scripts/office/unpack.py \"C:\\\\Users\\\\jvill\\\\Desktop\\\\huan_documentacion_tecnica_v2.docx\" \"C:\\\\Users\\\\jvill\\\\AppData\\\\Roaming\\\\Claude\\\\local-agent-mode-sessions\\\\docx_unpacked\")",
+      "Bash(pip install *)",
+      "Bash(pandoc \"C:\\\\Users\\\\jvill\\\\Desktop\\\\huan_documentacion_tecnica_v2.docx\" -t markdown)",
+      "Bash(python -c ' *)"
+    ]
+  }
+}

@@ -115,6 +115,18 @@ class Product(BaseModel):
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
 
+    @property
+    def primary_variant(self):
+        """First active variant. Uses prefetch cache when prefetch_related('variants') is active."""
+        for v in self.variants.all():
+            if v.is_active:
+                return v
+        return None
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('catalog:product_detail', kwargs={'slug': self.slug})
+
 
 class ProductVariant(BaseModel):
     """

@@ -1,0 +1,42 @@
+/* ============================================
+   Component — Messages (Django messages framework)
+   ============================================ */
+
+.messages {
+    padding: var(--space-md) 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.message {
+    padding: 0.85rem var(--space-lg);
+    border-radius: var(--radius);
+    font-size: 0.9rem;
+    border-left: 4px solid transparent;
+}
+
+.message--success,
+.message--info.message--success {
+    background: var(--color-success-bg);
+    color: var(--color-success-text);
+    border-left-color: var(--color-success-text);
+}
+
+.message--info {
+    background: var(--color-info-bg);
+    color: var(--color-info-text);
+    border-left-color: var(--color-info-text);
+}
+
+.message--warning {
+    background: var(--color-warning-bg);
+    color: var(--color-warning-text);
+    border-left-color: var(--color-warning-text);
+}
+
+.message--error {
+    background: var(--color-danger-bg);
+    color: var(--color-danger-text);
+    border-left-color: var(--color-danger-text);
+}

@@ -1,0 +1,72 @@
+/* ============================================
+   Component — Buttons
+   ============================================ */
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    padding: 0.75rem 1.75rem;
+    border-radius: var(--radius);
+    font-weight: 600;
+    font-size: 0.95rem;
+    line-height: 1;
+    transition: all var(--transition);
+    cursor: pointer;
+    border: 2px solid transparent;
+    white-space: nowrap;
+    text-decoration: none;
+}
+
+.btn:focus-visible {
+    outline: 3px solid var(--color-accent-light);
+    outline-offset: 2px;
+}
+
+/* Variants */
+.btn--primary {
+    background: var(--color-accent);
+    color: white;
+    border-color: var(--color-accent);
+}
+
+.btn--primary:hover {
+    background: var(--color-accent-light);
+    border-color: var(--color-accent-light);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(201, 123, 26, 0.4);
+}
+
+.btn--outline {
+    background: transparent;
+    color: white;
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.btn--outline:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: white;
+}
+
+.btn--secondary {
+    background: var(--color-surface);
+    color: var(--color-primary);
+    border-color: var(--color-border);
+}
+
+.btn--secondary:hover {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow);
+}
+
+/* Sizes */
+.btn--sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+}
+
+.btn--lg {
+    padding: 1rem 2.25rem;
+    font-size: 1.05rem;
+}

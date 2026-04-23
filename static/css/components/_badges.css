@@ -1,0 +1,35 @@
+/* ============================================
+   Component — Badges & method labels
+   ============================================ */
+
+.badge {
+    display: inline-block;
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-sm);
+    font-weight: 700;
+    font-size: 0.75rem;
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+/* HTTP method badges */
+.method {
+    display: inline-block;
+    padding: 0.25rem 0.6rem;
+    border-radius: var(--radius-sm);
+    font-weight: 700;
+    font-size: 0.75rem;
+    min-width: 52px;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    line-height: 1.4;
+    flex-shrink: 0;
+}
+
+.method--get    { background: var(--color-success-bg); color: var(--color-success-text); }
+.method--post   { background: var(--color-info-bg);    color: var(--color-info-text); }
+.method--put,
+.method--patch  { background: var(--color-warning-bg); color: var(--color-warning-text); }
+.method--delete { background: var(--color-danger-bg);  color: var(--color-danger-text); }

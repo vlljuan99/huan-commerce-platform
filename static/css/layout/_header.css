@@ -1,0 +1,57 @@
+/* ============================================
+   Layout — Site header & navigation
+   ============================================ */
+
+.site-header {
+    background: var(--color-primary);
+    padding: var(--space-md) 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+}
+
+.site-header .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-xl);
+}
+
+/* Logo */
+.logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+}
+
+.logo-text {
+    color: #ffffff;
+}
+
+.logo-accent {
+    color: var(--color-accent-light);
+}
+
+/* Main nav */
+.main-nav {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xl);
+}
+
+.main-nav a {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.95rem;
+    transition: color var(--transition);
+    white-space: nowrap;
+}
+
+.main-nav a:hover,
+.main-nav a[aria-current="page"] {
+    color: var(--color-accent-light);
+}

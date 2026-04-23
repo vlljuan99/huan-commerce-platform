@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ product.seo_title|default:product.name }}{% endblock %}
+{% block meta_description %}{{ product.seo_description|default:product.description|truncatechars:155 }}{% endblock %}
+
+{% block content %}
+
+{# ── Breadcrumb ─────────────────────────────────────────────────────────── #}
+<nav class="breadcrumb" aria-label="Ruta de navegación">
+    <div class="container">
+        <ol class="breadcrumb__list">
+            <li class="breadcrumb__item">
+                <a href="{% url 'index' %}">Inicio</a>
+            </li>
+            <li class="breadcrumb__item">
+                <a href="{% url 'catalog:product_list' %}">Catálogo</a>
+            </li>
+            <li class="breadcrumb__item">
+                <a href="{% url 'catalog:product_list' %}?categoria={{ product.category.slug }}">
+                    {{ product.category.name }}
+                </a>
+            </li>
+            <li class="breadcrumb__item breadcrumb__item--current" aria-current="page">
+                {{ product.name }}
+            </li>
+        </ol>
+    </div>
+</nav>
+
+{# ── Detalle del producto ───────────────────────────────────────────────── #}
+<section class="product-detail">
+    <div class="container">
+        <div class="product-detail__layout">
+
+            {# Galería #}
+            <div class="product-detail__gallery">
+                {% with variant=product.primary_variant %}
+                {% if variant and variant.image %}
+                    <img src="{{ variant.image.url }}"
+                         alt="{{ product.name }}"
+                         class="product-detail__main-img">
+                {% else %}
+                    <div class="product-detail__img-placeholder" aria-hidden="true">
+                        <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="20" y="20" width="68" height="68" rx="6" fill="currentColor" opacity="0.18"/>
+                            <rect x="112" y="20" width="68" height="68" rx="6" fill="currentColor" opacity="0.12"/>
+                            <rect x="20" y="112" width="68" height="68" rx="6" fill="currentColor" opacity="0.12"/>
+                            <rect x="112" y="112" width="68" height="68" rx="6" fill="currentColor" opacity="0.18"/>
+                        </svg>
+                    </div>
+                {% endif %}
+                {% endwith %}
+            </div>
+
+            {# Información #}
+            <div class="product-detail__info">
+                <div class="product-detail__meta">
+                    <span class="product-meta__category">{{ product.category.name }}</span>
+                    {% if product.brand %}
+                        <span class="product-meta__brand">{{ product.brand.name }}</span>
+                    {% endif %}
+                </div>
+
+                <h1 class="product-detail__name">{{ product.name }}</h1>
+
+                {% if product.description %}
+                    <div class="product-detail__description">
+                        {{ product.description|linebreaksbr }}
+                    </div>
+                {% endif %}
+
+                <p class="product-detail__sku">Ref.: <code>{{ product.sku_base }}</code></p>
+
+                {# Variantes #}
+                {% with variants=product.variants.all %}
+                {% if variants %}
+                <div class="product-detail__variants">
+                    <h2 class="variants-title">Variantes disponibles</h2>
+                    <table class="variants-table">
+                        <thead>
+                            <tr>
+                                <th>Referencia</th>
+                                <th>Descripción</th>
+                                {% if features.ENABLE_B2B_PRICING %}
+                                    <th>Precio neto</th>
+                                {% endif %}
+                                <th>Disponibilidad</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for variant in variants %}
+                            <tr class="{% if not variant.is_in_stock %}variant-row--out-of-stock{% endif %}">
+                                <td><code>{{ variant.sku }}</code></td>
+                                <td>{{ variant.name }}</td>
+                                {% if features.ENABLE_B2B_PRICING %}
+                                    <td class="price-cell">
+                                        {{ variant.price_no_tax }} €<small> / {{ product.unit_of_measure }}</small>
+                                    </td>
+                                {% endif %}
+                                <td>
+                                    {% if variant.is_in_stock %}
+                                        <span class="badge badge--success">Disponible</span>
+                                    {% else %}
+                                        <span class="badge badge--neutral">Sin stock</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+                {% endwith %}
+
+            </div>
+        </div>
+    </div>
+</section>
+
+{# ── Productos relacionados ────────────────────────────────────────────── #}
+{% if related %}
+<section class="related-products">
+    <div class="container">
+        <h2 class="section-title">Otros productos de {{ product.category.name }}</h2>
+        <div class="product-grid product-grid--compact">
+            {% for rp in related %}
+            {% with variant=rp.primary_variant %}
+            <article class="product-card product-card--compact">
+                <a href="{% url 'catalog:product_detail' rp.slug %}" class="product-card__link">
+                    <div class="product-card__image-wrap">
+                        {% if variant and variant.image %}
+                            <img src="{{ variant.image.url }}"
+                                 alt="{{ rp.name }}"
+                                 class="product-card__img"
+                                 loading="lazy"
+                                 width="300" height="300">
+                        {% else %}
+                            <div class="product-card__placeholder" aria-hidden="true">
+                                <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <rect x="8"  y="8"  width="28" height="28" rx="3" fill="currentColor" opacity="0.18"/>
+                                    <rect x="44" y="8"  width="28" height="28" rx="3" fill="currentColor" opacity="0.12"/>
+                                    <rect x="8"  y="44" width="28" height="28" rx="3" fill="currentColor" opacity="0.12"/>
+                                    <rect x="44" y="44" width="28" height="28" rx="3" fill="currentColor" opacity="0.18"/>
+                                </svg>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="product-card__body">
+                        <h3 class="product-card__name">{{ rp.name }}</h3>
+                        {% if variant and features.ENABLE_B2B_PRICING %}
+                            <p class="product-card__price">{{ variant.price_no_tax }} €</p>
+                        {% endif %}
+                    </div>
+                </a>
+            </article>
+            {% endwith %}
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{% endblock %}

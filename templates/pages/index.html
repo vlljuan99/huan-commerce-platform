@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}{{ branding.commercial_name }}{% endblock %}
+
+{% block meta_description %}{{ branding.meta.default_description }}{% endblock %}
+
+{% block content %}
+
+<section class="hero">
+    <div class="container">
+        <div class="hero-content">
+            <h1 class="hero-title">
+                {{ branding.commercial_name }}<br>
+                <span class="accent">{{ branding.tagline }}</span>
+            </h1>
+            <p class="hero-subtitle">
+                {{ branding.meta.default_description }}
+            </p>
+            <div class="hero-actions">
+                <a href="/api/products/" class="btn btn--primary">Ver Catálogo API</a>
+                <a href="{% url 'admin:index' %}" class="btn btn--outline">Panel de Admin</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% if modules %}
+<section class="features">
+    <div class="container">
+        <h2 class="section-title">Módulos disponibles</h2>
+        <div class="features-grid">
+            {% for module in modules %}
+            <article class="feature-card">
+                <div class="feature-card__icon" aria-hidden="true">{{ module.icon }}</div>
+                <h3 class="feature-card__title">{{ module.title }}</h3>
+                <p class="feature-card__desc">{{ module.description }}</p>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{% if api_endpoints %}
+<section class="api-info">
+    <div class="container">
+        <h2 class="section-title">API REST</h2>
+        <div class="api-endpoints">
+            {% for ep in api_endpoints %}
+            <div class="endpoint">
+                <span class="method method--{{ ep.method|lower }}">{{ ep.method }}</span>
+                <code class="endpoint__path">{{ ep.path }}</code>
+                <span class="endpoint__desc">{{ ep.description }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{% endblock %}

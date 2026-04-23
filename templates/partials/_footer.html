@@ -1,0 +1,19 @@
+<footer class="site-footer">
+    <div class="container">
+        <p>
+            <strong>{{ branding.footer.company_name|default:branding.commercial_name }}</strong>
+            {% if branding.footer.address %}
+                &mdash; {{ branding.footer.address }}, {{ branding.footer.zip }} {{ branding.footer.city }}
+            {% endif %}
+        </p>
+        <p>
+            {% if branding.footer.phone %}
+                <a href="tel:{{ branding.footer.phone }}">{{ branding.footer.phone }}</a>&nbsp;
+            {% endif %}
+            {% if branding.footer.email %}
+                <a href="mailto:{{ branding.footer.email }}">{{ branding.footer.email }}</a>
+            {% endif %}
+        </p>
+        <p class="text-muted">&copy; {% now "Y" %} {{ branding.footer.legal_name|default:branding.commercial_name }}</p>
+    </div>
+</footer>

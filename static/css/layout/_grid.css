@@ -1,0 +1,28 @@
+/* ============================================
+   Layout — Container & grid
+   ============================================ */
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--space-lg);
+}
+
+.container--narrow {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 var(--space-lg);
+}
+
+.main-content {
+    flex: 1;
+}
+
+/* Section spacing */
+.section {
+    padding: var(--space-3xl) 0;
+}
+
+.section--alt {
+    background: var(--color-surface);
+}

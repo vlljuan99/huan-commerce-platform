@@ -1,0 +1,27 @@
+/* ============================================
+   Layout — Site footer
+   ============================================ */
+
+.site-footer {
+    background: var(--color-primary);
+    color: rgba(255, 255, 255, 0.6);
+    padding: var(--space-lg) 0;
+    font-size: 0.875rem;
+}
+
+.site-footer .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-md);
+}
+
+.site-footer a {
+    color: rgba(255, 255, 255, 0.8);
+    transition: color var(--transition);
+}
+
+.site-footer a:hover {
+    color: var(--color-accent-light);
+}

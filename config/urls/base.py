@@ -5,8 +5,11 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from apps.core.views import IndexView
 
 urlpatterns = [
+    path('', IndexView.as_view(), name='index'),
+    path('catalogo/', include('apps.catalog.catalog_urls')),
     path('admin/', admin.site.urls),
     path('api/', include('apps.catalog.urls')),
     path('api/', include('apps.customers.urls')),

@@ -1,0 +1,18 @@
+{
+    "instance_id": "helvagres_demo",
+    "client_name": "Helvagres S.L.",
+    "archetype": "b2b_ceramic_distributor",
+    "locale": "es-ES",
+    "timezone": "Europe/Madrid",
+    "currency": "EUR",
+    "tax_country": "ES",
+    "default_tax_rate": 21,
+    "catalog_mode": "b2b",
+    "pricing_model": "tariff_by_segment",
+    "contact": {
+        "primary": "admin@helvagres.es",
+        "support": "soporte@helvagres.es"
+    },
+    "active": true,
+    "created_at": "2026-04-23"
+}

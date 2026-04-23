@@ -1,0 +1,12 @@
+{
+    "ENABLE_ONLINE_PAYMENTS": false,
+    "ENABLE_PUBLIC_STOCK": false,
+    "ENABLE_RECTIFICATIVE_INVOICES": false,
+    "ENABLE_B2B_PRICING": true,
+    "ENABLE_SIMPLIFIED_CHECKOUT": false,
+    "ENABLE_CATALOG_PUBLIC": true,
+    "ENABLE_CUSTOMER_REGISTRATION": false,
+    "ENABLE_WISHLIST": false,
+    "ENABLE_REVIEWS": false,
+    "ENABLE_BLOG": false
+}

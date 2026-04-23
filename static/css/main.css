@@ -1,0 +1,26 @@
+﻿/* ============================================
+   Huan Commerce Platform — CSS Entry Point
+   Import order: base → layout → components → pages → utilities
+   ============================================ */
+
+/* Base */
+@import 'base/_variables.css';
+@import 'base/_reset.css';
+
+/* Layout */
+@import 'layout/_grid.css';
+@import 'layout/_header.css';
+@import 'layout/_footer.css';
+
+/* Components */
+@import 'components/_buttons.css';
+@import 'components/_cards.css';
+@import 'components/_badges.css';
+@import 'components/_messages.css';
+
+/* Pages */
+@import 'pages/_home.css';
+@import 'pages/_catalog.css';
+
+/* Utilities */
+@import 'utilities/_helpers.css';
