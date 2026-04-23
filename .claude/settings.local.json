@@ -12,7 +12,11 @@
       "WebFetch(domain:github.com)",
       "Read(//tmp/**)",
       "Bash(xargs wc *)",
-      "Bash(xargs -I {} sh -c 'echo \"=== {} ===\" && head -100 {}')"
+      "Bash(xargs -I {} sh -c 'echo \"=== {} ===\" && head -100 {}')",
+      "Bash(xargs ls *)",
+      "Bash(python3 -c ' *)",
+      "Bash(cygpath -w /tmp)",
+      "Bash(echo \"tmp is: $\\(cygpath -w /tmp 2>/dev/null || realpath /tmp\\)\")"
     ]
   }
 }

@@ -3,7 +3,7 @@
     <div class="container">
         <a href="{% url 'index' %}" class="logo" aria-label="{{ branding.commercial_name|default:'Huan' }} — Inicio">
             {% if branding.logo %}
-                <img src="{{ branding.logo }}" alt="{{ branding.commercial_name }}" class="logo-img" height="36">
+                <img src="{{ branding.logo }}" alt="{{ branding.commercial_name }}" class="logo-img" height="36" width="auto">
             {% else %}
                 <span class="logo-text">{{ branding.commercial_name|default:'Huan' }}</span>
             {% endif %}

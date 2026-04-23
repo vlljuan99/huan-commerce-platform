@@ -3,11 +3,13 @@
    ============================================ */
 
 :root {
-    /* Colors */
-    --color-primary:        #1a365d;
-    --color-primary-light:  #2a4a7f;
-    --color-accent:         #c97b1a;
-    --color-accent-light:   #e8a94a;
+    /* Colors — fallback cuando no hay branding inyectado desde el template.
+       En producción estos valores son sobreescritos por el <style> inline de base.html
+       que lee branding.colors de la instancia activa. */
+    --color-primary:        #1a3a2a;
+    --color-primary-light:  #2a5a40;
+    --color-accent:         #c8a84b;
+    --color-accent-light:   #e2c97a;
 
     --color-bg:             #f8f9fa;
     --color-surface:        #ffffff;
