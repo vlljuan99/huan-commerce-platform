@@ -1,0 +1,103 @@
+{% extends "backoffice/base.html" %}
+
+{% block title %}Factura {{ invoice.invoice_number }}{% endblock %}
+{% block page_title %}Factura {{ invoice.invoice_number }}{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'backoffice:invoice_list' %}" class="btn btn--ghost btn--sm">← Volver</a>
+{% if invoice.pdf_file %}
+<a href="{{ invoice.pdf_file.url }}" class="btn btn--primary btn--sm" target="_blank">Descargar PDF</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+
+<div class="bo-detail-grid">
+
+    <div class="bo-card">
+        <h2 class="bo-card__title">Datos de la factura</h2>
+        <dl class="bo-dl">
+            <dt>Estado</dt>
+            <dd><span class="badge badge--{{ invoice.status }}">{{ invoice.get_status_display }}</span></dd>
+            <dt>Serie</dt>
+            <dd>{{ invoice.series }}</dd>
+            <dt>Cliente</dt>
+            <dd><a href="{% url 'backoffice:customer_detail' invoice.customer.pk %}" class="bo-link">{{ invoice.customer }}</a></dd>
+            {% if invoice.order %}
+            <dt>Pedido vinculado</dt>
+            <dd><a href="{% url 'backoffice:order_detail' invoice.order.pk %}" class="bo-link">{{ invoice.order.order_number }}</a></dd>
+            {% endif %}
+            <dt>Fecha emisión</dt>
+            <dd>{{ invoice.issued_at|date:"d/m/Y" }}</dd>
+            {% if invoice.due_date %}
+            <dt>Vencimiento</dt>
+            <dd>{{ invoice.due_date|date:"d/m/Y" }}</dd>
+            {% endif %}
+            {% if invoice.notes %}
+            <dt>Notas</dt>
+            <dd>{{ invoice.notes }}</dd>
+            {% endif %}
+        </dl>
+    </div>
+
+    <div class="bo-card">
+        <h2 class="bo-card__title">Datos fiscales (snapshot)</h2>
+        <dl class="bo-dl">
+            {% if invoice.billing_name_snapshot %}
+            <dt>Razón social</dt>
+            <dd>{{ invoice.billing_name_snapshot }}</dd>
+            {% endif %}
+            {% if invoice.tax_id_snapshot %}
+            <dt>NIF/CIF</dt>
+            <dd>{{ invoice.tax_id_snapshot }}</dd>
+            {% endif %}
+            {% if invoice.billing_address_snapshot %}
+            <dt>Dirección fiscal</dt>
+            <dd class="bo-address">{{ invoice.billing_address_snapshot }}</dd>
+            {% endif %}
+        </dl>
+    </div>
+
+    <div class="bo-card">
+        <h2 class="bo-card__title">Importes</h2>
+        <dl class="bo-dl bo-dl--totals">
+            <dt>Base imponible</dt>
+            <dd>{{ invoice.subtotal|floatformat:2 }} €</dd>
+            <dt>IVA</dt>
+            <dd>{{ invoice.tax_amount|floatformat:2 }} €</dd>
+            <dt class="bo-dl__total-label">Total</dt>
+            <dd class="bo-dl__total-value">{{ invoice.total|floatformat:2 }} €</dd>
+        </dl>
+    </div>
+
+</div>
+
+<section class="bo-section">
+    <h2 class="bo-section__title">Líneas de la factura</h2>
+    <div class="bo-table-wrap">
+        <table class="bo-table">
+            <thead>
+                <tr>
+                    <th>Descripción</th><th>Cantidad</th><th>Precio unitario</th>
+                    <th>IVA %</th><th>IVA €</th><th>Total línea (sin IVA)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in invoice.items.all %}
+                <tr>
+                    <td>{{ item.description }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.unit_price|floatformat:2 }} €</td>
+                    <td>{{ item.tax_rate_pct|floatformat:0 }}%</td>
+                    <td>{{ item.tax_amount|floatformat:2 }} €</td>
+                    <td><strong>{{ item.line_total|floatformat:2 }} €</strong></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="bo-table__empty">Sin líneas.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% endblock %}

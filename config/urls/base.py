@@ -11,6 +11,7 @@ urlpatterns = [
     path('', IndexView.as_view(), name='index'),
     path('catalogo/', include('apps.catalog.catalog_urls')),
     path('admin/', admin.site.urls),
+    path('panel/', include('apps.backoffice.urls')),
     path('api/', include('apps.catalog.urls')),
     path('api/', include('apps.customers.urls')),
     path('api/', include('apps.orders.urls')),

@@ -1,0 +1,76 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Panel{% endblock %} — {{ branding.commercial_name|default:"Huan" }} Admin</title>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    {% if branding.colors %}
+    <style>
+        :root {
+            --color-primary:       {{ branding.colors.primary|default:"#1a365d" }};
+            --color-primary-light: {{ branding.colors.primary_light|default:"#2a4a7f" }};
+            --color-accent:        {{ branding.colors.accent|default:"#c97b1a" }};
+        }
+    </style>
+    {% endif %}
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bo-body">
+<div class="bo-layout">
+
+    <aside class="bo-sidebar">
+        <div class="bo-sidebar__brand">
+            <a href="{% url 'backoffice:dashboard' %}" class="bo-sidebar__logo">
+                <span class="bo-sidebar__logo-text">{{ branding.commercial_name|default:"Huan" }}</span>
+                <span class="bo-sidebar__logo-badge">Admin</span>
+            </a>
+        </div>
+        <nav class="bo-nav" aria-label="Panel de administración">
+            <a href="{% url 'backoffice:dashboard' %}"
+               class="bo-nav__item {% if request.resolver_match.url_name == 'dashboard' %}bo-nav__item--active{% endif %}">
+                <span class="bo-nav__icon">&#9783;</span> Dashboard
+            </a>
+            <a href="{% url 'backoffice:order_list' %}"
+               class="bo-nav__item {% if 'order' in request.resolver_match.url_name %}bo-nav__item--active{% endif %}">
+                <span class="bo-nav__icon">&#128203;</span> Pedidos
+            </a>
+            <a href="{% url 'backoffice:customer_list' %}"
+               class="bo-nav__item {% if 'customer' in request.resolver_match.url_name %}bo-nav__item--active{% endif %}">
+                <span class="bo-nav__icon">&#128101;</span> Clientes
+            </a>
+            <a href="{% url 'backoffice:invoice_list' %}"
+               class="bo-nav__item {% if 'invoice' in request.resolver_match.url_name %}bo-nav__item--active{% endif %}">
+                <span class="bo-nav__icon">&#128196;</span> Facturas
+            </a>
+            <a href="{% url 'backoffice:catalog_list' %}"
+               class="bo-nav__item {% if 'catalog' in request.resolver_match.url_name %}bo-nav__item--active{% endif %}">
+                <span class="bo-nav__icon">&#128230;</span> Catálogo
+            </a>
+        </nav>
+        <div class="bo-sidebar__footer">
+            <a href="{% url 'index' %}" class="bo-sidebar__back-link">&#8592; Ver tienda</a>
+            <span class="bo-sidebar__user">{{ request.user.email }}</span>
+        </div>
+    </aside>
+
+    <div class="bo-main">
+        <header class="bo-topbar">
+            <h1 class="bo-topbar__title">{% block page_title %}Panel{% endblock %}</h1>
+            <div class="bo-topbar__actions">{% block topbar_actions %}{% endblock %}</div>
+        </header>
+        <main class="bo-content">
+            {% if messages %}
+                {% for msg in messages %}
+                    <div class="msg msg--{{ msg.tags }}">{{ msg }}</div>
+                {% endfor %}
+            {% endif %}
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+</div>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

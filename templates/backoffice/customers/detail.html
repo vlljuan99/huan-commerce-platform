@@ -1,0 +1,121 @@
+{% extends "backoffice/base.html" %}
+
+{% block title %}{{ customer }}{% endblock %}
+{% block page_title %}{{ customer }}{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'backoffice:customer_list' %}" class="btn btn--ghost btn--sm">← Volver</a>
+{% endblock %}
+
+{% block content %}
+
+<div class="bo-detail-grid">
+
+    <div class="bo-card">
+        <h2 class="bo-card__title">Datos del cliente</h2>
+        <dl class="bo-dl">
+            <dt>Segmento</dt>
+            <dd><span class="badge {% if customer.segment == 'b2b' %}badge--confirmed{% else %}badge--pending{% endif %}">{{ customer.get_segment_display }}</span></dd>
+            <dt>Email de acceso</dt>
+            <dd>{{ customer.user.email }}</dd>
+            {% if customer.contact_email %}
+            <dt>Email de contacto</dt>
+            <dd>{{ customer.contact_email }}</dd>
+            {% endif %}
+            {% if customer.company_name %}
+            <dt>Empresa</dt>
+            <dd>{{ customer.company_name }}</dd>
+            {% endif %}
+            {% if customer.fiscal_name %}
+            <dt>Razón social</dt>
+            <dd>{{ customer.fiscal_name }}</dd>
+            {% endif %}
+            {% if customer.tax_id %}
+            <dt>NIF/CIF</dt>
+            <dd>{{ customer.tax_id }}</dd>
+            {% endif %}
+            {% if customer.phone %}
+            <dt>Teléfono</dt>
+            <dd>{{ customer.phone }}</dd>
+            {% endif %}
+            <dt>Alta</dt>
+            <dd>{{ customer.created_at|date:"d/m/Y" }}</dd>
+        </dl>
+    </div>
+
+    {% if customer.addresses.all %}
+    <div class="bo-card">
+        <h2 class="bo-card__title">Direcciones</h2>
+        {% for addr in customer.addresses.all %}
+        <div class="bo-address-block">
+            <span class="badge badge--draft">{{ addr.get_address_type_display }}</span>
+            <p class="bo-address">{{ addr.street_address }}<br>{{ addr.postal_code }} {{ addr.city }}, {{ addr.province }}<br>{{ addr.country }}</p>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if customer.notes %}
+    <div class="bo-card">
+        <h2 class="bo-card__title">Notas internas</h2>
+        <p class="bo-notes">{{ customer.notes }}</p>
+    </div>
+    {% endif %}
+
+</div>
+
+<section class="bo-section">
+    <div class="bo-section__header">
+        <h2 class="bo-section__title">Pedidos</h2>
+        <a href="{% url 'backoffice:order_list' %}" class="bo-link">Ver todos →</a>
+    </div>
+    <div class="bo-table-wrap">
+        <table class="bo-table">
+            <thead>
+                <tr><th>Nº pedido</th><th>Estado</th><th>Total</th><th>Fecha</th><th></th></tr>
+            </thead>
+            <tbody>
+                {% for order in recent_orders %}
+                <tr>
+                    <td><code>{{ order.order_number }}</code></td>
+                    <td><span class="badge badge--{{ order.status }}">{{ order.get_status_display }}</span></td>
+                    <td>{{ order.total|floatformat:2 }} €</td>
+                    <td>{{ order.created_at|date:"d/m/Y" }}</td>
+                    <td><a href="{% url 'backoffice:order_detail' order.pk %}" class="bo-link">Ver</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="bo-table__empty">Sin pedidos.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="bo-section">
+    <div class="bo-section__header">
+        <h2 class="bo-section__title">Facturas</h2>
+        <a href="{% url 'backoffice:invoice_list' %}" class="bo-link">Ver todas →</a>
+    </div>
+    <div class="bo-table-wrap">
+        <table class="bo-table">
+            <thead>
+                <tr><th>Nº factura</th><th>Estado</th><th>Total</th><th>Fecha emisión</th><th></th></tr>
+            </thead>
+            <tbody>
+                {% for inv in recent_invoices %}
+                <tr>
+                    <td><code>{{ inv.invoice_number }}</code></td>
+                    <td><span class="badge badge--{{ inv.status }}">{{ inv.get_status_display }}</span></td>
+                    <td>{{ inv.total|floatformat:2 }} €</td>
+                    <td>{{ inv.issued_at|date:"d/m/Y" }}</td>
+                    <td><a href="{% url 'backoffice:invoice_detail' inv.pk %}" class="bo-link">Ver</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="bo-table__empty">Sin facturas.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% endblock %}

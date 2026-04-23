@@ -1,0 +1,61 @@
+{% extends "backoffice/base.html" %}
+
+{% block title %}Clientes{% endblock %}
+{% block page_title %}Clientes{% endblock %}
+
+{% block content %}
+
+<form method="get" class="bo-filters">
+    <input type="text" name="q" value="{{ q }}" placeholder="Buscar por email, empresa o NIF…" class="bo-filters__search">
+    <select name="segment" class="bo-filters__select">
+        <option value="">Todos los segmentos</option>
+        {% for value, label in segment_choices %}
+            <option value="{{ value }}" {% if current_segment == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit" class="btn btn--primary">Filtrar</button>
+    {% if q or current_segment %}
+        <a href="{% url 'backoffice:customer_list' %}" class="btn btn--ghost">Limpiar</a>
+    {% endif %}
+</form>
+
+<div class="bo-table-wrap">
+    <table class="bo-table">
+        <thead>
+            <tr>
+                <th>Cliente</th><th>Email</th><th>NIF/CIF</th>
+                <th>Segmento</th><th>Teléfono</th><th>Alta</th><th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for customer in customers %}
+            <tr>
+                <td>
+                    {% if customer.company_name %}
+                        <strong>{{ customer.company_name }}</strong><br>
+                        <small class="text-muted">{{ customer.user.get_full_name }}</small>
+                    {% else %}
+                        {{ customer.user.get_full_name|default:customer.user.email }}
+                    {% endif %}
+                </td>
+                <td>{{ customer.user.email }}</td>
+                <td>{{ customer.tax_id|default:"—" }}</td>
+                <td>
+                    <span class="badge {% if customer.segment == 'b2b' %}badge--confirmed{% else %}badge--pending{% endif %}">
+                        {{ customer.get_segment_display }}
+                    </span>
+                </td>
+                <td>{{ customer.phone|default:"—" }}</td>
+                <td>{{ customer.created_at|date:"d/m/Y" }}</td>
+                <td><a href="{% url 'backoffice:customer_detail' customer.pk %}" class="btn btn--sm btn--ghost">Ver</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" class="bo-table__empty">No se encontraron clientes.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% include "backoffice/_pagination.html" %}
+
+{% endblock %}

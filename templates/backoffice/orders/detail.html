@@ -1,0 +1,93 @@
+{% extends "backoffice/base.html" %}
+
+{% block title %}Pedido {{ order.order_number }}{% endblock %}
+{% block page_title %}Pedido {{ order.order_number }}{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'backoffice:order_list' %}" class="btn btn--ghost btn--sm">← Volver</a>
+{% endblock %}
+
+{% block content %}
+
+<div class="bo-detail-grid">
+
+    <div class="bo-card">
+        <h2 class="bo-card__title">Información del pedido</h2>
+        <dl class="bo-dl">
+            <dt>Estado</dt>
+            <dd><span class="badge badge--{{ order.status }}">{{ order.get_status_display }}</span></dd>
+            <dt>Cliente</dt>
+            <dd><a href="{% url 'backoffice:customer_detail' order.customer.pk %}" class="bo-link">{{ order.customer }}</a></dd>
+            <dt>Fecha creación</dt>
+            <dd>{{ order.created_at|date:"d/m/Y H:i" }}</dd>
+            {% if order.confirmed_at %}
+            <dt>Fecha confirmación</dt>
+            <dd>{{ order.confirmed_at|date:"d/m/Y H:i" }}</dd>
+            {% endif %}
+            {% if order.notes %}
+            <dt>Notas</dt>
+            <dd>{{ order.notes }}</dd>
+            {% endif %}
+        </dl>
+    </div>
+
+    <div class="bo-card">
+        <h2 class="bo-card__title">Importes</h2>
+        <dl class="bo-dl bo-dl--totals">
+            <dt>Subtotal (sin IVA)</dt>
+            <dd>{{ order.subtotal|floatformat:2 }} €</dd>
+            <dt>IVA</dt>
+            <dd>{{ order.tax_amount|floatformat:2 }} €</dd>
+            <dt>Envío</dt>
+            <dd>{{ order.shipping_cost|floatformat:2 }} €</dd>
+            <dt class="bo-dl__total-label">Total</dt>
+            <dd class="bo-dl__total-value">{{ order.total|floatformat:2 }} €</dd>
+        </dl>
+    </div>
+
+    {% if order.shipping_address_snapshot or order.billing_address_snapshot %}
+    <div class="bo-card">
+        <h2 class="bo-card__title">Direcciones</h2>
+        {% if order.shipping_address_snapshot %}
+        <h3 class="bo-card__subtitle">Envío</h3>
+        <p class="bo-address">{{ order.shipping_address_snapshot }}</p>
+        {% endif %}
+        {% if order.billing_address_snapshot %}
+        <h3 class="bo-card__subtitle">Facturación</h3>
+        <p class="bo-address">{{ order.billing_address_snapshot }}</p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+</div>
+
+<section class="bo-section">
+    <h2 class="bo-section__title">Líneas del pedido</h2>
+    <div class="bo-table-wrap">
+        <table class="bo-table">
+            <thead>
+                <tr>
+                    <th>Producto</th><th>SKU</th><th>Cantidad</th>
+                    <th>Precio unitario</th><th>IVA %</th><th>IVA €</th><th>Total línea</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.items.all %}
+                <tr>
+                    <td>{{ item.product_name }}</td>
+                    <td><code>{{ item.sku }}</code></td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.unit_price|floatformat:2 }} €</td>
+                    <td>{{ item.tax_rate_pct|floatformat:0 }}%</td>
+                    <td>{{ item.tax_amount|floatformat:2 }} €</td>
+                    <td><strong>{{ item.line_total_with_tax|floatformat:2 }} €</strong></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="bo-table__empty">Sin líneas.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% endblock %}

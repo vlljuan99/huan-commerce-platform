@@ -1,0 +1,94 @@
+{% extends "backoffice/base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<div class="bo-stats">
+    <div class="bo-stat">
+        <span class="bo-stat__label">Facturado este mes</span>
+        <span class="bo-stat__value">{{ revenue_month|floatformat:2 }} €</span>
+    </div>
+    <div class="bo-stat">
+        <span class="bo-stat__label">Pedidos pendientes</span>
+        <span class="bo-stat__value">{{ orders_pending }}</span>
+        <span class="bo-stat__sub">de {{ orders_total }} totales</span>
+    </div>
+    <div class="bo-stat">
+        <span class="bo-stat__label">Clientes</span>
+        <span class="bo-stat__value">{{ customers_total }}</span>
+        <span class="bo-stat__sub">{{ customers_b2b }} B2B</span>
+    </div>
+    <div class="bo-stat {% if invoices_overdue %}bo-stat--danger{% endif %}">
+        <span class="bo-stat__label">Facturas pendientes</span>
+        <span class="bo-stat__value">{{ invoices_pending }}</span>
+        {% if invoices_overdue %}
+            <span class="bo-stat__sub bo-stat__sub--danger">{{ invoices_overdue }} vencidas</span>
+        {% endif %}
+    </div>
+</div>
+
+<section class="bo-section">
+    <div class="bo-section__header">
+        <h2 class="bo-section__title">Últimos pedidos</h2>
+        <a href="{% url 'backoffice:order_list' %}" class="bo-link">Ver todos →</a>
+    </div>
+    <div class="bo-table-wrap">
+        <table class="bo-table">
+            <thead>
+                <tr>
+                    <th>Nº pedido</th><th>Cliente</th><th>Estado</th>
+                    <th>Total</th><th>Fecha</th><th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in recent_orders %}
+                <tr>
+                    <td><code>{{ order.order_number }}</code></td>
+                    <td>{{ order.customer }}</td>
+                    <td><span class="badge badge--{{ order.status }}">{{ order.get_status_display }}</span></td>
+                    <td>{{ order.total|floatformat:2 }} €</td>
+                    <td>{{ order.created_at|date:"d/m/Y" }}</td>
+                    <td><a href="{% url 'backoffice:order_detail' order.pk %}" class="bo-link">Ver</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="bo-table__empty">No hay pedidos aún.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="bo-section">
+    <div class="bo-section__header">
+        <h2 class="bo-section__title">Últimas facturas</h2>
+        <a href="{% url 'backoffice:invoice_list' %}" class="bo-link">Ver todas →</a>
+    </div>
+    <div class="bo-table-wrap">
+        <table class="bo-table">
+            <thead>
+                <tr>
+                    <th>Nº factura</th><th>Cliente</th><th>Estado</th>
+                    <th>Total</th><th>Emisión</th><th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for inv in recent_invoices %}
+                <tr>
+                    <td><code>{{ inv.invoice_number }}</code></td>
+                    <td>{{ inv.customer }}</td>
+                    <td><span class="badge badge--{{ inv.status }}">{{ inv.get_status_display }}</span></td>
+                    <td>{{ inv.total|floatformat:2 }} €</td>
+                    <td>{{ inv.issued_at|date:"d/m/Y" }}</td>
+                    <td><a href="{% url 'backoffice:invoice_detail' inv.pk %}" class="bo-link">Ver</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="bo-table__empty">No hay facturas aún.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% endblock %}

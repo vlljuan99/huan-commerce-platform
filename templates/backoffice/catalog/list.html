@@ -1,0 +1,57 @@
+{% extends "backoffice/base.html" %}
+
+{% block title %}Catálogo{% endblock %}
+{% block page_title %}Catálogo de productos{% endblock %}
+
+{% block content %}
+
+<form method="get" class="bo-filters">
+    <input type="text" name="q" value="{{ q }}" placeholder="Buscar por nombre o SKU…" class="bo-filters__search">
+    <button type="submit" class="btn btn--primary">Filtrar</button>
+    {% if q %}
+        <a href="{% url 'backoffice:catalog_list' %}" class="btn btn--ghost">Limpiar</a>
+    {% endif %}
+</form>
+
+<div class="bo-table-wrap">
+    <table class="bo-table">
+        <thead>
+            <tr>
+                <th>Producto</th><th>SKU base</th><th>Categoría</th>
+                <th>Marca</th><th>Variantes</th><th>Precio desde</th><th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product in products %}
+            {% with variants=product.variants.all %}
+            <tr>
+                <td>
+                    <strong>{{ product.name }}</strong>
+                    {% if product.is_featured %}
+                        <span class="badge badge--confirmed">Destacado</span>
+                    {% endif %}
+                </td>
+                <td><code>{{ product.sku_base }}</code></td>
+                <td>{{ product.category }}</td>
+                <td>{{ product.brand|default:"—" }}</td>
+                <td>{{ variants|length }}</td>
+                <td>
+                    {% if variants %}{{ variants.0.price_no_tax|floatformat:2 }} €{% else %}—{% endif %}
+                </td>
+                <td>
+                    <span class="badge {% if product.is_active %}badge--delivered{% else %}badge--cancelled{% endif %}">
+                        {% if product.is_active %}Activo{% else %}Inactivo{% endif %}
+                    </span>
+                </td>
+            </tr>
+            {% endwith %}
+            {% empty %}
+            <tr><td colspan="7" class="bo-table__empty">No se encontraron productos.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% include "backoffice/_pagination.html" %}
+
+{% endblock %}

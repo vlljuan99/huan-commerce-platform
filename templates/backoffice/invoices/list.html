@@ -1,0 +1,57 @@
+{% extends "backoffice/base.html" %}
+
+{% block title %}Facturas{% endblock %}
+{% block page_title %}Facturas{% endblock %}
+
+{% block content %}
+
+<form method="get" class="bo-filters">
+    <input type="text" name="q" value="{{ q }}" placeholder="Buscar por nº factura o email…" class="bo-filters__search">
+    <select name="status" class="bo-filters__select">
+        <option value="">Todos los estados</option>
+        {% for value, label in status_choices %}
+            <option value="{{ value }}" {% if current_status == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit" class="btn btn--primary">Filtrar</button>
+    {% if q or current_status %}
+        <a href="{% url 'backoffice:invoice_list' %}" class="btn btn--ghost">Limpiar</a>
+    {% endif %}
+</form>
+
+<div class="bo-table-wrap">
+    <table class="bo-table">
+        <thead>
+            <tr>
+                <th>Nº factura</th><th>Cliente</th><th>Estado</th>
+                <th>Subtotal</th><th>IVA</th><th>Total</th>
+                <th>Emisión</th><th>Vencimiento</th><th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for inv in invoices %}
+            <tr>
+                <td><code>{{ inv.invoice_number }}</code></td>
+                <td>
+                    <a href="{% url 'backoffice:customer_detail' inv.customer.pk %}" class="bo-link">
+                        {{ inv.customer }}
+                    </a>
+                </td>
+                <td><span class="badge badge--{{ inv.status }}">{{ inv.get_status_display }}</span></td>
+                <td>{{ inv.subtotal|floatformat:2 }} €</td>
+                <td>{{ inv.tax_amount|floatformat:2 }} €</td>
+                <td><strong>{{ inv.total|floatformat:2 }} €</strong></td>
+                <td>{{ inv.issued_at|date:"d/m/Y" }}</td>
+                <td>{% if inv.due_date %}{{ inv.due_date|date:"d/m/Y" }}{% else %}—{% endif %}</td>
+                <td><a href="{% url 'backoffice:invoice_detail' inv.pk %}" class="btn btn--sm btn--ghost">Ver</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="9" class="bo-table__empty">No se encontraron facturas.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% include "backoffice/_pagination.html" %}
+
+{% endblock %}
