@@ -17,7 +17,23 @@
                {% if request.resolver_match.namespace == 'catalog' %}aria-current="page"{% endif %}>
                 Catálogo
             </a>
-            <a href="{% url 'admin:index' %}">Admin</a>
         </nav>
+
+        <div class="header-user">
+            {% if user.is_authenticated %}
+                {% if user.is_superuser or user.role in 'admin,commercial' %}
+                <a href="/panel/" class="btn btn--ghost btn--sm">Panel</a>
+                {% else %}
+                <a href="{% url 'accounts:portal' %}" class="btn btn--ghost btn--sm">Mi cuenta</a>
+                {% endif %}
+                <span class="header-user__name">{{ user.get_full_name|default:user.username }}</span>
+                <form method="post" action="{% url 'accounts:logout' %}" style="display:inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn--ghost btn--sm">Salir</button>
+                </form>
+            {% else %}
+                <a href="{% url 'accounts:login' %}" class="btn btn--primary btn--sm">Iniciar sesión</a>
+            {% endif %}
+        </div>
     </div>
 </header>

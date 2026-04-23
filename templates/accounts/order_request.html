@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Solicitar pedido{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top:2rem;padding-bottom:3rem;max-width:640px">
+
+    <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.5rem">
+        <a href="{% url 'accounts:portal' %}" class="btn btn--ghost btn--sm">← Volver</a>
+        <h1 style="font-size:1.25rem;font-weight:700;margin:0">Solicitar pedido</h1>
+    </div>
+
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:.5rem;padding:1.5rem">
+        <p style="font-size:.875rem;color:#6b7280;margin:0 0 1.25rem">
+            Describe los productos o servicios que necesitas. Nuestro equipo revisará tu solicitud y se pondrá en contacto contigo.
+        </p>
+
+        <form method="post" novalidate>
+            {% csrf_token %}
+
+            <div class="form-group" style="margin-bottom:1rem">
+                <label class="form-label" for="id_reference" style="display:block;font-weight:500;font-size:.875rem;margin-bottom:.35rem">
+                    Referencia / nº pedido interno <span style="color:#9ca3af;font-weight:400">(opcional)</span>
+                </label>
+                <input type="text" id="id_reference" name="reference" class="form-control"
+                       maxlength="80" placeholder="Ej: PO-2026-045"
+                       style="width:100%;padding:.5rem .75rem;border:1px solid #d1d5db;border-radius:.375rem;font-size:.875rem">
+            </div>
+
+            <div class="form-group" style="margin-bottom:1.25rem">
+                <label class="form-label" for="id_notes" style="display:block;font-weight:500;font-size:.875rem;margin-bottom:.35rem">
+                    Descripción del pedido <span style="color:#ef4444">*</span>
+                </label>
+                <textarea id="id_notes" name="notes" rows="6" required class="form-control"
+                          placeholder="Indica los productos, referencias, cantidades y cualquier detalle relevante…"
+                          style="width:100%;padding:.5rem .75rem;border:1px solid #d1d5db;border-radius:.375rem;font-size:.875rem;resize:vertical"></textarea>
+            </div>
+
+            <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+                <button type="submit" class="btn btn--primary">Enviar solicitud</button>
+                <a href="{% url 'accounts:portal' %}" class="btn btn--ghost">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

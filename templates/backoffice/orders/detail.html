@@ -5,6 +5,7 @@
 
 {% block topbar_actions %}
 <a href="{% url 'backoffice:order_list' %}" class="btn btn--ghost btn--sm">← Volver</a>
+<a href="{% url 'backoffice:order_edit' order.pk %}" class="btn btn--primary btn--sm">Editar estado</a>
 {% endblock %}
 
 {% block content %}

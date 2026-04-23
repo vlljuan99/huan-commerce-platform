@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Mi cuenta{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top:2rem;padding-bottom:3rem">
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:.75rem">
+        <h1 style="font-size:1.5rem;font-weight:700;margin:0">Mi cuenta</h1>
+        <a href="{% url 'accounts:order_request' %}" class="btn btn--primary btn--sm">+ Solicitar pedido</a>
+    </div>
+
+    {% if customer %}
+    <div style="background:#f9f9fb;border:1px solid #e5e7eb;border-radius:.5rem;padding:1rem 1.25rem;margin-bottom:1.5rem">
+        <p style="margin:0;font-size:.875rem;color:#6b7280">
+            Bienvenido/a, <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
+            {% if customer.company_name %}&nbsp;·&nbsp; {{ customer.company_name }}{% endif %}
+        </p>
+    </div>
+    {% else %}
+    <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:.5rem;padding:1rem;margin-bottom:1.5rem;font-size:.875rem">
+        Tu cuenta de usuario no tiene un perfil de cliente asociado. Contacta con nosotros si crees que se trata de un error.
+    </div>
+    {% endif %}
+
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:.5rem;overflow:hidden">
+        <div style="padding:.75rem 1.25rem;border-bottom:1px solid #e5e7eb;font-weight:600;font-size:.875rem">
+            Mis pedidos
+        </div>
+        {% if orders %}
+        <div style="overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse;font-size:.875rem">
+                <thead>
+                    <tr style="background:#f9fafb;text-align:left">
+                        <th style="padding:.6rem 1rem;font-weight:600;color:#374151">Nº pedido</th>
+                        <th style="padding:.6rem 1rem;font-weight:600;color:#374151">Fecha</th>
+                        <th style="padding:.6rem 1rem;font-weight:600;color:#374151">Estado</th>
+                        <th style="padding:.6rem 1rem;font-weight:600;color:#374151;text-align:right">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr style="border-top:1px solid #f3f4f6">
+                        <td style="padding:.6rem 1rem;font-weight:500">{{ order.order_number }}</td>
+                        <td style="padding:.6rem 1rem;color:#6b7280">{{ order.created_at|date:"d/m/Y" }}</td>
+                        <td style="padding:.6rem 1rem">
+                            <span class="badge badge--{{ order.status }}">{{ order.get_status_display }}</span>
+                        </td>
+                        <td style="padding:.6rem 1rem;text-align:right;font-variant-numeric:tabular-nums">
+                            {{ order.total|floatformat:2 }} €
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p style="padding:1.5rem 1.25rem;color:#6b7280;margin:0;font-size:.875rem">Aún no tienes pedidos registrados.</p>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

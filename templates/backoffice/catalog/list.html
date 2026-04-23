@@ -3,6 +3,10 @@
 {% block title %}Catálogo{% endblock %}
 {% block page_title %}Catálogo de productos{% endblock %}
 
+{% block topbar_actions %}
+<a href="{% url 'backoffice:product_create' %}" class="btn btn--primary btn--sm">+ Nuevo producto</a>
+{% endblock %}
+
 {% block content %}
 
 <form method="get" class="bo-filters">

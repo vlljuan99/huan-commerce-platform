@@ -3,6 +3,10 @@
 {% block title %}Facturas{% endblock %}
 {% block page_title %}Facturas{% endblock %}
 
+{% block topbar_actions %}
+<a href="{% url 'backoffice:invoice_create' %}" class="btn btn--primary btn--sm">+ Nueva factura</a>
+{% endblock %}
+
 {% block content %}
 
 <form method="get" class="bo-filters">

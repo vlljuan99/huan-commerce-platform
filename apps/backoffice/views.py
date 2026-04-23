@@ -10,14 +10,16 @@ from django.views.generic.edit import CreateView, UpdateView
 
 from apps.catalog.models import Product, ProductVariant
 from apps.customers.models import Customer, CustomerAddress
-from apps.invoicing.models import Invoice
+from apps.invoicing.models import Invoice, InvoiceSeries
 from apps.orders.models import Order
 
 from .forms import (
     CustomerAddressForm,
     CustomerCreateForm,
     CustomerForm,
+    InvoiceCreateForm,
     InvoiceStatusForm,
+    OrderCreateForm,
     OrderStatusForm,
     ProductForm,
     ProductVariantForm,
@@ -399,3 +401,59 @@ class ProductVariantUpdateView(BackofficeRequiredMixin, UpdateView):
         return reverse_lazy(
             "backoffice:product_edit", kwargs={"pk": self.object.product.pk}
         )
+
+
+# ── Invoice create ────────────────────────────────────────────────────────────
+
+class InvoiceCreateView(BackofficeRequiredMixin, CreateView):
+    template_name = "backoffice/invoices/create.html"
+    form_class = InvoiceCreateForm
+
+    def form_valid(self, form):
+        invoice = form.save(commit=False)
+        series = form.cleaned_data["series"]
+        num = series.get_next_number()
+        year = (
+            invoice.issued_at.year
+            if invoice.issued_at
+            else timezone.now().year
+        )
+        invoice.number = num
+        invoice.invoice_number = f"{series.prefix}-{year}-{num:04d}"
+        # Billing snapshots from customer
+        customer = form.cleaned_data["customer"]
+        invoice.billing_name_snapshot = customer.billing_name
+        invoice.tax_id_snapshot = customer.tax_id or ""
+        invoice.status = "draft"
+        invoice.save()
+        messages.success(
+            self.request, f"Factura {invoice.invoice_number} creada."
+        )
+        return redirect("backoffice:invoice_detail", pk=invoice.pk)
+
+
+# ── Order create ──────────────────────────────────────────────────────────────
+
+class OrderCreateView(BackofficeRequiredMixin, CreateView):
+    template_name = "backoffice/orders/create.html"
+    form_class = OrderCreateForm
+
+    def form_valid(self, form):
+        order = form.save(commit=False)
+        year = timezone.now().year
+        last = (
+            Order.objects.filter(order_number__startswith=f"ORD-{year}-")
+            .order_by("-order_number")
+            .first()
+        )
+        try:
+            n = int(last.order_number.split("-")[-1]) + 1 if last else 1
+        except (ValueError, IndexError):
+            n = 1
+        order.order_number = f"ORD-{year}-{n:04d}"
+        order.status = "draft"
+        order.save()
+        messages.success(
+            self.request, f"Pedido {order.order_number} creado."
+        )
+        return redirect("backoffice:order_detail", pk=order.pk)

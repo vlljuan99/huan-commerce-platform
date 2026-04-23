@@ -9,6 +9,7 @@ urlpatterns = [
 
     # Orders
     path("pedidos/", views.OrderListView.as_view(), name="order_list"),
+    path("pedidos/nuevo/", views.OrderCreateView.as_view(), name="order_create"),
     path("pedidos/<int:pk>/", views.OrderDetailView.as_view(), name="order_detail"),
     path("pedidos/<int:pk>/editar/", views.OrderUpdateView.as_view(), name="order_edit"),
 
@@ -22,6 +23,7 @@ urlpatterns = [
 
     # Invoices
     path("facturas/", views.InvoiceListView.as_view(), name="invoice_list"),
+    path("facturas/nueva/", views.InvoiceCreateView.as_view(), name="invoice_create"),
     path("facturas/<int:pk>/", views.InvoiceDetailView.as_view(), name="invoice_detail"),
     path("facturas/<int:pk>/editar/", views.InvoiceUpdateView.as_view(), name="invoice_edit"),
 

@@ -6,7 +6,7 @@ from django.contrib.auth.hashers import make_password
 from apps.accounts.models import User
 from apps.catalog.models import Product, ProductVariant
 from apps.customers.models import Customer, CustomerAddress
-from apps.invoicing.models import Invoice
+from apps.invoicing.models import Invoice, InvoiceSeries
 from apps.orders.models import Order
 
 _C = {"class": "bo-form__control"}
@@ -214,4 +214,42 @@ class InvoiceStatusForm(forms.ModelForm):
             "status":   "Estado",
             "due_date": "Fecha de vencimiento",
             "notes":    "Notas",
+        }
+
+
+class InvoiceCreateForm(forms.ModelForm):
+    class Meta:
+        model = Invoice
+        fields = ["customer", "order", "series", "issued_at", "due_date", "notes"]
+        widgets = {
+            "customer":  forms.Select(attrs=_C),
+            "order":     forms.Select(attrs=_C),
+            "series":    forms.Select(attrs=_C),
+            "issued_at": forms.DateInput(attrs={**_C, "type": "date"}),
+            "due_date":  forms.DateInput(attrs={**_C, "type": "date"}),
+            "notes":     forms.Textarea(attrs=_TA3),
+        }
+        labels = {
+            "customer":  "Cliente",
+            "order":     "Pedido relacionado (opcional)",
+            "series":    "Serie de facturación",
+            "issued_at": "Fecha de emisión",
+            "due_date":  "Fecha de vencimiento",
+            "notes":     "Notas",
+        }
+
+
+# ── Orders create ─────────────────────────────────────────────────────────────
+
+class OrderCreateForm(forms.ModelForm):
+    class Meta:
+        model = Order
+        fields = ["customer", "notes"]
+        widgets = {
+            "customer": forms.Select(attrs=_C),
+            "notes":    forms.Textarea(attrs=_TA),
+        }
+        labels = {
+            "customer": "Cliente",
+            "notes":    "Notas / descripción del pedido",
         }

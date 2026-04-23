@@ -1,0 +1,44 @@
+{% extends "backoffice/base.html" %}
+
+{% block title %}Nuevo pedido{% endblock %}
+{% block page_title %}Nuevo pedido{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'backoffice:order_list' %}" class="btn btn--ghost btn--sm">← Volver</a>
+{% endblock %}
+
+{% block content %}
+<div class="bo-form-layout">
+
+    <div class="bo-form-card">
+        <div class="bo-form-card__header">
+            <h2 class="bo-form-card__title">Datos del pedido</h2>
+            <p class="bo-form-card__subtitle">El número de pedido se generará automáticamente al guardar.</p>
+        </div>
+
+        <form method="post" novalidate>
+            {% csrf_token %}
+
+            {% include "backoffice/_form_field.html" with field=form.customer %}
+            {% include "backoffice/_form_field.html" with field=form.notes %}
+
+            <div class="bo-form__actions">
+                <button type="submit" class="btn btn--primary btn--lg">Crear pedido</button>
+                <a href="{% url 'backoffice:order_list' %}" class="btn btn--ghost btn--lg">Cancelar</a>
+            </div>
+        </form>
+    </div>
+
+    <aside class="bo-form-aside">
+        <div class="bo-card">
+            <h2 class="bo-card__title">Información</h2>
+            <p style="font-size:.85rem;color:#6b7280;line-height:1.5">
+                El pedido se creará en estado <strong>Borrador</strong>.<br>
+                El número se asigna automáticamente (ORD-AAAA-NNNN).<br>
+                Los pedidos son informativos y no vinculantes.
+            </p>
+        </div>
+    </aside>
+
+</div>
+{% endblock %}

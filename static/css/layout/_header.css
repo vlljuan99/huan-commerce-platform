@@ -63,3 +63,21 @@
 .main-nav a[aria-current="page"] {
     color: var(--color-accent-light);
 }
+
+/* Header user / auth area */
+.header-user {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+.header-user__name {
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.875rem;
+    white-space: nowrap;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

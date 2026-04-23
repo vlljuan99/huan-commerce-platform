@@ -3,6 +3,10 @@
 {% block title %}Pedidos{% endblock %}
 {% block page_title %}Pedidos{% endblock %}
 
+{% block topbar_actions %}
+<a href="{% url 'backoffice:order_create' %}" class="btn btn--primary btn--sm">+ Nuevo pedido</a>
+{% endblock %}
+
 {% block content %}
 
 <form method="get" class="bo-filters">

@@ -22,6 +22,7 @@
 @import 'pages/_home.css';
 @import 'pages/_catalog.css';
 @import 'pages/_backoffice.css';
+@import 'pages/_auth.css';
 
 /* Utilities */
 @import 'utilities/_helpers.css';

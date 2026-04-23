@@ -9,6 +9,7 @@ from apps.core.views import IndexView
 
 urlpatterns = [
     path('', IndexView.as_view(), name='index'),
+    path('accounts/', include('apps.accounts.urls')),
     path('catalogo/', include('apps.catalog.catalog_urls')),
     path('admin/', admin.site.urls),
     path('panel/', include('apps.backoffice.urls')),

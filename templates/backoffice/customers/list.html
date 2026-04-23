@@ -3,6 +3,10 @@
 {% block title %}Clientes{% endblock %}
 {% block page_title %}Clientes{% endblock %}
 
+{% block topbar_actions %}
+<a href="{% url 'backoffice:customer_create' %}" class="btn btn--primary btn--sm">+ Nuevo cliente</a>
+{% endblock %}
+
 {% block content %}
 
 <form method="get" class="bo-filters">

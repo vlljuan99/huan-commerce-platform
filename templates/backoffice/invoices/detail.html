@@ -5,8 +5,9 @@
 
 {% block topbar_actions %}
 <a href="{% url 'backoffice:invoice_list' %}" class="btn btn--ghost btn--sm">← Volver</a>
+<a href="{% url 'backoffice:invoice_edit' invoice.pk %}" class="btn btn--primary btn--sm">Editar</a>
 {% if invoice.pdf_file %}
-<a href="{{ invoice.pdf_file.url }}" class="btn btn--primary btn--sm" target="_blank">Descargar PDF</a>
+<a href="{{ invoice.pdf_file.url }}" class="btn btn--ghost btn--sm" target="_blank">Descargar PDF</a>
 {% endif %}
 {% endblock %}
 
