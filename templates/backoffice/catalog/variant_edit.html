@@ -15,7 +15,7 @@
             <p class="bo-form-card__subtitle">SKU base: <code>{{ product.sku_base }}</code></p>
         </div>
 
-        <form method="post" novalidate>
+        <form method="post" enctype="multipart/form-data" novalidate>
             {% csrf_token %}
 
             <div class="bo-form__row">
@@ -26,6 +26,8 @@
                 {% include "backoffice/_form_field.html" with field=form.price_no_tax %}
                 {% include "backoffice/_form_field.html" with field=form.stock_quantity %}
             </div>
+
+            {% include "backoffice/_form_field.html" with field=form.image %}
 
             <div class="bo-form__check-group">
                 {{ form.is_active }}

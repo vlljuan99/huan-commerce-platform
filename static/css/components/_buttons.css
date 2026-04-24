@@ -60,6 +60,22 @@
     box-shadow: var(--shadow);
 }
 
+.btn--ghost {
+    background: transparent;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.4);
+    font-weight: 200;
+    font-size: 0.8rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.btn--ghost:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.7);
+}
+
 /* Sizes */
 .btn--sm {
     padding: 0.5rem 1rem;

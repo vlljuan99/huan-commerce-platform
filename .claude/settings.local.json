@@ -16,7 +16,15 @@
       "Bash(xargs ls *)",
       "Bash(python3 -c ' *)",
       "Bash(cygpath -w /tmp)",
-      "Bash(echo \"tmp is: $\\(cygpath -w /tmp 2>/dev/null || realpath /tmp\\)\")"
+      "Bash(echo \"tmp is: $\\(cygpath -w /tmp 2>/dev/null || realpath /tmp\\)\")",
+      "Bash(find . -type f \\\\\\( -name \"*.py\" -o -name \"*.html\" \\\\\\) -exec grep -l \"generic\" {} \\\\;)",
+      "Bash(xargs grep *)",
+      "Bash(python manage.py shell -c \"from django.conf import settings; print\\('STATIC_URL:', settings.STATIC_URL\\); print\\('STATICFILES_DIRS:', settings.STATICFILES_DIRS\\); print\\('STATIC_ROOT:', settings.STATIC_ROOT\\)\")",
+      "Bash(python ../../manage.py shell -c ' *)",
+      "Bash(sqlite3 ./db_helvagres_demo.sqlite3 \"SELECT logo, favicon FROM core_brandingsettings WHERE instance_id='helvagres_demo';\")",
+      "PowerShell($db = \".\\\\db_helvagres_demo.sqlite3\"; Add-Type -Path \".\\\\venv\\\\Lib\\\\site-packages\\\\System.Data.SQLite.dll\" 2>$null; if \\(!\\(Test-Path $db\\)\\) { Write-Host \"DB not found\" } else { Write-Host \"DB exists: $\\(Get-Item $db | Select-Object -ExpandProperty Length\\) bytes\" })",
+      "PowerShell($env:HUAN_INSTANCE = 'helvagres_demo'; & \".\\\\venv\\\\Scripts\\\\python.exe\" manage.py makemigrations core 2>&1)",
+      "PowerShell($env:HUAN_INSTANCE = 'helvagres_demo'; & \".\\\\venv\\\\Scripts\\\\python.exe\" manage.py migrate core 2>&1)"
     ]
   }
 }

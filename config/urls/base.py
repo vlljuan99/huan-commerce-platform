@@ -10,7 +10,7 @@ from apps.core.views import IndexView
 urlpatterns = [
     path('', IndexView.as_view(), name='index'),
     path('accounts/', include('apps.accounts.urls')),
-    path('catalogo/', include('apps.catalog.catalog_urls')),
+    path('', include('apps.catalog.catalog_urls')),
     path('admin/', admin.site.urls),
     path('panel/', include('apps.backoffice.urls')),
     path('api/', include('apps.catalog.urls')),
@@ -20,4 +20,9 @@ urlpatterns = [
 ]
 
 if settings.DEBUG:
+    from django.contrib.staticfiles import views as staticfiles_views
+    from django.urls import re_path
+    urlpatterns += [
+        re_path(r'^static/(?P<path>.*)$', staticfiles_views.serve, {'insecure': True}),
+    ]
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

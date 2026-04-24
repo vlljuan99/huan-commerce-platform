@@ -3,6 +3,9 @@
    Import order: base → layout → components → pages → utilities
    ============================================ */
 
+/* Google Fonts — Inter (thin/light/regular) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+
 /* Base */
 @import 'base/_variables.css';
 @import 'base/_reset.css';

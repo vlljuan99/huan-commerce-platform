@@ -2,69 +2,100 @@
    Layout — Site header & navigation
    ============================================ */
 
+/* ── Top bar (logo + search + user) ─────────────────────────────────────── */
 .site-header {
     background: var(--color-primary);
-    padding: var(--space-md) 0;
     position: sticky;
     top: 0;
     z-index: 100;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.18);
 }
 
-.site-header .container {
+.header-top {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.header-top__inner {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: var(--space-xl);
 }
 
 /* Logo */
 .logo {
-    font-size: 1.5rem;
-    font-weight: 700;
-    letter-spacing: -0.5px;
     display: flex;
     align-items: center;
-    gap: 2px;
     flex-shrink: 0;
+    text-decoration: none;
 }
 
 .logo-text {
     color: #ffffff;
+    font-size: 1.6rem;
+    font-weight: 300;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
 }
 
 .logo-img {
     display: block;
-    height: 100px;
+    height: 44px;
     width: auto;
-    max-width: 180px;
+    max-width: 160px;
     object-fit: contain;
 }
 
-.logo-accent {
-    color: var(--color-accent-light);
-}
-
-/* Main nav */
-.main-nav {
+/* Search */
+.header-search {
+    flex: 1;
+    max-width: 560px;
     display: flex;
     align-items: center;
-    gap: var(--space-xl);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 50px;
+    overflow: hidden;
+    transition: background var(--transition), border-color var(--transition);
 }
 
-.main-nav a {
-    color: rgba(255, 255, 255, 0.85);
-    font-size: 0.95rem;
+.header-search:focus-within {
+    background: rgba(255, 255, 255, 0.16);
+    border-color: rgba(255, 255, 255, 0.35);
+}
+
+.header-search__input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 0.5rem 1rem;
+    color: #ffffff;
+    font-family: var(--font);
+    font-size: 0.9rem;
+    font-weight: 300;
+}
+
+.header-search__input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.header-search__btn {
+    background: transparent;
+    border: none;
+    padding: 0.5rem 1rem;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
     transition: color var(--transition);
-    white-space: nowrap;
 }
 
-.main-nav a:hover,
-.main-nav a[aria-current="page"] {
+.header-search__btn:hover {
     color: var(--color-accent-light);
 }
 
-/* Header user / auth area */
+/* User area */
 .header-user {
     display: flex;
     align-items: center;
@@ -74,10 +105,43 @@
 }
 
 .header-user__name {
-    color: rgba(255, 255, 255, 0.75);
-    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 0.8rem;
+    font-weight: 300;
     white-space: nowrap;
-    max-width: 140px;
+    max-width: 120px;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+/* ── Main nav (second row) ───────────────────────────────────────────────── */
+.main-nav {
+    background: rgba(0, 0, 0, 0.15);
+}
+
+.main-nav .container {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xl);
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.main-nav a {
+    display: inline-block;
+    padding: 0.65rem 0;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.8rem;
+    font-weight: 400;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    transition: color var(--transition), border-color var(--transition);
+}
+
+.main-nav a:hover,
+.main-nav a[aria-current="page"] {
+    color: #ffffff;
+    border-bottom-color: var(--color-accent-light);
 }

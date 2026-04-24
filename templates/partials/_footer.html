@@ -1,19 +1,41 @@
 <footer class="site-footer">
     <div class="container">
-        <p>
-            <strong>{{ branding.footer.company_name|default:branding.commercial_name }}</strong>
-            {% if branding.footer.address %}
-                &mdash; {{ branding.footer.address }}, {{ branding.footer.zip }} {{ branding.footer.city }}
-            {% endif %}
-        </p>
-        <p>
-            {% if branding.footer.phone %}
-                <a href="tel:{{ branding.footer.phone }}">{{ branding.footer.phone }}</a>&nbsp;
-            {% endif %}
-            {% if branding.footer.email %}
-                <a href="mailto:{{ branding.footer.email }}">{{ branding.footer.email }}</a>
-            {% endif %}
-        </p>
-        <p class="text-muted">&copy; {% now "Y" %} {{ branding.footer.legal_name|default:branding.commercial_name }}</p>
+        <div class="footer-grid">
+            <div class="footer-col footer-col--brand">
+                <p class="footer-company">{{ branding.footer.company_name|default:branding.commercial_name }}</p>
+                {% if branding.footer.address %}
+                <p class="footer-address">
+                    {{ branding.footer.address }}<br>
+                    {{ branding.footer.zip }} {{ branding.footer.city }}
+                </p>
+                {% endif %}
+            </div>
+
+            <div class="footer-col footer-col--contact">
+                <p class="footer-col__title">Contacto</p>
+                {% if branding.footer.phone %}
+                <p><a href="tel:{{ branding.footer.phone }}">{{ branding.footer.phone }}</a></p>
+                {% endif %}
+                {% if branding.footer.email %}
+                <p><a href="mailto:{{ branding.footer.email }}">{{ branding.footer.email }}</a></p>
+                {% endif %}
+                {% if branding.footer.maps_url %}
+                <p><a href="{{ branding.footer.maps_url }}" target="_blank" rel="noopener">Cómo llegar</a></p>
+                {% endif %}
+            </div>
+
+            <div class="footer-col footer-col--links">
+                <p class="footer-col__title">Información</p>
+                <ul>
+                    <li><a href="/sobre-nosotros/">Sobre nosotros</a></li>
+                    <li><a href="/aviso-legal/">Aviso legal</a></li>
+                    <li><a href="/politica-de-cookies/">Política de cookies</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>&copy; {% now "Y" %} {{ branding.footer.legal_name|default:branding.commercial_name }}</p>
+        </div>
     </div>
 </footer>

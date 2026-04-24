@@ -183,18 +183,20 @@ class ProductForm(forms.ModelForm):
 class ProductVariantForm(forms.ModelForm):
     class Meta:
         model = ProductVariant
-        fields = ["sku", "name", "price_no_tax", "stock_quantity", "is_active"]
+        fields = ["sku", "name", "price_no_tax", "stock_quantity", "image", "is_active"]
         widgets = {
             "sku":            forms.TextInput(attrs=_C_MONO),
             "name":           forms.TextInput(attrs=_C),
             "price_no_tax":   forms.NumberInput(attrs={**_C, "step": "0.01", "inputmode": "decimal"}),
             "stock_quantity": forms.NumberInput(attrs={**_C, "inputmode": "numeric"}),
+            "image":          forms.FileInput(attrs=_C),
         }
         labels = {
             "sku":            "SKU",
             "name":           "Nombre de la variante (color, talla…)",
             "price_no_tax":   "Precio sin IVA (€)",
             "stock_quantity": "Stock (-1 = ilimitado)",
+            "image":          "Imagen del producto",
             "is_active":      "Activa",
         }
 

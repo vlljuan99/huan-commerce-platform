@@ -3,10 +3,10 @@ Views and viewsets for Catalog app.
 """
 
 from django.views.generic import ListView, DetailView
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Max, Min
 from rest_framework import viewsets, filters
 from django_filters.rest_framework import DjangoFilterBackend
-from .models import Product, ProductVariant, ProductCategory, ProductBrand
+from .models import Product, ProductVariant, ProductCategory, ProductBrand, CatalogPDF
 from .serializers import (
     ProductListSerializer, ProductDetailSerializer,
     ProductCategorySerializer, ProductBrandSerializer,
@@ -97,6 +97,47 @@ class ProductListView(ListView):
             .order_by('display_order', 'name')
         )
         context['active_category'] = self.request.GET.get('categoria')
+        return context
+
+
+class CatalogPDFListView(ListView):
+    """Catálogos descargables en PDF, filtrables por marca y año."""
+    template_name = 'catalog/catalog_pdf_list.html'
+    context_object_name = 'catalogs'
+    paginate_by = 12
+
+    def get_queryset(self):
+        qs = (
+            CatalogPDF.objects
+            .filter(is_active=True)
+            .select_related('brand')
+            .order_by('-year', 'title')
+        )
+        brand_slug = self.request.GET.get('marca')
+        year = self.request.GET.get('ano')
+        if brand_slug:
+            qs = qs.filter(brand__slug=brand_slug)
+        if year:
+            try:
+                qs = qs.filter(year=int(year))
+            except (ValueError, TypeError):
+                pass
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['brands'] = ProductBrand.objects.filter(is_active=True).order_by('name')
+        year_range = (
+            CatalogPDF.objects
+            .filter(is_active=True, year__isnull=False)
+            .aggregate(min_year=Min('year'), max_year=Max('year'))
+        )
+        if year_range['min_year'] and year_range['max_year']:
+            context['years'] = list(range(year_range['max_year'], year_range['min_year'] - 1, -1))
+        else:
+            context['years'] = []
+        context['active_brand'] = self.request.GET.get('marca')
+        context['active_year'] = self.request.GET.get('ano')
         return context
 
 

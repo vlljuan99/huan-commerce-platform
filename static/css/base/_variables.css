@@ -37,8 +37,10 @@
     --space-3xl: 5rem;
 
     /* Typography */
-    --font:       'Segoe UI', system-ui, -apple-system, sans-serif;
+    --font:       'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
     --font-mono:  'Courier New', monospace;
+    --font-weight-thin:   300;
+    --font-weight-normal: 400;
 
     /* Borders & shadows */
     --radius:    8px;

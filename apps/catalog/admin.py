@@ -9,7 +9,7 @@ from .models import Product, ProductVariant, ProductCategory, ProductBrand, Prod
 class ProductVariantInline(admin.TabularInline):
     model = ProductVariant
     extra = 1
-    fields = ('sku', 'name', 'price_no_tax', 'stock_quantity', 'is_active', 'display_order')
+    fields = ('sku', 'name', 'price_no_tax', 'stock_quantity', 'image', 'is_active', 'display_order')
 
 
 class ProductImageInline(admin.TabularInline):

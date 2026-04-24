@@ -1,39 +1,59 @@
 {% load static %}
 <header class="site-header">
-    <div class="container">
-        <a href="{% url 'index' %}" class="logo" aria-label="{{ branding.commercial_name|default:'Huan' }} — Inicio">
-            {% if branding.logo %}
-                <img src="{{ branding.logo }}" alt="{{ branding.commercial_name }}" class="logo-img" height="36" width="auto">
-            {% else %}
-                <span class="logo-text">{{ branding.commercial_name|default:'Huan' }}</span>
-            {% endif %}
-        </a>
-        <nav class="main-nav" aria-label="Navegación principal">
-            <a href="{% url 'index' %}"
-               {% if request.resolver_match.url_name == 'index' %}aria-current="page"{% endif %}>
-                Inicio
-            </a>
-            <a href="{% url 'catalog:product_list' %}"
-               {% if request.resolver_match.namespace == 'catalog' %}aria-current="page"{% endif %}>
-                Catálogo
-            </a>
-        </nav>
-
-        <div class="header-user">
-            {% if user.is_authenticated %}
-                {% if user.is_superuser or user.role in 'admin,commercial' %}
-                <a href="/panel/" class="btn btn--ghost btn--sm">Panel</a>
+    <div class="header-top">
+        <div class="container header-top__inner">
+            <a href="{% url 'index' %}" class="logo" aria-label="{{ branding.commercial_name|default:'Huan' }} — Inicio">
+                {% if branding.logo %}
+                    <img src="{{ branding.logo }}" alt="{{ branding.commercial_name }}" class="logo-img">
                 {% else %}
-                <a href="{% url 'accounts:portal' %}" class="btn btn--ghost btn--sm">Mi cuenta</a>
+                    <span class="logo-text">{{ branding.commercial_name|default:'Huan' }}</span>
                 {% endif %}
-                <span class="header-user__name">{{ user.get_full_name|default:user.username }}</span>
-                <form method="post" action="{% url 'accounts:logout' %}" style="display:inline">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn--ghost btn--sm">Salir</button>
-                </form>
-            {% else %}
-                <a href="{% url 'accounts:login' %}" class="btn btn--primary btn--sm">Iniciar sesión</a>
-            {% endif %}
+            </a>
+
+            <form class="header-search" method="get" action="{% url 'catalog:product_list' %}" role="search">
+                <input
+                    type="search"
+                    name="q"
+                    class="header-search__input"
+                    placeholder="Buscar productos, marcas…"
+                    value="{{ request.GET.q|default:'' }}"
+                    aria-label="Buscar"
+                >
+                <button type="submit" class="header-search__btn" aria-label="Buscar">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                </button>
+            </form>
+
+            <div class="header-user">
+                {% if user.is_authenticated %}
+                    {% if user.is_superuser or user.role in 'admin,commercial' %}
+                    <a href="/panel/" class="btn btn--ghost btn--sm">Panel</a>
+                    {% else %}
+                    <a href="{% url 'accounts:portal' %}" class="btn btn--ghost btn--sm">Área cliente</a>
+                    {% endif %}
+                    <span class="header-user__name">{{ user.get_full_name|default:user.username }}</span>
+                    <form method="post" action="{% url 'accounts:logout' %}" style="display:inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn--ghost btn--sm">Salir</button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'accounts:login' %}" class="btn btn--ghost btn--sm">Área cliente</a>
+                {% endif %}
+            </div>
         </div>
     </div>
+
+    <nav class="main-nav" aria-label="Navegación principal">
+        <div class="container">
+            <a href="{% url 'catalog:product_list' %}"
+               {% if request.resolver_match.url_name == 'product_list' %}aria-current="page"{% endif %}>
+                Productos
+            </a>
+            <a href="{% url 'catalog:catalog_pdf_list' %}"
+               {% if request.resolver_match.url_name == 'catalog_pdf_list' %}aria-current="page"{% endif %}>
+                Catálogos
+            </a>
+            <a href="#servicios">Servicios</a>
+        </div>
+    </nav>
 </header>

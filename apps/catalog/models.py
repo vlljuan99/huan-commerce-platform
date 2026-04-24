@@ -209,3 +209,33 @@ class ProductImage(BaseModel):
 
     def __str__(self):
         return f"Image for {self.variant}"
+
+
+class CatalogPDF(BaseModel):
+    """Downloadable PDF catalog, filterable by brand and year."""
+    title = models.CharField(max_length=255, verbose_name=_('Title'))
+    description = models.TextField(blank=True, verbose_name=_('Description'))
+    brand = models.ForeignKey(
+        ProductBrand,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='catalogs',
+        verbose_name=_('Brand')
+    )
+    year = models.IntegerField(null=True, blank=True, verbose_name=_('Year'))
+    pdf_file = models.FileField(upload_to='catalogs/pdf/', verbose_name=_('PDF file'))
+    cover_image = models.ImageField(
+        upload_to='catalogs/covers/',
+        null=True,
+        blank=True,
+        verbose_name=_('Cover image')
+    )
+
+    class Meta:
+        verbose_name = _('Catalog PDF')
+        verbose_name_plural = _('Catalog PDFs')
+        ordering = ['-year', 'title']
+
+    def __str__(self):
+        return f"{self.title} ({self.year})" if self.year else self.title

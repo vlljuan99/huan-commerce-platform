@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Catálogos — {{ branding.commercial_name }}{% endblock %}
+
+{% block content %}
+<div class="catalog-pdf-page">
+    <div class="container">
+        <header class="page-header">
+            <h1 class="page-header__title">Catálogos</h1>
+            <p class="page-header__sub">Descarga nuestros catálogos en formato PDF</p>
+        </header>
+
+        <form class="catalog-filters" method="get" action="">
+            <div class="catalog-filters__group">
+                <label for="marca" class="catalog-filters__label">Marca</label>
+                <select id="marca" name="marca" class="catalog-filters__select" onchange="this.form.submit()">
+                    <option value="">Todas las marcas</option>
+                    {% for brand in brands %}
+                    <option value="{{ brand.slug }}" {% if active_brand == brand.slug %}selected{% endif %}>
+                        {{ brand.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            {% if years %}
+            <div class="catalog-filters__group">
+                <label for="ano" class="catalog-filters__label">Año</label>
+                <select id="ano" name="ano" class="catalog-filters__select" onchange="this.form.submit()">
+                    <option value="">Todos los años</option>
+                    {% for year in years %}
+                    <option value="{{ year }}" {% if active_year == year|stringformat:"s" %}selected{% endif %}>
+                        {{ year }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
+            {% if active_brand or active_year %}
+            <a href="{% url 'catalog:catalog_pdf_list' %}" class="catalog-filters__reset">Limpiar filtros</a>
+            {% endif %}
+        </form>
+
+        {% if catalogs %}
+        <div class="catalog-pdf-grid">
+            {% for catalog in catalogs %}
+            <article class="catalog-pdf-card">
+                <div class="catalog-pdf-card__cover">
+                    {% if catalog.cover_image %}
+                    <img src="{{ catalog.cover_image.url }}" alt="{{ catalog.title }}" loading="lazy">
+                    {% else %}
+                    <div class="catalog-pdf-card__cover-placeholder" aria-hidden="true">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="catalog-pdf-card__body">
+                    <h2 class="catalog-pdf-card__title">{{ catalog.title }}</h2>
+                    <div class="catalog-pdf-card__meta">
+                        {% if catalog.brand %}<span class="catalog-pdf-card__brand">{{ catalog.brand.name }}</span>{% endif %}
+                        {% if catalog.year %}<span class="catalog-pdf-card__year">{{ catalog.year }}</span>{% endif %}
+                    </div>
+                    {% if catalog.description %}
+                    <p class="catalog-pdf-card__desc">{{ catalog.description }}</p>
+                    {% endif %}
+                    <a href="{{ catalog.pdf_file.url }}" class="btn btn--primary btn--sm catalog-pdf-card__download"
+                       target="_blank" rel="noopener" download>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        Descargar PDF
+                    </a>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+
+        {% if is_paginated %}
+        <nav class="pagination" aria-label="Paginación">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if active_brand %}&marca={{ active_brand }}{% endif %}{% if active_year %}&ano={{ active_year }}{% endif %}" class="pagination__btn">&larr;</a>
+            {% endif %}
+            <span class="pagination__info">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if active_brand %}&marca={{ active_brand }}{% endif %}{% if active_year %}&ano={{ active_year }}{% endif %}" class="pagination__btn">&rarr;</a>
+            {% endif %}
+        </nav>
+        {% endif %}
+
+        {% else %}
+        <div class="catalog-pdf-empty">
+            <p>No se han encontrado catálogos con los filtros seleccionados.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

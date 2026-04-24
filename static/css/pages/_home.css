@@ -2,69 +2,321 @@
    Page — Home (index)
    ============================================ */
 
-/* Hero */
-.hero {
-    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
-    color: white;
-    padding: 6rem 0;
+/* ── Full-screen hero with Ken Burns animation ───────────────────────────── */
+.hero-fullscreen {
+    position: relative;
+    height: calc(100vh - 108px); /* subtract header height */
+    min-height: 480px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: var(--color-primary);
 }
 
-.hero-title {
-    font-size: clamp(2rem, 4vw, 3rem);
-    font-weight: 800;
-    line-height: 1.2;
+/* Background image layer */
+.hero-fullscreen__bg {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+}
+
+.hero-fullscreen__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    animation: kenBurns 24s ease-in-out infinite alternate;
+    transform-origin: center center;
+}
+
+/* Ken Burns keyframes */
+@keyframes kenBurns {
+    0%   { transform: scale(1)    translate(0,    0); }
+    25%  { transform: scale(1.06) translate(-1%,  0.5%); }
+    50%  { transform: scale(1.04) translate(0.5%, -0.5%); }
+    75%  { transform: scale(1.08) translate(-0.5%, 0.8%); }
+    100% { transform: scale(1.05) translate(1%,  -0.3%); }
+}
+
+/* When no image: animated gradient */
+.hero-fullscreen__bg:not(:has(.hero-fullscreen__img)) {
+    background: linear-gradient(
+        135deg,
+        var(--color-primary) 0%,
+        var(--color-primary-light) 40%,
+        #0d2318 100%
+    );
+    animation: gradientShift 16s ease-in-out infinite alternate;
+    background-size: 200% 200%;
+}
+
+@keyframes gradientShift {
+    0%   { background-position: 0% 50%; }
+    100% { background-position: 100% 50%; }
+}
+
+/* Dark overlay */
+.hero-fullscreen__overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0.3) 0%,
+        rgba(0, 0, 0, 0.55) 100%
+    );
+}
+
+/* Content */
+.hero-fullscreen__content {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    color: #ffffff;
+    padding: var(--space-2xl) 0;
+}
+
+.hero-fullscreen__title {
+    font-size: clamp(3rem, 8vw, 7rem);
+    font-weight: 200;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    line-height: 1.05;
     margin-bottom: var(--space-lg);
+    text-shadow: 0 2px 24px rgba(0, 0, 0, 0.4);
 }
 
-.hero-title .accent {
-    color: var(--color-accent-light);
+.hero-fullscreen__tagline {
+    font-size: clamp(0.95rem, 2vw, 1.25rem);
+    font-weight: 300;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: var(--space-2xl);
 }
 
-.hero-subtitle {
-    font-size: 1.15rem;
-    color: rgba(255, 255, 255, 0.8);
-    max-width: 560px;
-    margin-bottom: var(--space-xl);
-    line-height: 1.7;
-}
-
-.hero-actions {
+.hero-fullscreen__actions {
     display: flex;
     gap: var(--space-md);
+    justify-content: center;
     flex-wrap: wrap;
 }
 
-/* Section title shared across home sections */
+/* Hero buttons */
+.btn--hero {
+    padding: 0.75rem 2.5rem;
+    font-size: 0.8rem;
+    font-weight: 400;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    border-radius: 0;
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--color-primary);
+    text-decoration: none;
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    transition: background var(--transition), color var(--transition);
+}
+
+.btn--hero:hover {
+    background: #ffffff;
+    color: var(--color-primary);
+}
+
+.btn--hero-outline {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.9);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.btn--hero-outline:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.9);
+}
+
+/* ── Page header (interior pages) ───────────────────────────────────────── */
+.page-header {
+    padding: var(--space-2xl) 0 var(--space-xl);
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: var(--space-2xl);
+}
+
+.page-header__title {
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    font-weight: 200;
+    letter-spacing: 0.05em;
+    color: var(--color-primary);
+    line-height: 1.1;
+    margin-bottom: var(--space-sm);
+}
+
+.page-header__sub {
+    font-size: 1rem;
+    font-weight: 300;
+    color: var(--color-text-muted);
+    letter-spacing: 0.04em;
+}
+
+/* ── Section title shared across home sections ───────────────────────────── */
 .section-title {
     font-size: 1.75rem;
-    font-weight: 700;
+    font-weight: 300;
     color: var(--color-primary);
     margin-bottom: var(--space-xl);
     text-align: center;
+    letter-spacing: 0.04em;
 }
 
-/* Features */
-.features {
-    padding: var(--space-3xl) 0;
-    background: var(--color-surface);
+/* ── Catalog PDF page ────────────────────────────────────────────────────── */
+.catalog-pdf-page {
+    padding-bottom: var(--space-3xl);
 }
 
-.features-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+.catalog-filters {
+    display: flex;
+    align-items: flex-end;
     gap: var(--space-lg);
-}
-
-/* API info */
-.api-info {
-    padding: var(--space-3xl) 0;
+    flex-wrap: wrap;
+    padding: var(--space-lg) var(--space-xl);
     background: var(--color-bg);
+    border-radius: var(--radius);
+    margin-bottom: var(--space-2xl);
 }
 
-.api-endpoints {
+.catalog-filters__group {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
-    max-width: 700px;
-    margin: 0 auto;
+    gap: var(--space-xs);
+}
+
+.catalog-filters__label {
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+}
+
+.catalog-filters__select {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-family: var(--font);
+    font-size: 0.9rem;
+    font-weight: 300;
+    background: var(--color-surface);
+    color: var(--color-text);
+    cursor: pointer;
+    min-width: 180px;
+}
+
+.catalog-filters__reset {
+    font-size: 0.82rem;
+    font-weight: 300;
+    color: var(--color-text-muted);
+    text-decoration: underline;
+    padding-bottom: 0.5rem;
+}
+
+.catalog-pdf-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: var(--space-xl);
+}
+
+.catalog-pdf-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow var(--transition), transform var(--transition);
+}
+
+.catalog-pdf-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.catalog-pdf-card__cover {
+    aspect-ratio: 3/4;
+    background: var(--color-bg);
+    overflow: hidden;
+}
+
+.catalog-pdf-card__cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+.catalog-pdf-card:hover .catalog-pdf-card__cover img {
+    transform: scale(1.03);
+}
+
+.catalog-pdf-card__cover-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-border);
+}
+
+.catalog-pdf-card__body {
+    padding: var(--space-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    flex: 1;
+}
+
+.catalog-pdf-card__title {
+    font-size: 1rem;
+    font-weight: 400;
+    color: var(--color-text);
+    line-height: 1.3;
+}
+
+.catalog-pdf-card__meta {
+    display: flex;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+}
+
+.catalog-pdf-card__brand,
+.catalog-pdf-card__year {
+    font-size: 0.75rem;
+    font-weight: 300;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+    background: var(--color-bg);
+    padding: 0.15rem 0.5rem;
+    border-radius: var(--radius-sm);
+}
+
+.catalog-pdf-card__desc {
+    font-size: 0.85rem;
+    font-weight: 300;
+    color: var(--color-text-muted);
+    line-height: 1.5;
+    flex: 1;
+}
+
+.catalog-pdf-card__download {
+    margin-top: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    justify-content: center;
+    text-decoration: none;
+}
+
+.catalog-pdf-empty {
+    text-align: center;
+    padding: var(--space-3xl) 0;
+    color: var(--color-text-muted);
+    font-weight: 300;
+    font-size: 1rem;
 }

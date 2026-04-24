@@ -41,13 +41,6 @@ TEMPLATES[0]['DIRS'] = [  # noqa: F405
     BASE_DIR / 'templates',       # noqa: F405  # templates globales del proyecto
 ]
 
-# ── Ficheros estáticos específicos de instancia ───────────────────────────────
-# Los estáticos de la instancia sobreescriben los globales si tienen el mismo nombre.
-STATICFILES_DIRS = [
-    INSTANCE_DIR / 'static',  # primero: logo, favicon, CSS de marca
-    BASE_DIR / 'static',       # noqa: F405  # después: assets globales
-]
-
 # ── Branding & features: cargados por el loader en apps.core.instance ─────────
 # INSTANCE_ID es la clave que usa apps.core.instance para encontrar los JSON.
 INSTANCE_DIR_STR = str(INSTANCE_DIR)
@@ -57,3 +50,10 @@ try:
     from config.settings.local import *  # noqa: F401, F403
 except ImportError:
     pass
+
+# ── Ficheros estáticos específicos de instancia ───────────────────────────────
+# Redefinido después de local.py para que no sea sobrescrito por base.py.
+STATICFILES_DIRS = [
+    INSTANCE_DIR / 'static',  # primero: assets de la instancia (con namespace <id>/)
+    BASE_DIR / 'static',       # noqa: F405  # después: assets globales
+]

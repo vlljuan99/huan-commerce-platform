@@ -6,6 +6,14 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 
+def _branding_logo_path(instance, filename):
+    return f"branding/{instance.instance_id}/logos/{filename}"
+
+
+def _branding_favicon_path(instance, filename):
+    return f"branding/{instance.instance_id}/favicons/{filename}"
+
+
 class BrandingSettings(models.Model):
     """
     Branding configuration stored in the database, per instance.
@@ -32,14 +40,14 @@ class BrandingSettings(models.Model):
     )
 
     logo = models.ImageField(
-        upload_to='branding/logos/',
+        upload_to=_branding_logo_path,
         null=True,
         blank=True,
         verbose_name=_('Logo'),
         help_text=_('PNG o SVG recomendado. Altura óptima: 36-48 px.'),
     )
     favicon = models.ImageField(
-        upload_to='branding/favicons/',
+        upload_to=_branding_favicon_path,
         null=True,
         blank=True,
         verbose_name=_('Favicon'),
