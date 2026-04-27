@@ -4,15 +4,30 @@ Plataforma de comercio electrónico modular construida con Django, orientada a B
 
 **Documentación completa:** Ver `../DOCUMENTACION_TECNICA.md` (versión 2.0 con diagramas)
 
+## Entornos
+
+| Entorno | Rama / Trigger | URL |
+|---|---|---|
+| Local | cualquier rama | `http://localhost:8000` |
+| Staging | push a `develop` | `huan-commerce-staging.herokuapp.com` |
+| Production | tag `v*` en `main` | `huan-commerce-production.herokuapp.com` |
+
 ## Estructura del proyecto
 
 ```
 huan-commerce-platform/
 ├── manage.py                 # Django management
-├── requirements.txt          # Dependencias Python
+├── requirements.txt          # Dependencias de producción
+├── requirements-dev.txt      # Dependencias de desarrollo y CI
+├── Procfile                  # Proceso Heroku (gunicorn + celery)
+├── runtime.txt               # Versión de Python para Heroku
+├── Aptfile                   # Paquetes del sistema (WeasyPrint)
 ├── config/                   # Configuración Django
 │   ├── settings/
-│   │   └── base.py          # Settings base (SQLite para dev)
+│   │   ├── base.py          # Settings base (SQLite para dev)
+│   │   ├── local.py         # Overrides locales
+│   │   ├── staging.py       # Pre-producción (Heroku)
+│   │   └── production.py    # Producción (Heroku)
 │   ├── urls/
 │   │   └── base.py          # URLs base
 │   └── wsgi.py
@@ -73,7 +88,8 @@ source venv/bin/activate  # En Windows: venv\Scripts\activate
 
 ### 3. Instalar dependencias
 ```bash
-pip install -r requirements.txt
+# Desarrollo local (incluye pytest, black, ruff)
+pip install -r requirements-dev.txt
 ```
 
 ### 4. Migraciones iniciales
@@ -173,6 +189,13 @@ pytest tests/
 pytest --cov=apps tests/
 ```
 
+### Lint y formato
+```bash
+ruff check .       # Linting
+black --check .    # Verificar formato
+black .            # Aplicar formato
+```
+
 ## Desarrollo
 
 ### Crear app nueva
@@ -192,6 +215,81 @@ python manage.py makemigrations core accounts catalog customers cart orders invo
 python manage.py migrate
 ```
 
+## CI/CD
+
+El proyecto usa **GitHub Actions** con tres flujos:
+
+```
+feature/* ──PR──► develop ──push──► 🟡 Staging (Heroku)
+                     │
+                    PR
+                     ▼
+                   main ──tag v1.x.x──► 🟢 Production (Heroku)
+```
+
+| Workflow | Trigger | Acción |
+|---|---|---|
+| `ci.yml` | PR a `develop` o `main` | Lint (ruff + black) + Tests (pytest + PostgreSQL) |
+| `deploy-staging.yml` | Push a `develop` | Deploy automático a Heroku Staging |
+| `deploy-production.yml` | Tag `v*` en `main` | Deploy a Heroku Production + GitHub Release |
+
+### GitHub Secrets requeridos
+
+| Secret | Descripción |
+|---|---|
+| `HEROKU_API_KEY` | API key de Heroku (Account Settings) |
+| `HEROKU_EMAIL` | Email de la cuenta Heroku |
+| `STAGING_APP_NAME` | Nombre de la app de staging en Heroku |
+| `PRODUCTION_APP_NAME` | Nombre de la app de producción en Heroku |
+
+### Flujo de trabajo diario
+
+```bash
+# 1. Nueva feature desde develop
+git checkout -b feature/mi-feature develop
+
+# 2. Trabajar, commit, push y abrir PR → develop
+#    El CI corre automáticamente (lint + tests)
+#    Al hacer merge → se despliega a staging
+
+# 3. Cuando staging está validado, PR develop → main
+#    Al hacer merge → crear el tag de release
+
+# 4. Subir a producción
+git checkout main
+git tag v1.2.0
+git push origin v1.2.0
+# → Deploy automático a producción + GitHub Release creado
+```
+
+### Setup inicial de Heroku
+
+```bash
+# Crear apps
+heroku create huan-commerce-staging
+heroku create huan-commerce-production
+
+# Buildpacks (WeasyPrint necesita apt)
+heroku buildpacks:add --index 1 heroku-community/apt -a huan-commerce-staging
+heroku buildpacks:add heroku/python -a huan-commerce-staging
+heroku buildpacks:add --index 1 heroku-community/apt -a huan-commerce-production
+heroku buildpacks:add heroku/python -a huan-commerce-production
+
+# PostgreSQL y Redis
+heroku addons:create heroku-postgresql:essential-0 -a huan-commerce-staging
+heroku addons:create heroku-redis:mini -a huan-commerce-staging
+heroku addons:create heroku-postgresql:essential-0 -a huan-commerce-production
+heroku addons:create heroku-redis:mini -a huan-commerce-production
+
+# Config vars (ejemplo para staging)
+heroku config:set \
+  DJANGO_SETTINGS_MODULE=config.settings.staging \
+  SECRET_KEY=<clave-secreta> \
+  ALLOWED_HOSTS=huan-commerce-staging.herokuapp.com \
+  OPENAI_API_KEY=sk-... \
+  -a huan-commerce-staging
+```
+
 ## Próximos pasos
 
 - [ ] Generar fixtures de datos de prueba (factories con factory_boy)
@@ -200,7 +298,7 @@ python manage.py migrate
 - [ ] Admin de Django (admin.py)
 - [ ] Autenticación JWT (DRF authentication)
 - [ ] Documentación de API (drf-spectacular)
-- [ ] CI/CD con GitHub Actions
+- [x] CI/CD con GitHub Actions
 
 ## Decisiones técnicas recomendadas
 
@@ -224,7 +322,7 @@ Asegúrate de estar en la raíz del proyecto y ejecutar con `python manage.py ..
 Asegúrate de haber ejecutado `python manage.py migrate` primero.
 
 ### SQLite en producción
-No uses SQLite en producción. Cambiar a PostgreSQL en `config/settings/base.py` para despliegue.
+No uses SQLite en producción. En staging y producción se usa PostgreSQL automáticamente vía la variable `DATABASE_URL` que Heroku inyecta.
 
 ## Contribuyentes
 
