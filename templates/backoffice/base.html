@@ -74,6 +74,32 @@
                 </div>
             </div>
             {% endwith %}
+            {% with uname=request.resolver_match.url_name %}
+            <div class="bo-nav__group {% if 'service' in uname or 'company' in uname %}is-open{% endif %}">
+                <button type="button"
+                        class="bo-nav__item bo-nav__toggle {% if 'service' in uname or 'company' in uname %}bo-nav__item--active{% endif %}"
+                        onclick="this.closest('.bo-nav__group').classList.toggle('is-open')"
+                        aria-haspopup="true">
+                    <span class="bo-nav__icon">&#128295;</span>
+                    <span>Servicios</span>
+                    <span class="bo-nav__chevron">&#9660;</span>
+                </button>
+                <div class="bo-nav__sub">
+                    <a href="{% url 'backoffice:service_list' %}"
+                       class="bo-nav__subitem {% if uname in 'service_list service_create service_edit' %}bo-nav__subitem--active{% endif %}">
+                        Servicios
+                    </a>
+                    <a href="{% url 'backoffice:service_category_list' %}"
+                       class="bo-nav__subitem {% if 'service_category' in uname %}bo-nav__subitem--active{% endif %}">
+                        Categorías
+                    </a>
+                    <a href="{% url 'backoffice:company_list' %}"
+                       class="bo-nav__subitem {% if 'company' in uname %}bo-nav__subitem--active{% endif %}">
+                        Empresas
+                    </a>
+                </div>
+            </div>
+            {% endwith %}
         </nav>
         <div class="bo-sidebar__footer">
             <a href="{% url 'index' %}" class="bo-sidebar__back-link">&#8592; Ver tienda</a>

@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ service.name }} — {{ branding.commercial_name }}{% endblock %}
+
+{% block content %}
+
+<nav class="breadcrumb" aria-label="Ruta de navegación">
+    <div class="container">
+        <ol class="breadcrumb__list">
+            <li class="breadcrumb__item"><a href="{% url 'index' %}">Inicio</a></li>
+            <li class="breadcrumb__item"><a href="{% url 'services:service_list' %}">Servicios</a></li>
+            <li class="breadcrumb__item">
+                <a href="{% url 'services:service_list' %}?categoria={{ service.category.slug }}">{{ service.category.name }}</a>
+            </li>
+            <li class="breadcrumb__item breadcrumb__item--current" aria-current="page">{{ service.name }}</li>
+        </ol>
+    </div>
+</nav>
+
+<section class="product-detail">
+    <div class="container">
+        <div class="product-detail__layout">
+
+            <div class="product-detail__gallery">
+                {% if service.image %}
+                    <img src="{{ service.image.url }}" alt="{{ service.name }}" class="product-detail__main-img">
+                {% else %}
+                    <div class="product-detail__img-placeholder service-detail__placeholder" aria-hidden="true">
+                        <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M50 140 L100 50 L150 140 Z" fill="currentColor" opacity="0.12"/>
+                            <circle cx="100" cy="95" r="25" fill="currentColor" opacity="0.18"/>
+                            <rect x="40" y="148" width="120" height="10" rx="5" fill="currentColor" opacity="0.1"/>
+                        </svg>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="product-detail__info">
+                <div class="product-detail__meta">
+                    <span class="product-meta__category">{{ service.category.name }}</span>
+                    {% if service.company %}
+                        <span class="product-meta__brand">{{ service.company.name }}</span>
+                    {% endif %}
+                </div>
+
+                <h1 class="product-detail__name">{{ service.name }}</h1>
+
+                {% if service.description %}
+                <div class="product-detail__description">{{ service.description|linebreaksbr }}</div>
+                {% endif %}
+
+                {% if service.sku %}
+                <p class="product-detail__sku">Ref.: <code>{{ service.sku }}</code></p>
+                {% endif %}
+
+                <div class="service-detail__price-block">
+                    <span class="service-detail__price">{{ service.price }} €</span>
+                    <span class="service-detail__unit">/ {{ service.get_unit_display }}</span>
+                    <p class="service-detail__tax-note">Precio sin IVA</p>
+                </div>
+
+                <form method="post" action="{% url 'cart:add_service' service.pk %}" class="service-detail__form">
+                    {% csrf_token %}
+                    <div class="service-detail__qty-row">
+                        <label for="svc-qty" class="service-detail__qty-label">Cantidad ({{ service.get_unit_display }})</label>
+                        <input type="number" id="svc-qty" name="quantity" value="1" min="1" max="9999"
+                               class="service-detail__qty-input">
+                    </div>
+                    <input type="hidden" name="next" value="{{ request.path }}">
+                    <button type="submit" class="btn btn--primary service-detail__cta">Añadir al carrito</button>
+                </form>
+
+                {% if service.company and service.company.phone or service.company.email %}
+                <div class="service-detail__company-card">
+                    <p class="service-detail__company-label">Servicio prestado por</p>
+                    <strong>{{ service.company.name }}</strong>
+                    {% if service.company.phone %}<br><a href="tel:{{ service.company.phone }}">{{ service.company.phone }}</a>{% endif %}
+                    {% if service.company.email %}<br><a href="mailto:{{ service.company.email }}">{{ service.company.email }}</a>{% endif %}
+                </div>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+</section>
+
+{% if related %}
+<section class="related-products">
+    <div class="container">
+        <h2 class="section-title">Otros servicios de {{ service.category.name }}</h2>
+        <div class="product-grid product-grid--compact">
+            {% for rel in related %}
+            <article class="product-card product-card--compact">
+                <a href="{% url 'services:service_detail' rel.slug %}" class="product-card__link">
+                    <div class="product-card__image-wrap">
+                        {% if rel.image %}
+                            <img src="{{ rel.image.url }}" alt="{{ rel.name }}"
+                                 class="product-card__img" loading="lazy" width="300" height="300">
+                        {% else %}
+                            <div class="product-card__placeholder" aria-hidden="true">
+                                <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M20 60 L40 20 L60 60 Z" fill="currentColor" opacity="0.15"/>
+                                    <circle cx="40" cy="42" r="8" fill="currentColor" opacity="0.18"/>
+                                </svg>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="product-card__body">
+                        <h3 class="product-card__name">{{ rel.name }}</h3>
+                        <p class="product-card__price">{{ rel.price }} €<span class="price-note"> / {{ rel.get_unit_display }}</span></p>
+                    </div>
+                </a>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{% endblock %}

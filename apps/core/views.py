@@ -1,7 +1,7 @@
 """
 Core views: home page and utility views.
 """
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, DetailView
 
 
 class IndexView(TemplateView):
@@ -50,3 +50,7 @@ class IndexView(TemplateView):
             {'method': 'GET', 'path': '/api/brands/',         'description': 'Marcas'},
         ]
         return context
+
+
+class CookiePolicyView(TemplateView):
+    template_name = "pages/cookie_policy.html"

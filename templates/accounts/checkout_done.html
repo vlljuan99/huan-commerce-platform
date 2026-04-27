@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Pedido solicitado{% endblock %}
+
+{% block content %}
+<div class="container checkout-done">
+    <div class="checkout-done__card">
+        <div class="checkout-done__icon">&#10003;</div>
+        <h1 class="checkout-done__title">¡Pedido solicitado!</h1>
+        <p class="checkout-done__ref">Número de pedido: <strong>{{ order.order_number }}</strong></p>
+        <p class="checkout-done__msg">
+            Hemos registrado tu solicitud. Recibirás un correo electrónico en cuanto el pedido esté confirmado y listo.
+        </p>
+        <a href="{% url 'accounts:portal' %}" class="btn btn--primary">Ir a mi cuenta</a>
+    </div>
+</div>
+{% endblock %}

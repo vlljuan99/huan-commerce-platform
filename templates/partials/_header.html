@@ -24,6 +24,13 @@
                 </button>
             </form>
 
+            <a href="{% url 'cart:detail' %}" class="cart-icon" aria-label="Carrito de compra">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                {% if cart_count > 0 %}
+                <span class="cart-icon__badge">{{ cart_count }}</span>
+                {% endif %}
+            </a>
+
             <div class="header-user">
                 {% if user.is_authenticated %}
                     {% if user.is_superuser or user.role in 'admin,commercial' %}
@@ -53,7 +60,10 @@
                {% if request.resolver_match.url_name == 'catalog_pdf_list' %}aria-current="page"{% endif %}>
                 Catálogos
             </a>
-            <a href="#servicios">Servicios</a>
+            <a href="{% url 'services:service_list' %}"
+               {% if request.resolver_match.url_name == 'service_list' or request.resolver_match.url_name == 'service_detail' %}aria-current="page"{% endif %}>
+                Servicios
+            </a>
         </div>
     </nav>
 </header>

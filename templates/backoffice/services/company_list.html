@@ -1,0 +1,54 @@
+{% extends "backoffice/base.html" %}
+
+{% block title %}Empresas{% endblock %}
+{% block page_title %}Empresas{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'backoffice:company_create' %}" class="btn btn--create">+ NUEVA EMPRESA</a>
+{% endblock %}
+
+{% block content %}
+<div class="bo-table-wrap">
+    <table class="bo-table">
+        <thead>
+            <tr>
+                <th>Empresa</th>
+                <th>Teléfono</th>
+                <th>Email</th>
+                <th>Tipo</th>
+                <th>Estado</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for company in companies %}
+            <tr>
+                <td>
+                    {% if company.logo %}
+                    <img src="{{ company.logo.url }}" alt="{{ company.name }}" style="height:32px;object-fit:contain;vertical-align:middle;margin-right:.5rem;border-radius:3px;">
+                    {% endif %}
+                    <strong>{{ company.name }}</strong>
+                </td>
+                <td>{{ company.phone|default:"—" }}</td>
+                <td>{{ company.email|default:"—" }}</td>
+                <td>
+                    {% if company.is_own %}
+                    <span class="badge badge--accent">Nuestra empresa</span>
+                    {% else %}
+                    <span class="badge badge--neutral">Asociada</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="badge {% if company.is_active %}badge--delivered{% else %}badge--cancelled{% endif %}">
+                        {% if company.is_active %}Activa{% else %}Inactiva{% endif %}
+                    </span>
+                </td>
+                <td><a href="{% url 'backoffice:company_edit' company.pk %}" class="btn btn--primary btn--sm">EDITAR</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="bo-table__empty">No hay empresas.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

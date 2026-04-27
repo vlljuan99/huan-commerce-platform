@@ -51,4 +51,19 @@ urlpatterns = [
     path("catalogos-pdf/nuevo/", views.CatalogPDFCreateView.as_view(), name="catalogpdf_create"),
     path("catalogos-pdf/<int:pk>/editar/", views.CatalogPDFUpdateView.as_view(), name="catalogpdf_edit"),
     path("catalogos-pdf/<int:pk>/eliminar/", views.CatalogPDFDeleteView.as_view(), name="catalogpdf_delete"),
+
+    # Services
+    path("servicios/", views.ServiceListView.as_view(), name="service_list"),
+    path("servicios/nuevo/", views.ServiceCreateView.as_view(), name="service_create"),
+    path("servicios/<int:pk>/editar/", views.ServiceUpdateView.as_view(), name="service_edit"),
+
+    # Service categories
+    path("servicios/categorias/", views.ServiceCategoryListView.as_view(), name="service_category_list"),
+    path("servicios/categorias/nueva/", views.ServiceCategoryCreateView.as_view(), name="service_category_create"),
+    path("servicios/categorias/<int:pk>/editar/", views.ServiceCategoryUpdateView.as_view(), name="service_category_edit"),
+
+    # Companies
+    path("empresas/", views.CompanyListView.as_view(), name="company_list"),
+    path("empresas/nueva/", views.CompanyCreateView.as_view(), name="company_create"),
+    path("empresas/<int:pk>/editar/", views.CompanyUpdateView.as_view(), name="company_edit"),
 ]

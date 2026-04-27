@@ -5,6 +5,7 @@ from django.contrib.auth.hashers import make_password
 
 from apps.accounts.models import User
 from apps.catalog.models import Product, ProductVariant, ProductCategory, ProductBrand, CatalogPDF
+from apps.services.models import Company, ServiceCategory, Service
 from apps.customers.models import Customer, CustomerAddress
 from apps.invoicing.models import Invoice, InvoiceSeries
 from apps.orders.models import Order
@@ -263,6 +264,88 @@ class CatalogPDFForm(forms.ModelForm):
             "pdf_file":    "Archivo PDF",
             "cover_image": "Imagen de portada (opcional)",
             "is_active":   "Activo (visible en la tienda)",
+        }
+
+
+# ── Services ──────────────────────────────────────────────────────────────────
+
+class ServiceForm(forms.ModelForm):
+    class Meta:
+        model = Service
+        fields = [
+            "name", "sku", "description", "category", "company",
+            "price", "unit", "image", "is_featured", "is_active",
+        ]
+        widgets = {
+            "name":        forms.TextInput(attrs=_C),
+            "sku":         forms.TextInput(attrs=_C_MONO),
+            "description": forms.Textarea(attrs=_TA),
+            "category":    forms.Select(attrs=_C),
+            "company":     forms.Select(attrs=_C),
+            "price":       forms.NumberInput(attrs={**_C, "step": "0.01", "inputmode": "decimal"}),
+            "unit":        forms.Select(attrs=_C),
+            "image":       forms.FileInput(attrs=_C),
+        }
+        labels = {
+            "name":        "Nombre del servicio",
+            "sku":         "Código (SKU)",
+            "description": "Descripción",
+            "category":    "Categoría",
+            "company":     "Empresa que lo presta",
+            "price":       "Precio sin IVA (€)",
+            "unit":        "Unidad",
+            "image":       "Imagen",
+            "is_featured": "Destacado",
+            "is_active":   "Activo (visible en la web)",
+        }
+
+
+class ServiceCategoryForm(forms.ModelForm):
+    class Meta:
+        model = ServiceCategory
+        fields = ["name", "slug", "display_order", "is_active"]
+        widgets = {
+            "name":          forms.TextInput(attrs=_C),
+            "slug":          forms.TextInput(attrs=_C_MONO),
+            "display_order": forms.NumberInput(attrs={**_C, "inputmode": "numeric"}),
+        }
+        labels = {
+            "name":          "Nombre",
+            "slug":          "Slug (URL)",
+            "display_order": "Orden de visualización",
+            "is_active":     "Activa",
+        }
+
+
+class CompanyForm(forms.ModelForm):
+    class Meta:
+        model = Company
+        fields = [
+            "name", "slug", "description", "logo",
+            "address", "phone", "email", "website",
+            "is_own", "is_active",
+        ]
+        widgets = {
+            "name":        forms.TextInput(attrs=_C),
+            "slug":        forms.TextInput(attrs=_C_MONO),
+            "description": forms.Textarea(attrs=_TA3),
+            "logo":        forms.FileInput(attrs=_C),
+            "address":     forms.Textarea(attrs={**_C, "rows": "2"}),
+            "phone":       forms.TextInput(attrs={**_C, "type": "tel"}),
+            "email":       forms.EmailInput(attrs=_C),
+            "website":     forms.URLInput(attrs=_C),
+        }
+        labels = {
+            "name":        "Nombre",
+            "slug":        "Slug (URL)",
+            "description": "Descripción",
+            "logo":        "Logo",
+            "address":     "Dirección",
+            "phone":       "Teléfono",
+            "email":       "Email",
+            "website":     "Web",
+            "is_own":      "Es nuestra empresa (gestora de la plataforma)",
+            "is_active":   "Activa",
         }
 
 

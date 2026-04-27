@@ -1,0 +1,41 @@
+{% extends "backoffice/base.html" %}
+
+{% block title %}Categorías de servicio{% endblock %}
+{% block page_title %}Categorías de servicio{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'backoffice:service_category_create' %}" class="btn btn--create">+ NUEVA CATEGORÍA</a>
+{% endblock %}
+
+{% block content %}
+<div class="bo-table-wrap">
+    <table class="bo-table">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Slug</th>
+                <th>Orden</th>
+                <th>Estado</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cat in categories %}
+            <tr>
+                <td><strong>{{ cat.name }}</strong></td>
+                <td><code>{{ cat.slug }}</code></td>
+                <td>{{ cat.display_order }}</td>
+                <td>
+                    <span class="badge {% if cat.is_active %}badge--delivered{% else %}badge--cancelled{% endif %}">
+                        {% if cat.is_active %}Activa{% else %}Inactiva{% endif %}
+                    </span>
+                </td>
+                <td><a href="{% url 'backoffice:service_category_edit' cat.pk %}" class="btn btn--primary btn--sm">EDITAR</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="bo-table__empty">No hay categorías.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

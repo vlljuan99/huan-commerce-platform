@@ -32,6 +32,27 @@
     {% include "partials/_footer.html" %}
 
     {% block extra_js %}{% endblock %}
+
+    <div class="cookie-banner" id="cookie-banner" style="display:none">
+        <p class="cookie-banner__text">
+            Usamos cookies propias para el funcionamiento del carrito y la sesión.
+            <a href="{% url 'cookie_policy' %}">Más información</a>
+        </p>
+        <div class="cookie-banner__actions">
+            <button class="cookie-banner__accept" onclick="acceptCookies()">Aceptar</button>
+        </div>
+    </div>
+    <script>
+        (function() {
+            if (!localStorage.getItem('cookie_consent')) {
+                document.getElementById('cookie-banner').style.display = 'flex';
+            }
+        })();
+        function acceptCookies() {
+            localStorage.setItem('cookie_consent', '1');
+            document.getElementById('cookie-banner').style.display = 'none';
+        }
+    </script>
 </body>
 </html>
 

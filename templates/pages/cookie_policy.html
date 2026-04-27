@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Política de cookies{% endblock %}
+
+{% block content %}
+<div class="container legal-page">
+    <h1 class="legal-page__title">Política de cookies</h1>
+    <p class="legal-page__updated">Última actualización: abril de 2026</p>
+
+    <section class="legal-section">
+        <h2>¿Qué son las cookies?</h2>
+        <p>Las cookies son pequeños archivos de texto que los sitios web guardan en tu dispositivo cuando los visitas. Nos permiten recordar tus preferencias y mejorar tu experiencia de navegación.</p>
+    </section>
+
+    <section class="legal-section">
+        <h2>Cookies que utilizamos</h2>
+
+        <h3>Cookies estrictamente necesarias</h3>
+        <p>Estas cookies son imprescindibles para el funcionamiento del sitio y no se pueden desactivar. Sin ellas, algunas partes de la web no funcionarían correctamente.</p>
+
+        <table class="cookie-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Tipo</th>
+                    <th>Duración</th>
+                    <th>Finalidad</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>sessionid</code></td>
+                    <td>Sesión</td>
+                    <td>2 semanas</td>
+                    <td>Identifica tu sesión en el servidor para mantener el carrito y tu inicio de sesión.</td>
+                </tr>
+                <tr>
+                    <td><code>csrftoken</code></td>
+                    <td>Seguridad</td>
+                    <td>1 año</td>
+                    <td>Protege los formularios contra ataques CSRF (falsificación de solicitudes entre sitios).</td>
+                </tr>
+                <tr>
+                    <td><code>cookie_consent</code></td>
+                    <td>Preferencias</td>
+                    <td>1 año</td>
+                    <td>Guarda tu decisión sobre el aviso de cookies para no volver a mostrarlo.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>Carrito de compra</h3>
+        <p>Usamos la cookie de sesión (<code>sessionid</code>) para recordar los productos que has añadido al carrito aunque no hayas iniciado sesión. Esta información se almacena temporalmente en nuestros servidores y se elimina cuando finaliza tu sesión o llevas más de 2 semanas sin visitar el sitio.</p>
+    </section>
+
+    <section class="legal-section">
+        <h2>Cookies de terceros</h2>
+        <p>Actualmente este sitio no utiliza cookies de terceros (publicidad, analítica externa, redes sociales, etc.).</p>
+    </section>
+
+    <section class="legal-section">
+        <h2>¿Cómo gestionar las cookies?</h2>
+        <p>Puedes configurar tu navegador para que rechace o elimine cookies. Ten en cuenta que deshabilitar las cookies necesarias puede afectar al funcionamiento del carrito y del inicio de sesión.</p>
+        <ul>
+            <li><a href="https://support.google.com/chrome/answer/95647" target="_blank" rel="noopener">Google Chrome</a></li>
+            <li><a href="https://support.mozilla.org/es/kb/cookies-informacion-que-los-sitios-web-guardan-en-" target="_blank" rel="noopener">Mozilla Firefox</a></li>
+            <li><a href="https://support.apple.com/es-es/guide/safari/sfri11471/mac" target="_blank" rel="noopener">Safari</a></li>
+            <li><a href="https://support.microsoft.com/es-es/windows/eliminar-y-administrar-cookies-168dab11-0753-043d-7c16-ede5947fc64d" target="_blank" rel="noopener">Microsoft Edge</a></li>
+        </ul>
+    </section>
+
+    <section class="legal-section">
+        <h2>Cambios en esta política</h2>
+        <p>Podemos actualizar esta política ocasionalmente. Te notificaremos de cualquier cambio publicando la nueva versión en esta página.</p>
+    </section>
+</div>
+{% endblock %}

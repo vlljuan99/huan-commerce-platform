@@ -105,6 +105,16 @@
                                         <span class="badge badge--neutral">Sin stock</span>
                                     {% endif %}
                                 </td>
+                                <td>
+                                    {% if variant.is_in_stock %}
+                                    <form method="post" action="{% url 'cart:add' variant.pk %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="quantity" value="1">
+                                        <input type="hidden" name="next" value="{{ request.path }}">
+                                        <button type="submit" class="btn btn--primary btn--sm">Añadir al carrito</button>
+                                    </form>
+                                    {% endif %}
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>

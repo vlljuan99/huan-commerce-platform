@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Carrito de compra{% endblock %}
+
+{% block content %}
+<div class="container cart-page">
+    <h1 class="cart-page__title">Carrito de compra</h1>
+
+    {% if items %}
+    <div class="cart-layout">
+        <div class="cart-items">
+            <table class="cart-table">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Código</th>
+                        <th>Precio</th>
+                        <th>Cantidad</th>
+                        <th>Total</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr class="cart-table__row">
+                        <td class="cart-table__product">
+                            <strong>{{ item.display_name }}</strong>
+                            {% if item.service %}
+                            <br><small class="text-muted">Servicio · {{ item.service.get_unit_display }}</small>
+                            {% endif %}
+                        </td>
+                        <td><code class="cart-table__sku">{{ item.display_sku }}</code></td>
+                        <td class="cart-table__price">{{ item.display_unit_price }} €</td>
+                        <td class="cart-table__qty">
+                            <form method="post" action="{% url 'cart:update' item.pk %}" class="cart-qty-form">
+                                {% csrf_token %}
+                                <input type="number" name="quantity" value="{{ item.quantity }}" min="1" max="9999"
+                                       class="cart-qty-input" onchange="this.form.submit()">
+                            </form>
+                        </td>
+                        <td class="cart-table__total">{{ item.get_total }} €</td>
+                        <td>
+                            <form method="post" action="{% url 'cart:remove' item.pk %}">
+                                {% csrf_token %}
+                                <button type="submit" class="cart-remove-btn" aria-label="Eliminar">&#x2715;</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <aside class="cart-summary">
+            <div class="cart-summary__box">
+                <h2 class="cart-summary__title">Resumen</h2>
+                <div class="cart-summary__row">
+                    <span>Subtotal</span>
+                    <strong>{{ total }} €</strong>
+                </div>
+                <p class="cart-summary__note">Precios sin IVA. El importe final se calculará al confirmar el pedido.</p>
+
+                {% if user.is_authenticated %}
+                    <a href="{% url 'accounts:checkout' %}" class="btn btn--primary cart-summary__cta">Solicitar pedido</a>
+                {% else %}
+                    <p class="cart-summary__login-note">Para solicitar el pedido necesitas identificarte.</p>
+                    <a href="{% url 'accounts:login' %}?next={% url 'accounts:checkout' %}" class="btn btn--primary cart-summary__cta">Iniciar sesión</a>
+                    <a href="{% url 'accounts:login' %}" class="btn btn--ghost cart-summary__cta">Crear cuenta</a>
+                {% endif %}
+            </div>
+        </aside>
+    </div>
+
+    {% else %}
+    <div class="cart-empty">
+        <p class="cart-empty__text">Tu carrito está vacío.</p>
+        <a href="{% url 'catalog:product_list' %}" class="btn btn--primary">Ver catálogo</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -12,9 +12,11 @@ from apps.catalog.models import Product, ProductVariant, ProductCategory, Produc
 from apps.customers.models import Customer, CustomerAddress
 from apps.invoicing.models import Invoice, InvoiceSeries
 from apps.orders.models import Order
+from apps.services.models import Company, ServiceCategory, Service
 
 from .forms import (
     CatalogPDFForm,
+    CompanyForm,
     CustomerAddressForm,
     CustomerCreateForm,
     CustomerForm,
@@ -26,6 +28,8 @@ from .forms import (
     ProductBrandForm,
     ProductForm,
     ProductVariantForm,
+    ServiceCategoryForm,
+    ServiceForm,
 )
 
 
@@ -680,3 +684,153 @@ class OrderCreateView(BackofficeRequiredMixin, CreateView):
             self.request, f"Pedido {order.order_number} creado."
         )
         return redirect("backoffice:order_detail", pk=order.pk)
+
+
+# ── Services ──────────────────────────────────────────────────────────────────
+
+class ServiceListView(BackofficeRequiredMixin, ListView):
+    template_name = "backoffice/services/list.html"
+    context_object_name = "services"
+    paginate_by = 30
+
+    def get_queryset(self):
+        qs = Service.objects.select_related("category", "company")
+        sort_map = {"name": "name", "category": "category__name", "status": "is_active"}
+        sort = self.request.GET.get("sort", "name")
+        direction = self.request.GET.get("dir", "asc")
+        order_field = sort_map.get(sort, "name")
+        prefix = "" if direction == "asc" else "-"
+        qs = qs.order_by(f"{prefix}{order_field}")
+        category_pk = self.request.GET.get("category")
+        if category_pk:
+            qs = qs.filter(category_id=category_pk)
+        return qs
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["current_sort"] = self.request.GET.get("sort", "name")
+        ctx["current_dir"] = self.request.GET.get("dir", "asc")
+        ctx["category_list"] = ServiceCategory.objects.filter(is_active=True)
+        ctx["current_category"] = self.request.GET.get("category", "")
+        return ctx
+
+
+class ServiceCreateView(BackofficeRequiredMixin, CreateView):
+    template_name = "backoffice/services/edit.html"
+    model = Service
+    form_class = ServiceForm
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["is_new"] = True
+        return ctx
+
+    def form_valid(self, form):
+        messages.success(self.request, f'Servicio "{form.instance.name}" creado.')
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy("backoffice:service_edit", kwargs={"pk": self.object.pk})
+
+
+class ServiceUpdateView(BackofficeRequiredMixin, UpdateView):
+    template_name = "backoffice/services/edit.html"
+    model = Service
+    form_class = ServiceForm
+
+    def form_valid(self, form):
+        messages.success(self.request, f'Servicio "{self.object.name}" actualizado.')
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy("backoffice:service_edit", kwargs={"pk": self.object.pk})
+
+
+# ── Service categories ────────────────────────────────────────────────────────
+
+class ServiceCategoryListView(BackofficeRequiredMixin, ListView):
+    template_name = "backoffice/services/category_list.html"
+    context_object_name = "categories"
+    queryset = ServiceCategory.objects.all().order_by("display_order", "name")
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["current_sort"] = self.request.GET.get("sort", "order")
+        ctx["current_dir"] = self.request.GET.get("dir", "asc")
+        return ctx
+
+
+class ServiceCategoryCreateView(BackofficeRequiredMixin, CreateView):
+    template_name = "backoffice/services/category_edit.html"
+    model = ServiceCategory
+    form_class = ServiceCategoryForm
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["is_new"] = True
+        return ctx
+
+    def form_valid(self, form):
+        messages.success(self.request, f'Categoría "{form.instance.name}" creada.')
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy("backoffice:service_category_list")
+
+
+class ServiceCategoryUpdateView(BackofficeRequiredMixin, UpdateView):
+    template_name = "backoffice/services/category_edit.html"
+    model = ServiceCategory
+    form_class = ServiceCategoryForm
+
+    def form_valid(self, form):
+        messages.success(self.request, f'Categoría "{self.object.name}" actualizada.')
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy("backoffice:service_category_list")
+
+
+# ── Companies ─────────────────────────────────────────────────────────────────
+
+class CompanyListView(BackofficeRequiredMixin, ListView):
+    template_name = "backoffice/services/company_list.html"
+    context_object_name = "companies"
+    queryset = Company.objects.all().order_by("-is_own", "name")
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["current_sort"] = self.request.GET.get("sort", "name")
+        ctx["current_dir"] = self.request.GET.get("dir", "asc")
+        return ctx
+
+
+class CompanyCreateView(BackofficeRequiredMixin, CreateView):
+    template_name = "backoffice/services/company_edit.html"
+    model = Company
+    form_class = CompanyForm
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["is_new"] = True
+        return ctx
+
+    def form_valid(self, form):
+        messages.success(self.request, f'Empresa "{form.instance.name}" creada.')
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy("backoffice:company_edit", kwargs={"pk": self.object.pk})
+
+
+class CompanyUpdateView(BackofficeRequiredMixin, UpdateView):
+    template_name = "backoffice/services/company_edit.html"
+    model = Company
+    form_class = CompanyForm
+
+    def form_valid(self, form):
+        messages.success(self.request, f'Empresa "{self.object.name}" actualizada.')
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy("backoffice:company_edit", kwargs={"pk": self.object.pk})

@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Confirmar pedido{% endblock %}
+
+{% block content %}
+<div class="container checkout-page">
+    <h1 class="checkout-page__title">Solicitar pedido</h1>
+
+    {% if not customer %}
+    <div class="checkout-notice checkout-notice--warn">
+        <p>No tienes un perfil de cliente asociado. Contacta con nosotros para activar tu cuenta.</p>
+        <a href="{% url 'accounts:portal' %}" class="btn btn--ghost">Volver al portal</a>
+    </div>
+    {% else %}
+
+    <div class="checkout-layout">
+        <div class="checkout-main">
+            <h2 class="checkout-section-title">Líneas del pedido</h2>
+            <table class="checkout-table">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Código SKU</th>
+                        <th>Cantidad</th>
+                        <th>Precio unit.</th>
+                        <th>Total línea</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td>
+                            <strong>{{ item.display_name }}</strong>
+                            {% if item.service %}
+                            <br><small class="text-muted">Servicio · {{ item.service.get_unit_display }}</small>
+                            {% endif %}
+                        </td>
+                        <td><code>{{ item.display_sku }}</code></td>
+                        <td>{{ item.quantity }}</td>
+                        <td>{{ item.display_unit_price }} €</td>
+                        <td><strong>{{ item.get_total }} €</strong></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr class="checkout-table__total-row">
+                        <td colspan="4"><strong>Total estimado (sin IVA)</strong></td>
+                        <td><strong>{{ total }} €</strong></td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <form method="post" class="checkout-form">
+                {% csrf_token %}
+                <div class="checkout-form__group">
+                    <label for="checkout-notes" class="checkout-form__label">Observaciones (opcional)</label>
+                    <textarea id="checkout-notes" name="notes" class="checkout-form__textarea"
+                              rows="4" placeholder="Indicaciones de entrega, referencias internas…"></textarea>
+                </div>
+
+                <div class="checkout-info-box">
+                    <p>Al confirmar, se registrará tu solicitud de pedido. Recibirás un correo electrónico en cuanto el pedido esté listo y confirmado por nuestro equipo.</p>
+                </div>
+
+                <div class="checkout-form__actions">
+                    <a href="{% url 'cart:detail' %}" class="btn btn--ghost">Volver al carrito</a>
+                    <button type="submit" class="btn btn--primary">Confirmar solicitud</button>
+                </div>
+            </form>
+        </div>
+
+        <aside class="checkout-aside">
+            <div class="checkout-aside__box">
+                <h3 class="checkout-aside__title">Cliente</h3>
+                <p>{{ customer }}</p>
+            </div>
+            <div class="checkout-aside__box">
+                <h3 class="checkout-aside__title">¿Cómo funciona?</h3>
+                <ol class="checkout-aside__steps">
+                    <li>Envías tu solicitud de pedido.</li>
+                    <li>Nuestro equipo la revisa y confirma disponibilidad.</li>
+                    <li>Recibes un correo con la confirmación y los detalles.</li>
+                </ol>
+            </div>
+        </aside>
+    </div>
+
+    {% endif %}
+</div>
+{% endblock %}

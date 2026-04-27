@@ -1,0 +1,64 @@
+{% extends "backoffice/base.html" %}
+
+{% block title %}Servicios{% endblock %}
+{% block page_title %}Servicios{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'backoffice:service_create' %}" class="btn btn--create">+ NUEVO SERVICIO</a>
+{% endblock %}
+
+{% block content %}
+<form method="get" class="bo-filter-bar">
+    <select name="category" class="bo-filter__select" onchange="this.form.submit()">
+        <option value="">Todas las categorías</option>
+        {% for cat in category_list %}
+        <option value="{{ cat.pk }}" {% if current_category == cat.pk|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit" class="btn btn--ghost btn--sm">Filtrar</button>
+    {% if current_category %}
+    <a href="{% url 'backoffice:service_list' %}" class="btn btn--ghost btn--sm">✕ Limpiar</a>
+    {% endif %}
+</form>
+
+<div class="bo-table-wrap">
+    <table class="bo-table">
+        <thead>
+            <tr>
+                <th><a href="?sort=name&dir={% if current_sort == 'name' and current_dir == 'asc' %}desc{% else %}asc{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}" class="bo-th-sort{% if current_sort == 'name' %} bo-th-sort--active{% endif %}">Nombre {% if current_sort == 'name' %}{% if current_dir == 'asc' %}▲{% else %}▼{% endif %}{% endif %}</a></th>
+                <th><a href="?sort=category&dir={% if current_sort == 'category' and current_dir == 'asc' %}desc{% else %}asc{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}" class="bo-th-sort{% if current_sort == 'category' %} bo-th-sort--active{% endif %}">Categoría {% if current_sort == 'category' %}{% if current_dir == 'asc' %}▲{% else %}▼{% endif %}{% endif %}</a></th>
+                <th>Empresa</th>
+                <th>Precio</th>
+                <th>Unidad</th>
+                <th><a href="?sort=status&dir={% if current_sort == 'status' and current_dir == 'asc' %}desc{% else %}asc{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}" class="bo-th-sort{% if current_sort == 'status' %} bo-th-sort--active{% endif %}">Estado {% if current_sort == 'status' %}{% if current_dir == 'asc' %}▲{% else %}▼{% endif %}{% endif %}</a></th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for svc in services %}
+            <tr>
+                <td>
+                    <strong>{{ svc.name }}</strong>
+                    {% if svc.sku %}<br><code style="font-size:.8rem;color:#6b7280">{{ svc.sku }}</code>{% endif %}
+                    {% if svc.is_featured %} <span class="badge badge--accent" style="font-size:.7rem">Destacado</span>{% endif %}
+                </td>
+                <td>{{ svc.category }}</td>
+                <td>{{ svc.company|default:"—" }}</td>
+                <td>{{ svc.price }} €</td>
+                <td>{{ svc.get_unit_display }}</td>
+                <td>
+                    <span class="badge {% if svc.is_active %}badge--delivered{% else %}badge--cancelled{% endif %}">
+                        {% if svc.is_active %}Activo{% else %}Inactivo{% endif %}
+                    </span>
+                </td>
+                <td>
+                    <a href="{% url 'backoffice:service_edit' svc.pk %}" class="btn btn--primary btn--sm">EDITAR</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" class="bo-table__empty">No hay servicios. <a href="{% url 'backoffice:service_create' %}">Crear el primero</a></td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

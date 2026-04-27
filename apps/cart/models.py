@@ -6,6 +6,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from decimal import Decimal
 from apps.catalog.models import ProductVariant
+from apps.services.models import Service
 
 
 class Cart(models.Model):
@@ -56,7 +57,16 @@ class CartLineItem(models.Model):
     variant = models.ForeignKey(
         ProductVariant,
         on_delete=models.CASCADE,
+        null=True,
+        blank=True,
         verbose_name=_('Product variant')
+    )
+    service = models.ForeignKey(
+        Service,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        verbose_name=_('Service')
     )
     quantity = models.PositiveIntegerField(
         default=1,
@@ -67,11 +77,52 @@ class CartLineItem(models.Model):
     class Meta:
         verbose_name = _('Cart Line Item')
         verbose_name_plural = _('Cart Line Items')
-        unique_together = ['cart', 'variant']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['cart', 'variant'],
+                condition=models.Q(variant__isnull=False),
+                name='unique_cart_variant',
+            ),
+            models.UniqueConstraint(
+                fields=['cart', 'service'],
+                condition=models.Q(service__isnull=False),
+                name='unique_cart_service',
+            ),
+        ]
 
     def __str__(self):
-        return f"{self.variant} x {self.quantity}"
+        if self.variant:
+            return f"{self.variant} x {self.quantity}"
+        if self.service:
+            return f"{self.service} x {self.quantity}"
+        return f"Item x {self.quantity}"
+
+    @property
+    def display_name(self):
+        if self.variant:
+            name = self.variant.product.name
+            if self.variant.name:
+                name += f" — {self.variant.name}"
+            return name
+        if self.service:
+            return self.service.name
+        return "—"
+
+    @property
+    def display_sku(self):
+        if self.variant:
+            return self.variant.sku
+        if self.service:
+            return self.service.sku or "—"
+        return "—"
+
+    @property
+    def display_unit_price(self):
+        if self.variant:
+            return self.variant.price_no_tax
+        if self.service:
+            return self.service.price
+        return Decimal("0")
 
     def get_total(self):
-        """Get line total using current variant price."""
-        return Decimal(self.quantity) * self.variant.price_no_tax
+        return Decimal(self.quantity) * self.display_unit_price
