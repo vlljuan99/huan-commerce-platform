@@ -11,6 +11,7 @@ from django.urls import reverse_lazy
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views import View
 from django.views.generic import DetailView, FormView, ListView, TemplateView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
@@ -907,7 +908,7 @@ class VisualizaObraView(BackofficeRequiredMixin, TemplateView):
             )
 
         room_file = request.FILES.get("room_image")
-        tile_file = request.FILES.get("tile_image")
+        tile_file = self._resolve_tile_file(request)
         wall_color = request.POST.get("wall_color", "#FFFFFF").strip()
 
         # ── Validaciones ──────────────────────────────────────────────────────
@@ -919,15 +920,16 @@ class VisualizaObraView(BackofficeRequiredMixin, TemplateView):
                 {"error": "Color de pared no válido. Usa formato #RRGGBB."}, status=400
             )
 
-        for label, f in [("habitación", room_file), ("azulejo", tile_file)]:
+        # Only validate content_type/size for directly uploaded files
+        for label, f in [("habitación", room_file)]:
             if f is None:
                 continue
-            if f.content_type not in self._ALLOWED_TYPES:
+            if getattr(f, "content_type", None) and f.content_type not in self._ALLOWED_TYPES:
                 return JsonResponse(
                     {"error": f"Formato de imagen de {label} no válido. Usa PNG, JPEG o WebP."},
                     status=400,
                 )
-            if f.size > self._MAX_SIZE:
+            if getattr(f, "size", 0) > self._MAX_SIZE:
                 return JsonResponse(
                     {"error": f"La imagen de {label} supera el límite de 20 MB."},
                     status=400,
@@ -975,4 +977,69 @@ class VisualizaObraView(BackofficeRequiredMixin, TemplateView):
         except Exception:
             logger.exception("Error inesperado en VisualizaObraView")
             return JsonResponse({"error": "Error interno del servidor."}, status=500)
+
+    def _resolve_tile_file(self, request):
+        """Returns the tile file object or None. Prefers uploaded file; falls back to variant."""
+        tile_file = request.FILES.get("tile_image")
+        if tile_file:
+            return tile_file
+        variant_pk = request.POST.get("tile_variant_pk", "").strip()
+        if not variant_pk:
+            return None
+        try:
+            variant = ProductVariant.objects.get(pk=int(variant_pk))
+            if variant.image:
+                return variant.image.open("rb")
+        except (ProductVariant.DoesNotExist, ValueError, OSError):
+            pass
+        return None
+
+
+class ProductImagePickerView(BackofficeRequiredMixin, View):
+    """AJAX endpoint: returns catalog products (with images) as JSON for the VTO picker."""
+
+    def get(self, request):
+        q = request.GET.get("q", "").strip()
+        category_pk = request.GET.get("categoria", "").strip()
+        brand_pk = request.GET.get("marca", "").strip()
+
+        qs = (
+            Product.objects
+            .filter(is_active=True)
+            .select_related("category", "brand")
+            .prefetch_related("variants")
+        )
+        if q:
+            qs = qs.filter(name__icontains=q)
+        if category_pk:
+            qs = qs.filter(category_id=category_pk)
+        if brand_pk:
+            qs = qs.filter(brand_id=brand_pk)
+
+        results = []
+        for product in qs[:60]:
+            for variant in product.variants.filter(is_active=True):
+                if not variant.image:
+                    continue
+                results.append({
+                    "variant_pk": variant.pk,
+                    "product_name": product.name,
+                    "variant_name": variant.name or "",
+                    "sku": variant.sku,
+                    "image_url": request.build_absolute_uri(variant.image.url),
+                    "category": product.category.name if product.category else "",
+                    "brand": product.brand.name if product.brand else "",
+                })
+
+        categories = list(
+            ProductCategory.objects.filter(is_active=True)
+            .values("pk", "name")
+            .order_by("name")
+        )
+        brands = list(
+            ProductBrand.objects.filter(is_active=True)
+            .values("pk", "name")
+            .order_by("name")
+        )
+        return JsonResponse({"results": results, "categories": categories, "brands": brands})
 

@@ -166,6 +166,100 @@
 }
 .vto-error--visible { display: block; }
 
+/* ── Tile source tabs ── */
+.vto-source-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: .75rem;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    overflow: hidden;
+}
+.vto-source-tab {
+    flex: 1;
+    padding: .55rem .75rem;
+    font-size: .82rem;
+    font-weight: 600;
+    background: var(--color-bg, #f9fafb);
+    color: var(--color-text-muted);
+    border: none;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+}
+.vto-source-tab + .vto-source-tab { border-left: 1px solid var(--color-border); }
+.vto-source-tab--active {
+    background: var(--color-primary, #1a365d);
+    color: #fff;
+}
+
+/* ── Product picker ── */
+.vto-picker-bar {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    margin-bottom: .75rem;
+}
+@media (min-width: 600px) {
+    .vto-picker-bar { flex-direction: row; }
+    .vto-picker-search { flex: 2; }
+    .vto-picker-sel { flex: 1; }
+}
+.vto-picker-search,
+.vto-picker-sel { min-height: 40px; font-size: .88rem; padding: .4rem .7rem; }
+
+.vto-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: .5rem;
+    max-height: 280px;
+    overflow-y: auto;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: .5rem;
+    background: var(--color-bg, #f9fafb);
+}
+.vto-picker-card {
+    cursor: pointer;
+    border: 2px solid transparent;
+    border-radius: 6px;
+    overflow: hidden;
+    transition: border-color .15s, transform .1s;
+    position: relative;
+}
+.vto-picker-card:hover { border-color: var(--color-primary, #1a365d); transform: scale(1.04); }
+.vto-picker-card--selected { border-color: var(--color-accent, #c97b1a) !important; }
+.vto-picker-card img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
+.vto-picker-card__label {
+    font-size: .65rem;
+    color: var(--color-text-muted);
+    padding: 2px 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background: #fff;
+}
+.vto-picker-empty { font-size: .85rem; color: var(--color-text-muted); padding: 1rem; text-align: center; }
+
+.vto-picker-selection {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: .6rem .75rem;
+    background: #f0fdf4;
+    border: 1px solid #86efac;
+    border-radius: 8px;
+    margin-bottom: .6rem;
+}
+.vto-picker-selection img { width: 48px; height: 48px; object-fit: cover; border-radius: 4px; flex-shrink: 0; }
+.vto-picker-selection__info { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.vto-picker-selection__info strong { font-size: .82rem; color: var(--color-text); }
+.vto-picker-selection__info code { font-size: .75rem; color: var(--color-text-muted); }
+.vto-picker-clear {
+    background: none; border: none; cursor: pointer; color: var(--color-text-muted);
+    font-size: 1.1rem; padding: .25rem; border-radius: 4px; flex-shrink: 0;
+}
+.vto-picker-clear:hover { color: var(--color-danger-text, #c0392b); background: #fee2e2; }
+
 .vto-tips {
     margin-top: 1.5rem;
     padding: 1rem 1.25rem;
@@ -208,17 +302,66 @@
                     </div>
                 </div>
 
-                {# Imagen azulejo #}
+                {# Imagen azulejo — fuente seleccionable #}
                 <div class="bo-form__group">
-                    <label class="bo-form__label" for="tile_image">
+                    <label class="bo-form__label">
                         Imagen del azulejo <span style="font-weight:400;color:var(--color-text-muted)">(opcional)</span>
                     </label>
-                    <div class="vto-dropzone" id="tile-drop">
-                        <input type="file" name="tile_image" id="tile_image"
-                               accept="image/png,image/jpeg,image/webp">
-                        <span class="vto-dropzone__icon">🪨</span>
-                        <span class="vto-dropzone__label">Referencia de suelo cerámico<br>PNG / JPEG / WebP · máx. 20 MB</span>
-                        <img class="vto-dropzone__preview" id="tile-preview" alt="Vista previa azulejo">
+
+                    {# Source toggle #}
+                    <div class="vto-source-tabs" role="tablist">
+                        <button type="button" class="vto-source-tab vto-source-tab--active"
+                                role="tab" data-target="tile-src-upload"
+                                onclick="switchTileSource(this)">&#128193; Subir imagen</button>
+                        <button type="button" class="vto-source-tab"
+                                role="tab" data-target="tile-src-catalog"
+                                onclick="switchTileSource(this)">&#128269; Del catálogo</button>
+                    </div>
+
+                    {# Upload panel #}
+                    <div id="tile-src-upload">
+                        <div class="vto-dropzone" id="tile-drop">
+                            <input type="file" name="tile_image" id="tile_image"
+                                   accept="image/png,image/jpeg,image/webp">
+                            <span class="vto-dropzone__icon">🪨</span>
+                            <span class="vto-dropzone__label">Referencia de suelo cerámico<br>PNG / JPEG / WebP · máx. 20 MB</span>
+                            <img class="vto-dropzone__preview" id="tile-preview" alt="Vista previa azulejo">
+                        </div>
+                    </div>
+
+                    {# Catalog picker panel #}
+                    <div id="tile-src-catalog" style="display:none">
+                        <input type="hidden" name="tile_variant_pk" id="tile_variant_pk" value="">
+
+                        <div class="vto-picker-bar">
+                            <input type="text" class="bo-form__control vto-picker-search"
+                                   id="picker-q" placeholder="Buscar producto…"
+                                   oninput="pickerSearch()">
+                            <select class="bo-form__control vto-picker-sel" id="picker-cat"
+                                    onchange="pickerSearch()">
+                                <option value="">Todas las categorías</option>
+                            </select>
+                            <select class="bo-form__control vto-picker-sel" id="picker-brand"
+                                    onchange="pickerSearch()">
+                                <option value="">Todas las marcas</option>
+                            </select>
+                        </div>
+
+                        {# Selected tile preview #}
+                        <div id="picker-selection" class="vto-picker-selection" style="display:none">
+                            <img id="picker-selected-img" src="" alt="Azulejo seleccionado">
+                            <div class="vto-picker-selection__info">
+                                <strong id="picker-selected-name"></strong>
+                                <code id="picker-selected-sku"></code>
+                            </div>
+                            <button type="button" class="vto-picker-clear"
+                                    onclick="clearTileSelection()" aria-label="Quitar selección">&#x2715;</button>
+                        </div>
+
+                        <div id="picker-grid" class="vto-picker-grid">
+                            <p class="vto-picker-empty" id="picker-empty">Escribe para buscar o carga la lista.</p>
+                        </div>
+                        <p id="picker-status" style="font-size:.8rem;color:var(--color-text-muted);margin-top:.4rem;"></p>
                     </div>
                 </div>
 
@@ -321,6 +464,125 @@
     }
     bindDropzone("room_image", "room-preview");
     bindDropzone("tile_image", "tile-preview");
+
+    // ── Tile source toggle ────────────────────────────────────────────
+    window.switchTileSource = function(btn) {
+        document.querySelectorAll(".vto-source-tab").forEach(t => t.classList.remove("vto-source-tab--active"));
+        btn.classList.add("vto-source-tab--active");
+        const target = btn.dataset.target;
+        ["tile-src-upload", "tile-src-catalog"].forEach(id => {
+            document.getElementById(id).style.display = (id === target) ? "" : "none";
+        });
+        if (target === "tile-src-catalog") pickerLoad();
+    };
+
+    // ── Product image picker ──────────────────────────────────────────
+    const PICKER_URL = "{% url 'backoffice:product_image_picker' %}";
+    let pickerLoaded = false;
+    let pickerDebounce = null;
+
+    function pickerLoad() {
+        if (pickerLoaded) return;
+        pickerLoaded = true;
+        fetchPicker("", "", "");
+    }
+
+    window.pickerSearch = function() {
+        clearTimeout(pickerDebounce);
+        pickerDebounce = setTimeout(function() {
+            fetchPicker(
+                document.getElementById("picker-q").value,
+                document.getElementById("picker-cat").value,
+                document.getElementById("picker-brand").value
+            );
+        }, 350);
+    };
+
+    function fetchPicker(q, cat, brand) {
+        const status = document.getElementById("picker-status");
+        status.textContent = "Cargando…";
+        const params = new URLSearchParams({ q, categoria: cat, marca: brand });
+        fetch(PICKER_URL + "?" + params.toString(), {
+            headers: { "X-Requested-With": "XMLHttpRequest" },
+            credentials: "same-origin",
+        })
+        .then(r => r.json())
+        .then(data => {
+            status.textContent = "";
+            // Populate filters on first load
+            const catSel = document.getElementById("picker-cat");
+            const brandSel = document.getElementById("picker-brand");
+            if (catSel.options.length === 1 && data.categories) {
+                data.categories.forEach(c => {
+                    const o = document.createElement("option");
+                    o.value = c.pk; o.textContent = c.name;
+                    catSel.appendChild(o);
+                });
+            }
+            if (brandSel.options.length === 1 && data.brands) {
+                data.brands.forEach(b => {
+                    const o = document.createElement("option");
+                    o.value = b.pk; o.textContent = b.name;
+                    brandSel.appendChild(o);
+                });
+            }
+            renderPickerGrid(data.results || []);
+        })
+        .catch(() => { status.textContent = "Error al cargar productos."; });
+    }
+
+    function renderPickerGrid(items) {
+        const grid = document.getElementById("picker-grid");
+        const empty = document.getElementById("picker-empty");
+        grid.innerHTML = "";
+        if (!items.length) {
+            grid.appendChild(empty);
+            empty.style.display = "";
+            return;
+        }
+        const selectedPk = document.getElementById("tile_variant_pk").value;
+        items.forEach(item => {
+            const card = document.createElement("div");
+            card.className = "vto-picker-card" + (String(item.variant_pk) === selectedPk ? " vto-picker-card--selected" : "");
+            card.dataset.pk = item.variant_pk;
+            card.dataset.name = item.product_name + (item.variant_name ? " — " + item.variant_name : "");
+            card.dataset.sku = item.sku;
+            card.dataset.img = item.image_url;
+            card.onclick = () => selectTileVariant(card);
+
+            const img = document.createElement("img");
+            img.src = item.image_url;
+            img.alt = item.product_name;
+            img.loading = "lazy";
+
+            const lbl = document.createElement("div");
+            lbl.className = "vto-picker-card__label";
+            lbl.title = card.dataset.name;
+            lbl.textContent = card.dataset.name;
+
+            card.appendChild(img);
+            card.appendChild(lbl);
+            grid.appendChild(card);
+        });
+    }
+
+    function selectTileVariant(card) {
+        document.querySelectorAll(".vto-picker-card--selected").forEach(c => c.classList.remove("vto-picker-card--selected"));
+        card.classList.add("vto-picker-card--selected");
+        document.getElementById("tile_variant_pk").value = card.dataset.pk;
+        // Show selection summary
+        const sel = document.getElementById("picker-selection");
+        document.getElementById("picker-selected-img").src = card.dataset.img;
+        document.getElementById("picker-selected-name").textContent = card.dataset.name;
+        document.getElementById("picker-selected-sku").textContent = card.dataset.sku;
+        sel.style.display = "flex";
+    }
+
+    window.clearTileSelection = function() {
+        document.getElementById("tile_variant_pk").value = "";
+        document.getElementById("picker-selection").style.display = "none";
+        document.querySelectorAll(".vto-picker-card--selected").forEach(c => c.classList.remove("vto-picker-card--selected"));
+    };
 
     // ── Sincronizar color picker ↔ input hex ──────────────────────────
     const picker = document.getElementById("wall-color-picker");

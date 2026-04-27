@@ -69,4 +69,5 @@ urlpatterns = [
 
     # Visualiza tu Obra (IA)
     path("visualiza-tu-obra/", views.VisualizaObraView.as_view(), name="visualiza_obra"),
+    path("visualiza-tu-obra/productos/", views.ProductImagePickerView.as_view(), name="product_image_picker"),
 ]

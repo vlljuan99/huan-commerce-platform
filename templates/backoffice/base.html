@@ -18,6 +18,17 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body class="bo-body">
+
+<div class="bo-mobile-header">
+    <a href="{% url 'backoffice:dashboard' %}" class="bo-mobile-header__logo">
+        <span class="bo-mobile-header__logo-text">{{ branding.commercial_name|default:"Huan" }}</span>
+        <span class="bo-mobile-header__badge">Admin</span>
+    </a>
+    <button class="bo-menu-toggle" onclick="openSidebar()" aria-label="Abrir menú">&#9776;</button>
+</div>
+
+<div class="bo-nav-backdrop" onclick="closeSidebar()"></div>
+
 <div class="bo-layout">
 
     <aside class="bo-sidebar">
@@ -26,6 +37,7 @@
                 <span class="bo-sidebar__logo-text">{{ branding.commercial_name|default:"Huan" }}</span>
                 <span class="bo-sidebar__logo-badge">Admin</span>
             </a>
+            <button class="bo-sidebar__close" onclick="closeSidebar()" aria-label="Cerrar menú">&#10005;</button>
         </div>
         <nav class="bo-nav" aria-label="Panel de administración">
             <a href="{% url 'backoffice:dashboard' %}"
@@ -133,5 +145,17 @@
 
 </div>
 {% block extra_js %}{% endblock %}
+<script>
+var _menuToggle = document.querySelector('.bo-menu-toggle');
+function openSidebar() {
+    document.body.classList.add('sidebar-open');
+    if (_menuToggle) _menuToggle.innerHTML = '&#10005;';
+}
+function closeSidebar() {
+    document.body.classList.remove('sidebar-open');
+    if (_menuToggle) _menuToggle.innerHTML = '&#9776;';
+}
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeSidebar(); });
+</script>
 </body>
 </html>
