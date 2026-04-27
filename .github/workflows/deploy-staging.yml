@@ -1,0 +1,34 @@
+name: Deploy → Staging
+
+on:
+  push:
+    branches: [develop]
+
+jobs:
+  deploy:
+    name: Deploy to Heroku Staging
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Deploy to Heroku
+        uses: akhileshns/heroku-deploy@v3.13.15
+        with:
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: ${{ secrets.STAGING_APP_NAME }}
+          heroku_email: ${{ secrets.HEROKU_EMAIL }}
+          buildpack: "https://github.com/heroku/heroku-buildpack-apt"
+
+      - name: Run migrations on staging
+        run: |
+          curl -n -X POST https://api.heroku.com/apps/${{ secrets.STAGING_APP_NAME }}/dynos \
+            -d '{"command":"python manage.py migrate --noinput","attach":false,"size":"standard-1x","type":"run"}' \
+            -H "Content-Type: application/json" \
+            -H "Accept: application/vnd.heroku+json; version=3" \
+            -H "Authorization: Bearer ${{ secrets.HEROKU_API_KEY }}"
+
+      - name: Notify deploy complete
+        run: echo "✅ Staging deploy complete — ${{ secrets.STAGING_APP_NAME }}.herokuapp.com"
