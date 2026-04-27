@@ -1,0 +1,53 @@
+{% extends "backoffice/base.html" %}
+
+{% block title %}Catálogos PDF{% endblock %}
+{% block page_title %}Catálogos PDF{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'backoffice:catalogpdf_create' %}" class="btn btn--create">+ NUEVO CATÁLOGO</a>
+{% endblock %}
+
+{% block content %}
+<div class="bo-table-wrap">
+    <table class="bo-table">
+        <thead>
+            <tr>
+                <th>Portada</th><th>Título</th><th>Marca</th><th>Año</th><th>Estado</th><th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cat in catalogs %}
+            <tr>
+                <td>
+                    {% if cat.cover_image %}
+                    <img src="{{ cat.cover_image.url }}" alt="{{ cat.title }}" style="height:48px;object-fit:cover;border-radius:4px;">
+                    {% else %}—{% endif %}
+                </td>
+                <td>
+                    <strong>{{ cat.title }}</strong>
+                    {% if cat.pdf_file %}
+                    <br><a href="{{ cat.pdf_file.url }}" target="_blank" class="text-muted" style="font-size:.8rem">Ver PDF ↗</a>
+                    {% endif %}
+                </td>
+                <td>{{ cat.brand|default:"—" }}</td>
+                <td>{{ cat.year|default:"—" }}</td>
+                <td>
+                    <span class="badge {% if cat.is_active %}badge--delivered{% else %}badge--cancelled{% endif %}">
+                        {% if cat.is_active %}Activo{% else %}Inactivo{% endif %}
+                    </span>
+                </td>
+                <td style="white-space:nowrap">
+                    <a href="{% url 'backoffice:catalogpdf_edit' cat.pk %}" class="btn btn--primary btn--sm">EDITAR</a>
+                    <a href="{% url 'backoffice:catalogpdf_delete' cat.pk %}"
+                       class="btn btn--ghost btn--sm"
+                       style="color:var(--color-danger,#c0392b)"
+                       onclick="return confirm('¿Eliminar «{{ cat.title }}»?')">Eliminar</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="bo-table__empty">No hay catálogos PDF.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -35,4 +35,20 @@ urlpatterns = [
     # Catalog — variants
     path("catalogo/<int:product_pk>/variante/nueva/", views.ProductVariantCreateView.as_view(), name="variant_create"),
     path("variantes/<int:pk>/editar/", views.ProductVariantUpdateView.as_view(), name="variant_edit"),
+
+    # Catalog — categories
+    path("catalogo/categorias/", views.CategoryListView.as_view(), name="category_list"),
+    path("catalogo/categorias/nueva/", views.CategoryCreateView.as_view(), name="category_create"),
+    path("catalogo/categorias/<int:pk>/editar/", views.CategoryUpdateView.as_view(), name="category_edit"),
+
+    # Catalog — brands
+    path("catalogo/marcas/", views.BrandListView.as_view(), name="brand_list"),
+    path("catalogo/marcas/nueva/", views.BrandCreateView.as_view(), name="brand_create"),
+    path("catalogo/marcas/<int:pk>/editar/", views.BrandUpdateView.as_view(), name="brand_edit"),
+
+    # Catalog PDFs
+    path("catalogos-pdf/", views.CatalogPDFListView.as_view(), name="catalogpdf_list"),
+    path("catalogos-pdf/nuevo/", views.CatalogPDFCreateView.as_view(), name="catalogpdf_create"),
+    path("catalogos-pdf/<int:pk>/editar/", views.CatalogPDFUpdateView.as_view(), name="catalogpdf_edit"),
+    path("catalogos-pdf/<int:pk>/eliminar/", views.CatalogPDFDeleteView.as_view(), name="catalogpdf_delete"),
 ]

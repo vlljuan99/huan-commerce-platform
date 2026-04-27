@@ -15,8 +15,8 @@ class Customer(BaseModel):
     """
     
     SEGMENT_CHOICES = [
-        ('b2c', _('B2C - Retail')),
-        ('b2b', _('B2B - Business')),
+        ('b2c', _('Particular')),
+        ('b2b', _('Empresa')),
     ]
     
     user = models.OneToOneField(

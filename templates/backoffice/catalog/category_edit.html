@@ -1,0 +1,37 @@
+{% extends "backoffice/base.html" %}
+
+{% block title %}{% if is_new %}Nueva categoría{% else %}Editar — {{ category.name }}{% endif %}{% endblock %}
+{% block page_title %}{% if is_new %}Nueva categoría{% else %}Editar categoría{% endif %}{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'backoffice:category_list' %}" class="btn btn--ghost btn--sm">← Categorías</a>
+{% endblock %}
+
+{% block content %}
+<div class="bo-form-layout bo-form-layout--narrow">
+    <div class="bo-form-card">
+        <form method="post" novalidate>
+            {% csrf_token %}
+
+            {% include "backoffice/_form_field.html" with field=form.name %}
+            {% include "backoffice/_form_field.html" with field=form.description %}
+            <div class="bo-form__row">
+                {% include "backoffice/_form_field.html" with field=form.parent %}
+                {% include "backoffice/_form_field.html" with field=form.display_order %}
+            </div>
+
+            <div class="bo-form__check-group">
+                {{ form.is_active }}
+                <label class="bo-form__check-label" for="{{ form.is_active.id_for_label }}">{{ form.fields.is_active.label }}</label>
+            </div>
+
+            <div class="bo-form__actions">
+                <button type="submit" class="btn btn--primary btn--lg">
+                    {% if is_new %}Crear categoría{% else %}Guardar cambios{% endif %}
+                </button>
+                <a href="{% url 'backoffice:category_list' %}" class="btn btn--ghost btn--lg">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

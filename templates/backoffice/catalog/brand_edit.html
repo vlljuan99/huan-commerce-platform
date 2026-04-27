@@ -1,0 +1,41 @@
+{% extends "backoffice/base.html" %}
+
+{% block title %}{% if is_new %}Nueva marca{% else %}Editar — {{ brand.name }}{% endif %}{% endblock %}
+{% block page_title %}{% if is_new %}Nueva marca{% else %}Editar marca{% endif %}{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'backoffice:brand_list' %}" class="btn btn--ghost btn--sm">← Marcas</a>
+{% endblock %}
+
+{% block content %}
+<div class="bo-form-layout bo-form-layout--narrow">
+    <div class="bo-form-card">
+        <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+
+            {% include "backoffice/_form_field.html" with field=form.name %}
+            {% include "backoffice/_form_field.html" with field=form.description %}
+            {% include "backoffice/_form_field.html" with field=form.logo %}
+
+            {% if brand.logo %}
+            <div style="margin-bottom:var(--space-md)">
+                <p class="bo-form__help">Logo actual:</p>
+                <img src="{{ brand.logo.url }}" alt="{{ brand.name }}" style="height:48px;object-fit:contain;display:block;margin-top:4px;">
+            </div>
+            {% endif %}
+
+            <div class="bo-form__check-group">
+                {{ form.is_active }}
+                <label class="bo-form__check-label" for="{{ form.is_active.id_for_label }}">{{ form.fields.is_active.label }}</label>
+            </div>
+
+            <div class="bo-form__actions">
+                <button type="submit" class="btn btn--primary btn--lg">
+                    {% if is_new %}Crear marca{% else %}Guardar cambios{% endif %}
+                </button>
+                <a href="{% url 'backoffice:brand_list' %}" class="btn btn--ghost btn--lg">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

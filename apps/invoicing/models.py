@@ -53,11 +53,11 @@ class Invoice(BaseModel):
     """Invoice entity."""
     
     STATUS_CHOICES = [
-        ('draft', _('Draft')),
-        ('issued', _('Issued')),
-        ('paid', _('Paid')),
-        ('overdue', _('Overdue')),
-        ('cancelled', _('Cancelled')),
+        ('draft', _('Borrador')),
+        ('issued', _('Emitida')),
+        ('paid', _('Pagada')),
+        ('overdue', _('Vencida')),
+        ('cancelled', _('Cancelada')),
     ]
     
     customer = models.ForeignKey(

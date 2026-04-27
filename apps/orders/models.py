@@ -14,13 +14,13 @@ class Order(BaseModel):
     """Main Order entity."""
     
     STATUS_CHOICES = [
-        ('draft', _('Draft')),
-        ('pending', _('Pending')),
-        ('confirmed', _('Confirmed')),
-        ('processing', _('Processing')),
-        ('shipped', _('Shipped')),
-        ('delivered', _('Delivered')),
-        ('cancelled', _('Cancelled')),
+        ('draft', _('Borrador')),
+        ('pending', _('Pendiente')),
+        ('confirmed', _('Confirmado')),
+        ('processing', _('En proceso')),
+        ('shipped', _('Enviado')),
+        ('delivered', _('Entregado')),
+        ('cancelled', _('Cancelado')),
     ]
     
     order_number = models.CharField(

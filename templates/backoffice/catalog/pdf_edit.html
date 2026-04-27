@@ -1,0 +1,52 @@
+{% extends "backoffice/base.html" %}
+
+{% block title %}{% if is_new %}Nuevo catálogo PDF{% else %}Editar — {{ catalog.title }}{% endif %}{% endblock %}
+{% block page_title %}{% if is_new %}Nuevo catálogo PDF{% else %}Editar catálogo PDF{% endif %}{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'backoffice:catalogpdf_list' %}" class="btn btn--ghost btn--sm">← Catálogos PDF</a>
+{% endblock %}
+
+{% block content %}
+<div class="bo-form-layout bo-form-layout--narrow">
+    <div class="bo-form-card">
+        <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+
+            {% include "backoffice/_form_field.html" with field=form.title %}
+            {% include "backoffice/_form_field.html" with field=form.description %}
+
+            <div class="bo-form__row">
+                {% include "backoffice/_form_field.html" with field=form.brand %}
+                {% include "backoffice/_form_field.html" with field=form.year %}
+            </div>
+
+            {% include "backoffice/_form_field.html" with field=form.pdf_file %}
+            {% if catalog.pdf_file %}
+            <p class="bo-form__help" style="margin-top:-8px;margin-bottom:var(--space-md)">
+                Actual: <a href="{{ catalog.pdf_file.url }}" target="_blank">{{ catalog.pdf_file.name }}</a>
+            </p>
+            {% endif %}
+
+            {% include "backoffice/_form_field.html" with field=form.cover_image %}
+            {% if catalog.cover_image %}
+            <div style="margin-top:-8px;margin-bottom:var(--space-md)">
+                <img src="{{ catalog.cover_image.url }}" alt="{{ catalog.title }}" style="height:80px;object-fit:cover;border-radius:4px;display:block;">
+            </div>
+            {% endif %}
+
+            <div class="bo-form__check-group">
+                {{ form.is_active }}
+                <label class="bo-form__check-label" for="{{ form.is_active.id_for_label }}">{{ form.fields.is_active.label }}</label>
+            </div>
+
+            <div class="bo-form__actions">
+                <button type="submit" class="btn btn--primary btn--lg">
+                    {% if is_new %}Crear catálogo{% else %}Guardar cambios{% endif %}
+                </button>
+                <a href="{% url 'backoffice:catalogpdf_list' %}" class="btn btn--ghost btn--lg">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

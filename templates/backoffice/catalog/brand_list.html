@@ -1,0 +1,45 @@
+{% extends "backoffice/base.html" %}
+
+{% block title %}Marcas{% endblock %}
+{% block page_title %}Marcas{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'backoffice:brand_create' %}" class="btn btn--create">+ NUEVA MARCA</a>
+{% endblock %}
+
+{% block content %}
+<div class="bo-table-wrap">
+    <table class="bo-table">
+        <thead>
+            <tr>
+                <th>Logo</th>
+                <th><a href="?sort=name&dir={% if current_sort == 'name' and current_dir == 'asc' %}desc{% else %}asc{% endif %}" class="bo-th-sort{% if current_sort == 'name' %} bo-th-sort--active{% endif %}">Nombre {% if current_sort == 'name' %}{% if current_dir == 'asc' %}▲{% else %}▼{% endif %}{% endif %}</a></th>
+                <th>Slug</th>
+                <th><a href="?sort=status&dir={% if current_sort == 'status' and current_dir == 'asc' %}desc{% else %}asc{% endif %}" class="bo-th-sort{% if current_sort == 'status' %} bo-th-sort--active{% endif %}">Estado {% if current_sort == 'status' %}{% if current_dir == 'asc' %}▲{% else %}▼{% endif %}{% endif %}</a></th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for brand in brands %}
+            <tr>
+                <td>
+                    {% if brand.logo %}
+                    <img src="{{ brand.logo.url }}" alt="{{ brand.name }}" style="height:36px;object-fit:contain;">
+                    {% else %}—{% endif %}
+                </td>
+                <td><strong>{{ brand.name }}</strong></td>
+                <td><code>{{ brand.slug }}</code></td>
+                <td>
+                    <span class="badge {% if brand.is_active %}badge--delivered{% else %}badge--cancelled{% endif %}">
+                        {% if brand.is_active %}Activa{% else %}Inactiva{% endif %}
+                    </span>
+                </td>
+                <td><a href="{% url 'backoffice:brand_edit' brand.pk %}" class="btn btn--primary btn--sm">EDITAR</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="bo-table__empty">No hay marcas.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

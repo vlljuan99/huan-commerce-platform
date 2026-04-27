@@ -252,6 +252,58 @@
 .bo-aside-link { font-size: 0.875rem; margin: var(--space-xs) 0; }
 .text-muted { color: var(--color-text-muted); }
 
+/* ── Nav dropdown (Catálogo) ── */
+.bo-nav__group { position: relative; }
+.bo-nav__toggle {
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-family: inherit;
+    width: 100%;
+    text-align: left;
+    color: inherit;
+}
+details.bo-nav__group > summary { list-style: none; cursor: pointer; }
+details.bo-nav__group > summary::-webkit-details-marker { display: none; }
+details.bo-nav__group > summary::marker { content: none; }
+.bo-nav__chevron {
+    margin-left: auto;
+    font-size: 0.6rem;
+    transition: transform var(--transition);
+    display: none;
+}
+.bo-nav__group.is-open .bo-nav__chevron { transform: rotate(180deg); }
+.bo-nav__sub { display: none; background: rgba(0,0,0,0.18); }
+.bo-nav__group.is-open .bo-nav__sub { display: block; }
+.bo-nav__subitem {
+    display: block;
+    padding: 0.4rem var(--space-md) 0.4rem 2.5rem;
+    color: rgba(255,255,255,0.65);
+    text-decoration: none;
+    font-size: 0.82rem;
+    white-space: nowrap;
+    transition: color var(--transition), background var(--transition);
+}
+.bo-nav__subitem:hover { color: #fff; background: rgba(255,255,255,0.08); }
+.bo-nav__subitem--active { color: #fff; font-weight: 600; }
+
+/* ── Sortable table headers ── */
+.bo-th-sort {
+    color: var(--color-text-muted);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    white-space: nowrap;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.bo-th-sort:hover { color: var(--color-primary); }
+.bo-th-sort--active { color: var(--color-primary); }
+
 /* ── Pagination ── */
 .bo-pagination { display: flex; align-items: center; justify-content: center; gap: var(--space-lg); padding: var(--space-lg) 0; font-size: 0.875rem; }
 .bo-pagination__link { color: var(--color-primary); text-decoration: none; font-weight: 600; }
@@ -287,10 +339,28 @@
 }
 .btn:hover { opacity: 0.85; }
 .btn--primary { background: var(--color-primary); color: #fff; }
-.btn--ghost   { background: transparent; color: var(--color-primary); border: 1px solid var(--color-border); }
+.bo-body .btn--ghost {
+    background: transparent;
+    color: var(--color-text) !important;
+    border: 1px solid var(--color-border);
+}
 .btn--danger  { background: var(--color-danger-bg); color: var(--color-danger-text); border: 1px solid var(--color-danger-text); }
 .btn--sm      { padding: 4px var(--space-sm); font-size: 0.8rem; }
 .btn--lg      { padding: 0.75rem var(--space-xl); font-size: 1rem; min-height: 48px; }
+.bo-body .btn--create {
+    background: #27ae60 !important;
+    color: #fff !important;
+    border-color: #27ae60 !important;
+    text-transform: uppercase;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    font-size: 0.95rem;
+    padding: var(--space-sm) var(--space-lg);
+}
+.bo-body .btn--create:hover {
+    background: #219a52 !important;
+    border-color: #219a52 !important;
+}
 
 /* ============================================================
    Forms — Mobile-first
@@ -441,11 +511,14 @@ textarea.bo-form__control { min-height: auto; resize: vertical; line-height: 1.6
     .bo-sidebar__logo-text { font-size: 1.1rem; }
     .bo-sidebar__logo-badge { font-size: 0.65rem; padding: 2px 6px; }
 
-    .bo-nav { flex-direction: column; flex: 1; padding: var(--space-md) 0; gap: 2px; overflow-x: hidden; overflow-y: auto; }
+    .bo-nav { flex-direction: column; flex: 1; padding: var(--space-md) 0; gap: 2px; overflow-x: hidden; overflow-y: auto; align-items: stretch; }
     .bo-nav__item { padding: var(--space-sm) var(--space-md); font-size: 0.9rem; border-bottom: none; border-left: 3px solid transparent; }
     .bo-nav__item:hover { background: rgba(255,255,255,0.1); }
     .bo-nav__item--active { border-bottom: none; border-left-color: var(--color-accent); }
     .bo-nav__icon { display: inline; width: 20px; text-align: center; flex-shrink: 0; }
+    .bo-nav__chevron { display: inline; }
+    .bo-nav__toggle { border-bottom: none; border-left: 3px solid transparent; }
+    .bo-nav__subitem { padding: 0.35rem var(--space-md) 0.35rem calc(var(--space-md) + 28px); font-size: 0.85rem; }
 
     .bo-sidebar__footer { display: flex; flex-direction: column; padding: var(--space-md); border-top: 1px solid rgba(255,255,255,0.1); gap: var(--space-xs); }
 

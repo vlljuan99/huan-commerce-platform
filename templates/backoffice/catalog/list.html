@@ -4,15 +4,27 @@
 {% block page_title %}Catálogo de productos{% endblock %}
 
 {% block topbar_actions %}
-<a href="{% url 'backoffice:product_create' %}" class="btn btn--primary btn--sm">+ Nuevo producto</a>
+<a href="{% url 'backoffice:product_create' %}" class="btn btn--create">+ NUEVO PRODUCTO</a>
 {% endblock %}
 
 {% block content %}
 
 <form method="get" class="bo-filters">
     <input type="text" name="q" value="{{ q }}" placeholder="Buscar por nombre o SKU…" class="bo-filters__search">
+    <select name="category" class="bo-filters__select">
+        <option value="">Todas las categorías</option>
+        {% for cat in category_list %}
+            <option value="{{ cat.pk }}" {% if current_category == cat.pk|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
+        {% endfor %}
+    </select>
+    <select name="brand" class="bo-filters__select">
+        <option value="">Todas las marcas</option>
+        {% for br in brand_list %}
+            <option value="{{ br.pk }}" {% if current_brand == br.pk|stringformat:"s" %}selected{% endif %}>{{ br.name }}</option>
+        {% endfor %}
+    </select>
     <button type="submit" class="btn btn--primary">Filtrar</button>
-    {% if q %}
+    {% if q or current_category or current_brand %}
         <a href="{% url 'backoffice:catalog_list' %}" class="btn btn--ghost">Limpiar</a>
     {% endif %}
 </form>
@@ -21,8 +33,14 @@
     <table class="bo-table">
         <thead>
             <tr>
-                <th>Producto</th><th>SKU base</th><th>Categoría</th>
-                <th>Marca</th><th>Variantes</th><th>Precio desde</th><th>Estado</th>
+                <th><a href="?sort=name&dir={% if current_sort == 'name' and current_dir == 'asc' %}desc{% else %}asc{% endif %}&q={{ request.GET.q }}&category={{ request.GET.category }}&brand={{ request.GET.brand }}" class="bo-th-sort{% if current_sort == 'name' %} bo-th-sort--active{% endif %}">Producto {% if current_sort == 'name' %}{% if current_dir == 'asc' %}▲{% else %}▼{% endif %}{% endif %}</a></th>
+                <th>SKU base</th>
+                <th><a href="?sort=category&dir={% if current_sort == 'category' and current_dir == 'asc' %}desc{% else %}asc{% endif %}&q={{ request.GET.q }}&category={{ request.GET.category }}&brand={{ request.GET.brand }}" class="bo-th-sort{% if current_sort == 'category' %} bo-th-sort--active{% endif %}">Categoría {% if current_sort == 'category' %}{% if current_dir == 'asc' %}▲{% else %}▼{% endif %}{% endif %}</a></th>
+                <th><a href="?sort=brand&dir={% if current_sort == 'brand' and current_dir == 'asc' %}desc{% else %}asc{% endif %}&q={{ request.GET.q }}&category={{ request.GET.category }}&brand={{ request.GET.brand }}" class="bo-th-sort{% if current_sort == 'brand' %} bo-th-sort--active{% endif %}">Marca {% if current_sort == 'brand' %}{% if current_dir == 'asc' %}▲{% else %}▼{% endif %}{% endif %}</a></th>
+                <th>Variantes</th>
+                <th>Precio desde</th>
+                <th><a href="?sort=status&dir={% if current_sort == 'status' and current_dir == 'asc' %}desc{% else %}asc{% endif %}&q={{ request.GET.q }}&category={{ request.GET.category }}&brand={{ request.GET.brand }}" class="bo-th-sort{% if current_sort == 'status' %} bo-th-sort--active{% endif %}">Estado {% if current_sort == 'status' %}{% if current_dir == 'asc' %}▲{% else %}▼{% endif %}{% endif %}</a></th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
@@ -47,10 +65,13 @@
                         {% if product.is_active %}Activo{% else %}Inactivo{% endif %}
                     </span>
                 </td>
+                <td>
+                    <a href="{% url 'backoffice:product_edit' product.pk %}" class="btn btn--sm btn--primary">EDITAR</a>
+                </td>
             </tr>
             {% endwith %}
             {% empty %}
-            <tr><td colspan="7" class="bo-table__empty">No se encontraron productos.</td></tr>
+            <tr><td colspan="8" class="bo-table__empty">No se encontraron productos.</td></tr>
             {% endfor %}
         </tbody>
     </table>

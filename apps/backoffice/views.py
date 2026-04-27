@@ -6,14 +6,15 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import DetailView, FormView, ListView, TemplateView
-from django.views.generic.edit import CreateView, UpdateView
+from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
-from apps.catalog.models import Product, ProductVariant
+from apps.catalog.models import Product, ProductVariant, ProductCategory, ProductBrand, CatalogPDF
 from apps.customers.models import Customer, CustomerAddress
 from apps.invoicing.models import Invoice, InvoiceSeries
 from apps.orders.models import Order
 
 from .forms import (
+    CatalogPDFForm,
     CustomerAddressForm,
     CustomerCreateForm,
     CustomerForm,
@@ -21,6 +22,8 @@ from .forms import (
     InvoiceStatusForm,
     OrderCreateForm,
     OrderStatusForm,
+    ProductCategoryForm,
+    ProductBrandForm,
     ProductForm,
     ProductVariantForm,
 )
@@ -80,7 +83,18 @@ class OrderListView(BackofficeRequiredMixin, ListView):
     paginate_by = 25
 
     def get_queryset(self):
-        qs = Order.objects.select_related("customer__user").order_by("-created_at")
+        sort_map = {
+            "number": "order_number",
+            "customer": "customer__user__email",
+            "status": "status",
+            "total": "total",
+            "date": "created_at",
+        }
+        sort = self.request.GET.get("sort", "date")
+        direction = self.request.GET.get("dir", "desc")
+        order_field = sort_map.get(sort, "created_at")
+        prefix = "" if direction == "asc" else "-"
+        qs = Order.objects.select_related("customer__user").order_by(f"{prefix}{order_field}")
         status = self.request.GET.get("status")
         q = self.request.GET.get("q", "").strip()
         if status:
@@ -96,6 +110,8 @@ class OrderListView(BackofficeRequiredMixin, ListView):
         ctx["status_choices"] = Order.STATUS_CHOICES
         ctx["current_status"] = self.request.GET.get("status", "")
         ctx["q"] = self.request.GET.get("q", "")
+        ctx["current_sort"] = self.request.GET.get("sort", "date")
+        ctx["current_dir"] = self.request.GET.get("dir", "desc")
         return ctx
 
 
@@ -130,7 +146,18 @@ class CustomerListView(BackofficeRequiredMixin, ListView):
     paginate_by = 25
 
     def get_queryset(self):
-        qs = Customer.objects.select_related("user").order_by("-created_at")
+        sort_map = {
+            "name": "user__last_name",
+            "email": "user__email",
+            "company": "company_name",
+            "segment": "segment",
+            "date": "created_at",
+        }
+        sort = self.request.GET.get("sort", "date")
+        direction = self.request.GET.get("dir", "desc")
+        order_field = sort_map.get(sort, "created_at")
+        prefix = "" if direction == "asc" else "-"
+        qs = Customer.objects.select_related("user").order_by(f"{prefix}{order_field}")
         segment = self.request.GET.get("segment")
         q = self.request.GET.get("q", "").strip()
         if segment:
@@ -148,6 +175,8 @@ class CustomerListView(BackofficeRequiredMixin, ListView):
         ctx["segment_choices"] = Customer.SEGMENT_CHOICES
         ctx["current_segment"] = self.request.GET.get("segment", "")
         ctx["q"] = self.request.GET.get("q", "")
+        ctx["current_sort"] = self.request.GET.get("sort", "date")
+        ctx["current_dir"] = self.request.GET.get("dir", "desc")
         return ctx
 
 
@@ -253,8 +282,20 @@ class InvoiceListView(BackofficeRequiredMixin, ListView):
     paginate_by = 25
 
     def get_queryset(self):
+        sort_map = {
+            "number": "invoice_number",
+            "customer": "customer__user__email",
+            "status": "status",
+            "total": "total",
+            "date": "issued_at",
+            "due": "due_date",
+        }
+        sort = self.request.GET.get("sort", "date")
+        direction = self.request.GET.get("dir", "desc")
+        order_field = sort_map.get(sort, "issued_at")
+        prefix = "" if direction == "asc" else "-"
         qs = Invoice.objects.select_related("customer__user", "series").order_by(
-            "-issued_at"
+            f"{prefix}{order_field}"
         )
         status = self.request.GET.get("status")
         q = self.request.GET.get("q", "").strip()
@@ -271,6 +312,8 @@ class InvoiceListView(BackofficeRequiredMixin, ListView):
         ctx["status_choices"] = Invoice.STATUS_CHOICES
         ctx["current_status"] = self.request.GET.get("status", "")
         ctx["q"] = self.request.GET.get("q", "")
+        ctx["current_sort"] = self.request.GET.get("sort", "date")
+        ctx["current_dir"] = self.request.GET.get("dir", "desc")
         return ctx
 
 
@@ -309,19 +352,41 @@ class CatalogListView(BackofficeRequiredMixin, ListView):
     paginate_by = 25
 
     def get_queryset(self):
+        sort_map = {
+            "name": "name",
+            "category": "category__name",
+            "brand": "brand__name",
+            "status": "is_active",
+        }
+        sort = self.request.GET.get("sort", "name")
+        direction = self.request.GET.get("dir", "asc")
+        order_field = sort_map.get(sort, "name")
+        prefix = "" if direction == "asc" else "-"
         qs = (
             Product.objects.select_related("category", "brand")
             .prefetch_related("variants")
-            .order_by("category__name", "name")
+            .order_by(f"{prefix}{order_field}")
         )
         q = self.request.GET.get("q", "").strip()
+        category_pk = self.request.GET.get("category", "")
+        brand_pk = self.request.GET.get("brand", "")
         if q:
             qs = qs.filter(name__icontains=q) | qs.filter(sku_base__icontains=q)
+        if category_pk:
+            qs = qs.filter(category__pk=category_pk)
+        if brand_pk:
+            qs = qs.filter(brand__pk=brand_pk)
         return qs
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx["q"] = self.request.GET.get("q", "")
+        ctx["current_sort"] = self.request.GET.get("sort", "name")
+        ctx["current_dir"] = self.request.GET.get("dir", "asc")
+        ctx["current_category"] = self.request.GET.get("category", "")
+        ctx["current_brand"] = self.request.GET.get("brand", "")
+        ctx["category_list"] = ProductCategory.objects.filter(is_active=True).order_by("name")
+        ctx["brand_list"] = ProductBrand.objects.filter(is_active=True).order_by("name")
         return ctx
 
 
@@ -401,6 +466,164 @@ class ProductVariantUpdateView(BackofficeRequiredMixin, UpdateView):
         return reverse_lazy(
             "backoffice:product_edit", kwargs={"pk": self.object.product.pk}
         )
+
+
+# ── Categories ───────────────────────────────────────────────────────────────
+
+class CategoryListView(BackofficeRequiredMixin, ListView):
+    template_name = "backoffice/catalog/category_list.html"
+    context_object_name = "categories"
+
+    def get_queryset(self):
+        sort_map = {"name": "name", "order": "display_order", "status": "is_active"}
+        sort = self.request.GET.get("sort", "order")
+        direction = self.request.GET.get("dir", "asc")
+        order_field = sort_map.get(sort, "display_order")
+        prefix = "" if direction == "asc" else "-"
+        return ProductCategory.objects.select_related("parent").order_by(f"{prefix}{order_field}", "name")
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["current_sort"] = self.request.GET.get("sort", "order")
+        ctx["current_dir"] = self.request.GET.get("dir", "asc")
+        return ctx
+
+
+class CategoryCreateView(BackofficeRequiredMixin, CreateView):
+    template_name = "backoffice/catalog/category_edit.html"
+    form_class = ProductCategoryForm
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["is_new"] = True
+        return ctx
+
+    def form_valid(self, form):
+        messages.success(self.request, f'Categoría "{form.instance.name}" creada.')
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy("backoffice:category_list")
+
+
+class CategoryUpdateView(BackofficeRequiredMixin, UpdateView):
+    template_name = "backoffice/catalog/category_edit.html"
+    model = ProductCategory
+    form_class = ProductCategoryForm
+    context_object_name = "category"
+
+    def form_valid(self, form):
+        messages.success(self.request, f'Categoría "{self.object.name}" actualizada.')
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy("backoffice:category_list")
+
+
+# ── Brands ────────────────────────────────────────────────────────────────────
+
+class BrandListView(BackofficeRequiredMixin, ListView):
+    template_name = "backoffice/catalog/brand_list.html"
+    context_object_name = "brands"
+
+    def get_queryset(self):
+        sort_map = {"name": "name", "status": "is_active"}
+        sort = self.request.GET.get("sort", "name")
+        direction = self.request.GET.get("dir", "asc")
+        order_field = sort_map.get(sort, "name")
+        prefix = "" if direction == "asc" else "-"
+        return ProductBrand.objects.order_by(f"{prefix}{order_field}")
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["current_sort"] = self.request.GET.get("sort", "name")
+        ctx["current_dir"] = self.request.GET.get("dir", "asc")
+        return ctx
+
+
+class BrandCreateView(BackofficeRequiredMixin, CreateView):
+    template_name = "backoffice/catalog/brand_edit.html"
+    form_class = ProductBrandForm
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["is_new"] = True
+        return ctx
+
+    def form_valid(self, form):
+        messages.success(self.request, f'Marca "{form.instance.name}" creada.')
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy("backoffice:brand_list")
+
+
+class BrandUpdateView(BackofficeRequiredMixin, UpdateView):
+    template_name = "backoffice/catalog/brand_edit.html"
+    model = ProductBrand
+    form_class = ProductBrandForm
+    context_object_name = "brand"
+
+    def form_valid(self, form):
+        messages.success(self.request, f'Marca "{self.object.name}" actualizada.')
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy("backoffice:brand_list")
+
+
+# ── Catalog PDFs ──────────────────────────────────────────────────────────────
+
+class CatalogPDFListView(BackofficeRequiredMixin, ListView):
+    template_name = "backoffice/catalog/pdf_list.html"
+    context_object_name = "catalogs"
+
+    def get_queryset(self):
+        return CatalogPDF.objects.select_related("brand").order_by("-year", "title")
+
+
+class CatalogPDFCreateView(BackofficeRequiredMixin, CreateView):
+    template_name = "backoffice/catalog/pdf_edit.html"
+    form_class = CatalogPDFForm
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["is_new"] = True
+        return ctx
+
+    def form_valid(self, form):
+        messages.success(self.request, f'Catálogo "{form.instance.title}" creado.')
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy("backoffice:catalogpdf_list")
+
+
+class CatalogPDFUpdateView(BackofficeRequiredMixin, UpdateView):
+    template_name = "backoffice/catalog/pdf_edit.html"
+    model = CatalogPDF
+    form_class = CatalogPDFForm
+    context_object_name = "catalog"
+
+    def form_valid(self, form):
+        messages.success(self.request, f'Catálogo "{self.object.title}" actualizado.')
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy("backoffice:catalogpdf_list")
+
+
+class CatalogPDFDeleteView(BackofficeRequiredMixin, DeleteView):
+    model = CatalogPDF
+    success_url = reverse_lazy("backoffice:catalogpdf_list")
+
+    def get(self, request, *args, **kwargs):
+        return self.delete(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        obj = self.get_object()
+        messages.success(request, f'Catálogo "{obj.title}" eliminado.')
+        return super().delete(request, *args, **kwargs)
 
 
 # ── Invoice create ────────────────────────────────────────────────────────────

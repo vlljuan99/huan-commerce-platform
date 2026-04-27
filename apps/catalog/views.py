@@ -87,6 +87,9 @@ class ProductListView(ListView):
         category_slug = self.request.GET.get('categoria')
         if category_slug:
             qs = qs.filter(category__slug=category_slug)
+        brand_slug = self.request.GET.get('marca')
+        if brand_slug:
+            qs = qs.filter(brand__slug=brand_slug)
         return qs
 
     def get_context_data(self, **kwargs):
@@ -96,7 +99,13 @@ class ProductListView(ListView):
             .filter(is_active=True)
             .order_by('display_order', 'name')
         )
-        context['active_category'] = self.request.GET.get('categoria')
+        context['brands'] = (
+            ProductBrand.objects
+            .filter(is_active=True)
+            .order_by('name')
+        )
+        context['active_category'] = self.request.GET.get('categoria', '')
+        context['active_brand'] = self.request.GET.get('marca', '')
         return context
 
 

@@ -4,7 +4,7 @@ from django import forms
 from django.contrib.auth.hashers import make_password
 
 from apps.accounts.models import User
-from apps.catalog.models import Product, ProductVariant
+from apps.catalog.models import Product, ProductVariant, ProductCategory, ProductBrand, CatalogPDF
 from apps.customers.models import Customer, CustomerAddress
 from apps.invoicing.models import Invoice, InvoiceSeries
 from apps.orders.models import Order
@@ -198,6 +198,71 @@ class ProductVariantForm(forms.ModelForm):
             "stock_quantity": "Stock (-1 = ilimitado)",
             "image":          "Imagen del producto",
             "is_active":      "Activa",
+        }
+
+
+# ── Catalog — categories ──────────────────────────────────────────────────────
+
+class ProductCategoryForm(forms.ModelForm):
+    class Meta:
+        model = ProductCategory
+        fields = ["name", "description", "parent", "display_order", "is_active"]
+        widgets = {
+            "name":         forms.TextInput(attrs=_C),
+            "description":  forms.Textarea(attrs=_TA3),
+            "parent":       forms.Select(attrs=_C),
+            "display_order": forms.NumberInput(attrs={**_C, "inputmode": "numeric"}),
+        }
+        labels = {
+            "name":          "Nombre",
+            "description":   "Descripción",
+            "parent":        "Categoría padre (opcional)",
+            "display_order": "Orden de visualización",
+            "is_active":     "Activa",
+        }
+
+
+# ── Catalog — brands ──────────────────────────────────────────────────────────
+
+class ProductBrandForm(forms.ModelForm):
+    class Meta:
+        model = ProductBrand
+        fields = ["name", "description", "logo", "is_active"]
+        widgets = {
+            "name":        forms.TextInput(attrs=_C),
+            "description": forms.Textarea(attrs=_TA3),
+            "logo":        forms.FileInput(attrs=_C),
+        }
+        labels = {
+            "name":        "Nombre",
+            "description": "Descripción",
+            "logo":        "Logo (PNG, SVG recomendado)",
+            "is_active":   "Activa",
+        }
+
+
+# ── Catalog — PDF catalogs ────────────────────────────────────────────────────
+
+class CatalogPDFForm(forms.ModelForm):
+    class Meta:
+        model = CatalogPDF
+        fields = ["title", "description", "brand", "year", "pdf_file", "cover_image", "is_active"]
+        widgets = {
+            "title":       forms.TextInput(attrs=_C),
+            "description": forms.Textarea(attrs=_TA3),
+            "brand":       forms.Select(attrs=_C),
+            "year":        forms.NumberInput(attrs={**_C, "inputmode": "numeric", "min": "2000", "max": "2100"}),
+            "pdf_file":    forms.FileInput(attrs=_C),
+            "cover_image": forms.FileInput(attrs=_C),
+        }
+        labels = {
+            "title":       "Título",
+            "description": "Descripción",
+            "brand":       "Marca (opcional)",
+            "year":        "Año",
+            "pdf_file":    "Archivo PDF",
+            "cover_image": "Imagen de portada (opcional)",
+            "is_active":   "Activo (visible en la tienda)",
         }
 
 

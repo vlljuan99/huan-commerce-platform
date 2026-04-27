@@ -24,7 +24,8 @@
       "Bash(sqlite3 ./db_helvagres_demo.sqlite3 \"SELECT logo, favicon FROM core_brandingsettings WHERE instance_id='helvagres_demo';\")",
       "PowerShell($db = \".\\\\db_helvagres_demo.sqlite3\"; Add-Type -Path \".\\\\venv\\\\Lib\\\\site-packages\\\\System.Data.SQLite.dll\" 2>$null; if \\(!\\(Test-Path $db\\)\\) { Write-Host \"DB not found\" } else { Write-Host \"DB exists: $\\(Get-Item $db | Select-Object -ExpandProperty Length\\) bytes\" })",
       "PowerShell($env:HUAN_INSTANCE = 'helvagres_demo'; & \".\\\\venv\\\\Scripts\\\\python.exe\" manage.py makemigrations core 2>&1)",
-      "PowerShell($env:HUAN_INSTANCE = 'helvagres_demo'; & \".\\\\venv\\\\Scripts\\\\python.exe\" manage.py migrate core 2>&1)"
+      "PowerShell($env:HUAN_INSTANCE = 'helvagres_demo'; & \".\\\\venv\\\\Scripts\\\\python.exe\" manage.py migrate core 2>&1)",
+      "PowerShell($env:HUAN_INSTANCE = 'helvagres_demo'; & \".\\\\venv\\\\Scripts\\\\python.exe\" manage.py check 2>&1)"
     ]
   }
 }
