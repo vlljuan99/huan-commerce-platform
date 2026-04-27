@@ -1,0 +1,465 @@
+{% extends "backoffice/base.html" %}
+{% load static %}
+
+{% block title %}Visualiza tu Obra{% endblock %}
+{% block page_title %}
+    <span style="display:inline-flex;align-items:center;gap:.5rem;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+             stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 2a10 10 0 0 1 10 10c0 5.52-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2"/>
+            <path d="M8 12h8M12 8v8"/>
+            <circle cx="17" cy="7" r="2" fill="currentColor" stroke="none"/>
+            <path d="M15.5 5.5 9 9l-1 5.5 5.5-1 6.5-6.5-4.5-1.5Z"/>
+        </svg>
+        Visualiza tu Obra
+        <span style="font-size:.7rem;font-weight:600;padding:.15rem .45rem;border-radius:999px;
+                     background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;
+                     letter-spacing:.05em;vertical-align:middle;">IA</span>
+    </span>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Visualiza tu Obra ───────────────────────────────────────────── */
+.vto-grid {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 2rem;
+    align-items: start;
+}
+@media (max-width: 900px) {
+    .vto-grid { grid-template-columns: 1fr; }
+}
+
+.vto-dropzone {
+    position: relative;
+    border: 2px dashed var(--color-border);
+    border-radius: var(--radius-md, 8px);
+    padding: 1.5rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+    background: #fafafa;
+}
+.vto-dropzone:hover, .vto-dropzone--active { border-color: var(--color-primary); background: #f0f4ff; }
+.vto-dropzone input[type="file"] {
+    position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;
+}
+.vto-dropzone__icon { font-size: 2rem; line-height: 1; display: block; margin-bottom: .4rem; }
+.vto-dropzone__label { font-size: .85rem; color: var(--color-text-muted); }
+.vto-dropzone__preview {
+    margin-top: .75rem;
+    border-radius: 6px;
+    max-height: 180px;
+    object-fit: contain;
+    display: none;
+    width: 100%;
+}
+
+.vto-color-row {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+}
+.vto-color-input {
+    width: 48px; height: 48px;
+    padding: 2px;
+    border: 2px solid var(--color-border);
+    border-radius: 8px;
+    cursor: pointer;
+    background: none;
+}
+.vto-color-hex {
+    flex: 1;
+    font-family: var(--font-mono, monospace);
+    font-size: .9rem;
+    text-transform: uppercase;
+}
+
+.vto-btn-generate {
+    width: 100%;
+    padding: .85rem 1rem;
+    font-size: 1rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    transition: opacity .2s, transform .1s;
+}
+.vto-btn-generate:hover:not(:disabled) { opacity: .9; }
+.vto-btn-generate:active:not(:disabled) { transform: scale(.98); }
+.vto-btn-generate:disabled { opacity: .55; cursor: not-allowed; }
+
+/* Results */
+.vto-results { display: none; }
+.vto-results--visible { display: block; }
+.vto-results__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+@media (max-width: 600px) {
+    .vto-results__grid { grid-template-columns: 1fr; }
+}
+.vto-result-card {
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    overflow: hidden;
+    background: #fff;
+}
+.vto-result-card img {
+    width: 100%; display: block;
+    aspect-ratio: 1/1; object-fit: cover;
+}
+.vto-result-card__footer {
+    padding: .6rem .9rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: .8rem;
+    color: var(--color-text-muted);
+}
+.vto-result-card__download {
+    font-size: .8rem;
+    font-weight: 600;
+    color: var(--color-primary);
+    text-decoration: none;
+}
+.vto-result-card__download:hover { text-decoration: underline; }
+
+/* Loading spinner */
+.vto-loader {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    gap: 1rem;
+    color: var(--color-text-muted);
+    font-size: .9rem;
+}
+.vto-loader--visible { display: flex; }
+.vto-spinner {
+    width: 48px; height: 48px;
+    border: 4px solid #e5e7eb;
+    border-top-color: #8b5cf6;
+    border-radius: 50%;
+    animation: vto-spin 1s linear infinite;
+}
+@keyframes vto-spin { to { transform: rotate(360deg); } }
+
+.vto-error {
+    display: none;
+    background: #fef2f2;
+    border: 1px solid #fca5a5;
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    color: #b91c1c;
+    font-size: .9rem;
+}
+.vto-error--visible { display: block; }
+
+.vto-tips {
+    margin-top: 1.5rem;
+    padding: 1rem 1.25rem;
+    background: #f0f9ff;
+    border-left: 3px solid #38bdf8;
+    border-radius: 0 8px 8px 0;
+    font-size: .82rem;
+    color: #0369a1;
+}
+.vto-tips ul { margin: .4rem 0 0; padding-left: 1.2rem; }
+.vto-tips li { margin-bottom: .25rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="vto-grid">
+
+    {# ── Formulario ────────────────────────────────────────────────────── #}
+    <div>
+        <div class="bo-form-card">
+            <div class="bo-form-card__header">
+                <p class="bo-form-card__title">Parámetros de la reforma</p>
+                <p class="bo-form-card__subtitle">Sube las imágenes y elige el color de pared.</p>
+            </div>
+
+            <form id="vto-form" novalidate>
+                {% csrf_token %}
+
+                {# Imagen habitación #}
+                <div class="bo-form__group">
+                    <label class="bo-form__label bo-form__label--required" for="room_image">
+                        Foto de la habitación
+                    </label>
+                    <div class="vto-dropzone" id="room-drop">
+                        <input type="file" name="room_image" id="room_image"
+                               accept="image/png,image/jpeg,image/webp" required>
+                        <span class="vto-dropzone__icon">🏠</span>
+                        <span class="vto-dropzone__label">Arrastra o haz clic para subir<br>PNG / JPEG / WebP · máx. 20 MB</span>
+                        <img class="vto-dropzone__preview" id="room-preview" alt="Vista previa habitación">
+                    </div>
+                </div>
+
+                {# Imagen azulejo #}
+                <div class="bo-form__group">
+                    <label class="bo-form__label" for="tile_image">
+                        Imagen del azulejo <span style="font-weight:400;color:var(--color-text-muted)">(opcional)</span>
+                    </label>
+                    <div class="vto-dropzone" id="tile-drop">
+                        <input type="file" name="tile_image" id="tile_image"
+                               accept="image/png,image/jpeg,image/webp">
+                        <span class="vto-dropzone__icon">🪨</span>
+                        <span class="vto-dropzone__label">Referencia de suelo cerámico<br>PNG / JPEG / WebP · máx. 20 MB</span>
+                        <img class="vto-dropzone__preview" id="tile-preview" alt="Vista previa azulejo">
+                    </div>
+                </div>
+
+                {# Color pared #}
+                <div class="bo-form__group">
+                    <label class="bo-form__label bo-form__label--required">Color de pared</label>
+                    <div class="vto-color-row">
+                        <input type="color" id="wall-color-picker" value="#F5F0E8"
+                               class="vto-color-input" title="Selecciona el color de la pared">
+                        <input type="text" id="wall-color-hex" class="bo-form__control vto-color-hex"
+                               value="#F5F0E8" maxlength="7" placeholder="#RRGGBB"
+                               aria-label="Valor hexadecimal del color">
+                    </div>
+                </div>
+
+                <button type="submit" class="vto-btn-generate" id="vto-submit">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                         viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2a10 10 0 0 1 10 10c0 5.52-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2"/>
+                        <path d="M15.5 5.5 9 9l-1 5.5 5.5-1 6.5-6.5-4.5-1.5Z"/>
+                    </svg>
+                    Generar visualización
+                </button>
+            </form>
+
+            <div class="vto-tips">
+                <strong>Consejos para mejores resultados</strong>
+                <ul>
+                    <li>Usa fotos bien iluminadas y sin desenfoque.</li>
+                    <li>La imagen del azulejo debe mostrar el patrón con claridad.</li>
+                    <li>Formato PNG recomendado para mayor calidad.</li>
+                    <li>La generación puede tardar 20–40 segundos.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    {# ── Panel de resultados ───────────────────────────────────────────── #}
+    <div>
+        <div class="bo-form-card">
+            <div class="bo-form-card__header">
+                <p class="bo-form-card__title">Resultado de la reforma</p>
+                <p class="bo-form-card__subtitle">Se generarán 2 propuestas fotorrealistas.</p>
+            </div>
+
+            {# Placeholder inicial #}
+            <div id="vto-placeholder" style="text-align:center;padding:3rem 1rem;color:var(--color-text-muted);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56"
+                     viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="1.5">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <path d="m21 15-5-5L5 21"/>
+                </svg>
+                <p style="margin-top:.75rem;font-size:.9rem;">
+                    Completa el formulario y pulsa<br><strong>Generar visualización</strong>.
+                </p>
+            </div>
+
+            {# Loader #}
+            <div class="vto-loader" id="vto-loader">
+                <div class="vto-spinner"></div>
+                <span>La IA está procesando tu reforma&hellip;<br>
+                      <small>Esto puede tardar entre 20 y 40 segundos.</small></span>
+            </div>
+
+            {# Error #}
+            <div class="vto-error" id="vto-error"></div>
+
+            {# Resultados #}
+            <div class="vto-results" id="vto-results">
+                <div class="vto-results__grid" id="vto-results-grid"></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    "use strict";
+
+    // ── Vista previa de imagen al elegir fichero ───────────────────────
+    function bindDropzone(inputId, previewId) {
+        const input = document.getElementById(inputId);
+        const preview = document.getElementById(previewId);
+        if (!input || !preview) return;
+        input.addEventListener("change", function () {
+            const file = this.files[0];
+            if (!file) { preview.style.display = "none"; return; }
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                preview.src = e.target.result;
+                preview.style.display = "block";
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+    bindDropzone("room_image", "room-preview");
+    bindDropzone("tile_image", "tile-preview");
+
+    // ── Sincronizar color picker ↔ input hex ──────────────────────────
+    const picker = document.getElementById("wall-color-picker");
+    const hexInput = document.getElementById("wall-color-hex");
+    picker.addEventListener("input", function () { hexInput.value = this.value.toUpperCase(); });
+    hexInput.addEventListener("input", function () {
+        const v = this.value.trim();
+        if (/^#([0-9A-Fa-f]{3}){1,2}$/.test(v)) picker.value = v;
+    });
+
+    // ── Helpers UI ────────────────────────────────────────────────────
+    const $ = id => document.getElementById(id);
+
+    // Lee el token CSRF desde la cookie (método más fiable con fetch)
+    function getCsrfToken() {
+        const match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+        return match ? decodeURIComponent(match[1]) : "";
+    }
+    function showLoader(show) {
+        $("vto-loader").classList.toggle("vto-loader--visible", show);
+        $("vto-placeholder").style.display = show ? "none" : "";
+        $("vto-submit").disabled = show;
+    }
+    function showError(msg) {
+        const el = $("vto-error");
+        el.textContent = msg;
+        el.classList.add("vto-error--visible");
+        $("vto-results").classList.remove("vto-results--visible");
+    }
+    function clearError() {
+        const el = $("vto-error");
+        el.textContent = "";
+        el.classList.remove("vto-error--visible");
+    }
+    function showResults(images) {
+        const grid = $("vto-results-grid");
+        grid.innerHTML = "";
+        images.forEach(function (img, idx) {
+            const src = img.type === "b64"
+                ? "data:image/png;base64," + img.data
+                : img.data;
+
+            const card = document.createElement("div");
+            card.className = "vto-result-card";
+
+            const imgEl = document.createElement("img");
+            imgEl.src = src;
+            imgEl.alt = "Propuesta " + (idx + 1);
+            imgEl.loading = "lazy";
+
+            const footer = document.createElement("div");
+            footer.className = "vto-result-card__footer";
+
+            const label = document.createElement("span");
+            label.textContent = "Propuesta " + (idx + 1);
+
+            const dl = document.createElement("a");
+            dl.className = "vto-result-card__download";
+            dl.href = src;
+            dl.download = "reforma_propuesta_" + (idx + 1) + ".png";
+            dl.textContent = "⬇ Descargar";
+
+            footer.appendChild(label);
+            footer.appendChild(dl);
+            card.appendChild(imgEl);
+            card.appendChild(footer);
+            grid.appendChild(card);
+        });
+        $("vto-results").classList.add("vto-results--visible");
+        $("vto-placeholder").style.display = "none";
+    }
+
+    // ── Envío del formulario via fetch ────────────────────────────────
+    document.getElementById("vto-form").addEventListener("submit", function (e) {
+        e.preventDefault();
+        clearError();
+
+        const kitchenFile = document.getElementById("room_image").files[0];
+        if (!kitchenFile) {
+            showError("Debes seleccionar una imagen de la habitación.");
+            return;
+        }
+
+        const wallColor = hexInput.value.trim();
+        if (!/^#([0-9A-Fa-f]{3}){1,2}$/.test(wallColor)) {
+            showError("El color de pared no tiene un formato válido (ej: #F5F0E8).");
+            return;
+        }
+
+        const formData = new FormData(this);
+        // Aseguramos que el color va siempre actualizado
+        formData.set("wall_color", wallColor);
+
+        showLoader(true);
+
+        fetch("{% url 'backoffice:visualiza_obra' %}", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": getCsrfToken(),
+                "X-Requested-With": "XMLHttpRequest",
+            },
+            credentials: "same-origin",
+            body: formData,
+        })
+        .then(function (res) {
+            if (res.redirected || res.status === 302) {
+                throw new Error("Sesión expirada. Recarga la página e inicia sesión de nuevo.");
+            }
+            const ct = res.headers.get("content-type") || "";
+            if (!ct.includes("application/json")) {
+                return res.text().then(function (text) {
+                    throw new Error(
+                        "El servidor devolvió HTTP " + res.status +
+                        " (no JSON). Revisa la consola del servidor Django.\n" +
+                        text.substring(0, 300)
+                    );
+                });
+            }
+            return res.json().then(function (data) {
+                return { ok: res.ok, data };
+            });
+        })
+        .then(function ({ ok, data }) {
+            showLoader(false);
+            if (!ok || data.error) {
+                showError(data.error || "Error desconocido. Revisa la consola del servidor.");
+                return;
+            }
+            if (!data.images || data.images.length === 0) {
+                showError("La API no devolvió ninguna imagen. Inténtalo de nuevo.");
+                return;
+            }
+            showResults(data.images);
+        })
+        .catch(function (err) {
+            showLoader(false);
+            showError("Error de red: " + err.message);
+        });
+    });
+})();
+</script>
+{% endblock %}

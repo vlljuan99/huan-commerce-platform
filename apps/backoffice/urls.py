@@ -66,4 +66,7 @@ urlpatterns = [
     path("empresas/", views.CompanyListView.as_view(), name="company_list"),
     path("empresas/nueva/", views.CompanyCreateView.as_view(), name="company_create"),
     path("empresas/<int:pk>/editar/", views.CompanyUpdateView.as_view(), name="company_edit"),
+
+    # Visualiza tu Obra (IA)
+    path("visualiza-tu-obra/", views.VisualizaObraView.as_view(), name="visualiza_obra"),
 ]

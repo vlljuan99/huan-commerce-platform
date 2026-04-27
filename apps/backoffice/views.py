@@ -1,12 +1,20 @@
+import io
+import logging
+
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.db.models import Sum
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.generic import DetailView, FormView, ListView, TemplateView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
+
+logger = logging.getLogger(__name__)
 
 from apps.catalog.models import Product, ProductVariant, ProductCategory, ProductBrand, CatalogPDF
 from apps.customers.models import Customer, CustomerAddress
@@ -834,3 +842,137 @@ class CompanyUpdateView(BackofficeRequiredMixin, UpdateView):
 
     def get_success_url(self):
         return reverse_lazy("backoffice:company_edit", kwargs={"pk": self.object.pk})
+
+
+# ── Visualiza tu Obra (IA) ─────────────────────────────────────────────────────
+
+def _to_png_bytes(upload_file) -> bytes:
+    """Convierte un fichero subido a bytes PNG con canal alfa."""
+    from PIL import Image
+    upload_file.seek(0)
+    with Image.open(upload_file) as img:
+        buf = io.BytesIO()
+        img.convert("RGBA").save(buf, format="PNG")
+        return buf.getvalue()
+
+
+def _build_reforma_prompt(color_hex: str, has_tile: bool) -> str:
+    tile_part = (
+        "Sustituye el suelo por un material cerámico basado en la imagen de azulejo "
+        "proporcionada como referencia. Ajusta el patrón del suelo a la perspectiva real "
+        "(escala, orientación y repetición correctas). "
+        "Mantén realismo en juntas, textura y acabado (mate/brillo). "
+    ) if has_tile else (
+        "No modifiques el suelo. "
+    )
+    return (
+        "Actúa como un sistema de visualización arquitectónica profesional. "
+        "Modifica la imagen de la habitación siguiendo estas reglas estrictamente:\n"
+        "- Mantén intactos muebles, electrodomésticos, encimera, ventanas, puertas, "
+        "iluminación, sombras, perspectiva y distribución.\n"
+        f"- Cambia el color de las paredes a {color_hex}. Aplica el color de forma "
+        "uniforme respetando sombras e iluminación natural.\n"
+        f"- {tile_part}"
+        "- Integra correctamente el nuevo suelo con la iluminación existente. "
+        "Ajusta sombras y reflejos en función del nuevo material.\n"
+        "- No introduzcas nuevos elementos decorativos. No alteres el estilo de la habitación.\n"
+        "- Evita artefactos visuales o deformaciones.\n"
+        "El resultado debe ser completamente fotorrealista, como una fotografía real "
+        "tomada después de una reforma."
+    )
+
+
+@method_decorator(ensure_csrf_cookie, name="dispatch")
+class VisualizaObraView(BackofficeRequiredMixin, TemplateView):
+    template_name = "backoffice/visualiza_obra.html"
+
+    _ALLOWED_TYPES = {"image/png", "image/jpeg", "image/webp", "image/gif"}
+    _MAX_SIZE = 20 * 1024 * 1024  # 20 MB
+
+    def post(self, request, *args, **kwargs):
+        try:
+            import openai
+        except ImportError:
+            return JsonResponse(
+                {"error": "La librería openai no está instalada. Ejecuta: pip install openai"},
+                status=500,
+            )
+
+        from decouple import config as decouple_config
+        api_key = decouple_config("OPENAI_API_KEY", default="").strip()
+        if not api_key:
+            return JsonResponse(
+                {"error": "OPENAI_API_KEY no está configurada en el fichero .env"},
+                status=500,
+            )
+
+        room_file = request.FILES.get("room_image")
+        tile_file = request.FILES.get("tile_image")
+        wall_color = request.POST.get("wall_color", "#FFFFFF").strip()
+
+        # ── Validaciones ──────────────────────────────────────────────────────
+        if not room_file:
+            return JsonResponse({"error": "Debes subir una imagen de la habitación."}, status=400)
+
+        if not (wall_color.startswith("#") and len(wall_color) in (4, 7)):
+            return JsonResponse(
+                {"error": "Color de pared no válido. Usa formato #RRGGBB."}, status=400
+            )
+
+        for label, f in [("habitación", room_file), ("azulejo", tile_file)]:
+            if f is None:
+                continue
+            if f.content_type not in self._ALLOWED_TYPES:
+                return JsonResponse(
+                    {"error": f"Formato de imagen de {label} no válido. Usa PNG, JPEG o WebP."},
+                    status=400,
+                )
+            if f.size > self._MAX_SIZE:
+                return JsonResponse(
+                    {"error": f"La imagen de {label} supera el límite de 20 MB."},
+                    status=400,
+                )
+
+        # ── Llamada a la API ───────────────────────────────────────────────────
+        try:
+            client = openai.OpenAI(api_key=api_key)
+
+            room_png = _to_png_bytes(room_file)
+            images_param = [("room.png", room_png, "image/png")]
+
+            if tile_file:
+                tile_png = _to_png_bytes(tile_file)
+                images_param.append(("tile.png", tile_png, "image/png"))
+
+            prompt = _build_reforma_prompt(wall_color, has_tile=tile_file is not None)
+
+            # gpt-image-1 acepta lista de imágenes en el parámetro image
+            image_files = [
+                (name, io.BytesIO(data), mime)
+                for name, data, mime in images_param
+            ]
+
+            response = client.images.edit(
+                model="gpt-image-1",
+                image=image_files if len(image_files) > 1 else image_files[0],
+                prompt=prompt,
+                n=2,
+                size="1024x1024",
+            )
+
+            result_images = []
+            for item in response.data:
+                if getattr(item, "b64_json", None):
+                    result_images.append({"type": "b64", "data": item.b64_json})
+                elif getattr(item, "url", None):
+                    result_images.append({"type": "url", "data": item.url})
+
+            return JsonResponse({"images": result_images})
+
+        except openai.OpenAIError as exc:
+            logger.error("OpenAI API error en VisualizaObraView: %s", exc)
+            return JsonResponse({"error": f"Error de la API de OpenAI: {exc}"}, status=502)
+        except Exception:
+            logger.exception("Error inesperado en VisualizaObraView")
+            return JsonResponse({"error": "Error interno del servidor."}, status=500)
+

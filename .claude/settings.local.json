@@ -29,7 +29,8 @@
       "Bash(grep -E \"\\\\.py$|^d\")",
       "Bash(venv/Scripts/python manage.py makemigrations services cart)",
       "Bash(venv/Scripts/python manage.py migrate)",
-      "Bash(venv/Scripts/python manage.py seed_services)"
+      "Bash(venv/Scripts/python manage.py seed_services)",
+      "Bash(venv/Scripts/pip show *)"
     ]
   }
 }
