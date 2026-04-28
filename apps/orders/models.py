@@ -169,9 +169,6 @@ class OrderLineItem(BaseModel):
         verbose_name = _('Order Line')
         verbose_name_plural = _('Order Lines')
 
-    def __str__(self):
-        return f"{self.product_name} \u00d7 {self.quantity}"
-
     @property
     def line_total_with_tax(self):
         """Net line total plus tax."""

@@ -1,7 +1,7 @@
 """
 Core views: home page and utility views.
 """
-from django.views.generic import TemplateView, DetailView
+from django.views.generic import TemplateView
 
 
 class IndexView(TemplateView):

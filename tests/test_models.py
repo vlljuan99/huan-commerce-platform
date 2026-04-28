@@ -7,7 +7,7 @@ from decimal import Decimal
 from apps.accounts.models import User
 from apps.customers.models import Customer, CustomerAddress
 from apps.catalog.models import Product, ProductVariant, ProductCategory
-from apps.orders.models import Order, OrderLineItem
+from apps.orders.models import Order
 from apps.cart.models import Cart, CartLineItem
 
 

@@ -4,7 +4,7 @@ Accounts views: login, logout, customer portal, order request, checkout.
 
 from decimal import Decimal
 
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction

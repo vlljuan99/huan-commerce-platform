@@ -4,8 +4,9 @@ config/settings/production.py
 Entorno de producción desplegado en Heroku.
 Se activa con: DJANGO_SETTINGS_MODULE=config.settings.production
 """
+# ruff: noqa: F405
 
-from config.settings.base import *  # noqa: F401, F403
+from config.settings.base import *  # noqa: F401, F403, F405
 
 DEBUG = False
 

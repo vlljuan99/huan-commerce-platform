@@ -15,11 +15,9 @@ from django.views import View
 from django.views.generic import DetailView, FormView, ListView, TemplateView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
-logger = logging.getLogger(__name__)
-
 from apps.catalog.models import Product, ProductVariant, ProductCategory, ProductBrand, CatalogPDF
 from apps.customers.models import Customer, CustomerAddress
-from apps.invoicing.models import Invoice, InvoiceSeries
+from apps.invoicing.models import Invoice
 from apps.orders.models import Order
 from apps.services.models import Company, ServiceCategory, Service
 
@@ -40,6 +38,8 @@ from .forms import (
     ServiceCategoryForm,
     ServiceForm,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class BackofficeRequiredMixin(LoginRequiredMixin):

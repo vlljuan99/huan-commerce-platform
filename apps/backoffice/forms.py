@@ -7,7 +7,7 @@ from apps.accounts.models import User
 from apps.catalog.models import Product, ProductVariant, ProductCategory, ProductBrand, CatalogPDF
 from apps.services.models import Company, ServiceCategory, Service
 from apps.customers.models import Customer, CustomerAddress
-from apps.invoicing.models import Invoice, InvoiceSeries
+from apps.invoicing.models import Invoice
 from apps.orders.models import Order
 
 _C = {"class": "bo-form__control"}

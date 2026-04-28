@@ -13,7 +13,6 @@ def _create_default_groups(sender, **kwargs):
     Assign users to groups via User admin > Permissions > Groups.
     """
     from django.contrib.auth.models import Group, Permission
-    from django.contrib.contenttypes.models import ContentType
 
     admin_group, _ = Group.objects.get_or_create(name='Administrador')
     Group.objects.get_or_create(name='Comercial')

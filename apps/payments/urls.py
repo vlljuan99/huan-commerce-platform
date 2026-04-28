@@ -2,7 +2,6 @@
 URLs for Payments app.
 """
 
-from django.urls import path
 
 app_name = 'payments'
 

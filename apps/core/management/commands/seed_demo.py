@@ -140,8 +140,6 @@ class Command(BaseCommand):
     def _seed_catalog(self, tax_rates):
         from apps.catalog.models import ProductCategory, ProductBrand, Product, ProductVariant
 
-        iva21 = tax_rates['VAT_ES_STANDARD']
-
         # ── Categorías ────────────────────────────────────────────────
         cat_data = [
             {'name': 'Gres Porcelánico',        'slug': 'gres-porcelanico',     'display_order': 1},

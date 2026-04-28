@@ -4,8 +4,6 @@ Script to complete the Huan Commerce Platform structure.
 Generates all remaining models, serializers, views, tests, factories, and configuration.
 """
 
-import os
-import sys
 from pathlib import Path
 
 BASE_DIR = Path(__file__).parent

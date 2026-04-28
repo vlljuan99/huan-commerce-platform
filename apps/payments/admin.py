@@ -2,8 +2,7 @@
 Admin registrations for Payments app.
 """
 
-from django.contrib import admin
-from .models import *
+from .models import *  # noqa: F403
 
 # TODO: Register payments models in admin
 # Example:

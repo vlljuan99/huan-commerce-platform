@@ -4,7 +4,6 @@ Payments app: payment transactions, status tracking.
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from decimal import Decimal
 
 
 class PaymentTransaction(models.Model):

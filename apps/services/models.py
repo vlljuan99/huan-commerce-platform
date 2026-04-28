@@ -2,7 +2,6 @@
 Services app: construction and installation services offered alongside products.
 """
 
-from decimal import Decimal
 
 from django.db import models
 from django.utils.text import slugify
