@@ -81,6 +81,25 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Collect & upload static files to Azure
+        env:
+          DJANGO_SETTINGS_MODULE: config.settings.staging
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+          AZURE_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}
+          AZURE_STORAGE_ACCOUNT_KEY: ${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}
+          AZURE_STATIC_CONTAINER: ${{ secrets.AZURE_STATIC_CONTAINER }}
+        run: python manage.py collectstatic --noinput
+
       - name: Deploy to Heroku via git push
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
