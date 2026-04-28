@@ -81,21 +81,24 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Deploy to Heroku
-        uses: akhileshns/heroku-deploy@v3.13.15
-        with:
-          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
-          heroku_app_name: ${{ secrets.STAGING_APP_NAME }}
-          heroku_email: ${{ secrets.HEROKU_EMAIL }}
-          buildpack: "https://github.com/heroku/heroku-buildpack-apt"
+      - name: Deploy to Heroku via git push
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+          HEROKU_APP: ${{ secrets.STAGING_APP_NAME }}
+        run: |
+          git remote add heroku https://heroku:${HEROKU_API_KEY}@git.heroku.com/${HEROKU_APP}.git
+          git push heroku HEAD:refs/heads/main --force
 
       - name: Run migrations on staging
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+          HEROKU_APP: ${{ secrets.STAGING_APP_NAME }}
         run: |
-          curl -n -X POST https://api.heroku.com/apps/${{ secrets.STAGING_APP_NAME }}/dynos \
+          curl -s -X POST https://api.heroku.com/apps/${HEROKU_APP}/dynos \
             -d '{"command":"python manage.py migrate --noinput","attach":false,"size":"standard-1x","type":"run"}' \
             -H "Content-Type: application/json" \
             -H "Accept: application/vnd.heroku+json; version=3" \
-            -H "Authorization: Bearer ${{ secrets.HEROKU_API_KEY }}"
+            -H "Authorization: Bearer ${HEROKU_API_KEY}"
 
       - name: Notify deploy complete
         run: echo "✅ Staging deploy complete — ${{ secrets.STAGING_APP_NAME }}.herokuapp.com"
