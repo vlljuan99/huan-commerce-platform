@@ -4,7 +4,7 @@
 {% block page_title %}Catálogos PDF{% endblock %}
 
 {% block topbar_actions %}
-<a href="{% url 'backoffice:catalogpdf_create' %}" class="btn btn--create">+ NUEVO CATÁLOGO</a>
+<a href="{% url 'backoffice:catalogpdf_create' %}" class="bo-btn bo-btn--create">+ NUEVO CATÁLOGO</a>
 {% endblock %}
 
 {% block content %}
@@ -37,10 +37,9 @@
                     </span>
                 </td>
                 <td style="white-space:nowrap">
-                    <a href="{% url 'backoffice:catalogpdf_edit' cat.pk %}" class="btn btn--primary btn--sm">EDITAR</a>
+                    <a href="{% url 'backoffice:catalogpdf_edit' cat.pk %}" class="bo-btn bo-btn--primary bo-btn--sm">EDITAR</a>
                     <a href="{% url 'backoffice:catalogpdf_delete' cat.pk %}"
-                       class="btn btn--ghost btn--sm"
-                       style="color:var(--color-danger,#c0392b)"
+                       class="bo-btn bo-btn--danger bo-btn--sm"
                        onclick="return confirm('¿Eliminar «{{ cat.title }}»?')">Eliminar</a>
                 </td>
             </tr>

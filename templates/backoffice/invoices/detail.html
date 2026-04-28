@@ -4,11 +4,12 @@
 {% block page_title %}Factura {{ invoice.invoice_number }}{% endblock %}
 
 {% block topbar_actions %}
-<a href="{% url 'backoffice:invoice_list' %}" class="btn btn--ghost btn--sm">← Volver</a>
-<a href="{% url 'backoffice:invoice_edit' invoice.pk %}" class="btn btn--primary btn--sm">Editar</a>
-{% if invoice.pdf_file %}
-<a href="{{ invoice.pdf_file.url }}" class="btn btn--ghost btn--sm" target="_blank">Descargar PDF</a>
-{% endif %}
+<a href="{% url 'backoffice:invoice_list' %}" class="bo-btn bo-btn--text">← Volver</a>
+<a href="{% url 'backoffice:invoice_edit' invoice.pk %}" class="bo-btn bo-btn--primary">Editar</a>
+<form method="post" action="{% url 'backoffice:invoice_generate_pdf' invoice.pk %}" style="display:inline">
+  {% csrf_token %}
+  <button type="submit" class="bo-btn bo-btn--outlined">Generar PDF</button>
+</form>
 {% endblock %}
 
 {% block content %}

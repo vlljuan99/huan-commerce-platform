@@ -4,7 +4,7 @@
 {% block page_title %}Categorías{% endblock %}
 
 {% block topbar_actions %}
-<a href="{% url 'backoffice:category_create' %}" class="btn btn--create">+ NUEVA CATEGORÍA</a>
+<a href="{% url 'backoffice:category_create' %}" class="bo-btn bo-btn--create">+ NUEVA CATEGORÍA</a>
 {% endblock %}
 
 {% block content %}
@@ -32,7 +32,7 @@
                         {% if cat.is_active %}Activa{% else %}Inactiva{% endif %}
                     </span>
                 </td>
-                <td><a href="{% url 'backoffice:category_edit' cat.pk %}" class="btn btn--primary btn--sm">EDITAR</a></td>
+                <td><a href="{% url 'backoffice:category_edit' cat.pk %}" class="bo-btn bo-btn--primary bo-btn--sm">EDITAR</a></td>
             </tr>
             {% empty %}
             <tr><td colspan="6" class="bo-table__empty">No hay categorías.</td></tr>

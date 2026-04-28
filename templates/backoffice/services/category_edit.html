@@ -4,7 +4,7 @@
 {% block page_title %}{% if is_new %}Nueva categoría de servicio{% else %}{{ object.name }}{% endif %}{% endblock %}
 
 {% block topbar_actions %}
-<a href="{% url 'backoffice:service_category_list' %}" class="btn btn--ghost">← Categorías</a>
+<a href="{% url 'backoffice:service_category_list' %}" class="bo-btn bo-btn--text">← Categorías</a>
 {% endblock %}
 
 {% block content %}
@@ -19,8 +19,8 @@
         </div>
         {% endfor %}
         <div class="bo-form__actions">
-            <button type="submit" class="btn btn--primary">{% if is_new %}Crear categoría{% else %}Guardar cambios{% endif %}</button>
-            <a href="{% url 'backoffice:service_category_list' %}" class="btn btn--ghost">Cancelar</a>
+            <button type="submit" class="bo-btn bo-btn--primary">{% if is_new %}Crear categoría{% else %}Guardar cambios{% endif %}</button>
+            <a href="{% url 'backoffice:service_category_list' %}" class="bo-btn bo-btn--text">Cancelar</a>
         </div>
     </form>
 </div>

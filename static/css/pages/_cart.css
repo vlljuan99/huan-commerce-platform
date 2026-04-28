@@ -24,8 +24,14 @@
 }
 
 /* Table */
+.cart-items {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
 .cart-table {
     width: 100%;
+    min-width: 480px;
     border-collapse: collapse;
     font-size: 0.95rem;
 }
@@ -325,22 +331,22 @@
     position: relative;
     display: inline-flex;
     align-items: center;
-    color: var(--color-text, #374151);
+    color: #ffffff;
     text-decoration: none;
     margin-right: 0.5rem;
     padding: 0.25rem;
 }
 
 .cart-icon:hover {
-    color: var(--color-primary, #1a365d);
+    color: rgba(255, 255, 255, 0.75);
 }
 
 .cart-icon__badge {
     position: absolute;
     top: -6px;
     right: -8px;
-    background: var(--color-primary, #1a365d);
-    color: #fff;
+    background: var(--color-primary-light, #c8a84b);
+    color: #ffffff;
     font-size: 0.65rem;
     font-weight: 700;
     min-width: 18px;

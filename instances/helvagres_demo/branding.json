@@ -1,5 +1,8 @@
 {
     "commercial_name": "Helvagres",
+    "logo": "/static/helvagres_demo/logo_azul.png",
+    "icon": "/static/helvagres_demo/icono.png",
+    "favicon": "/static/helvagres_demo/icono.png",
     "tagline": "Materiales cerámicos para profesionales",
     "hero_image": "/static/helvagres_demo/hero.jpg",
     "colors": {

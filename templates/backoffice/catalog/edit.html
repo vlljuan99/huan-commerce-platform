@@ -4,7 +4,7 @@
 {% block page_title %}{% if is_new %}Nuevo producto{% else %}Editar producto{% endif %}{% endblock %}
 
 {% block topbar_actions %}
-<a href="{% url 'backoffice:catalog_list' %}" class="btn btn--ghost btn--sm">← Catálogo</a>
+<a href="{% url 'backoffice:catalog_list' %}" class="bo-btn bo-btn--text">← Catálogo</a>
 {% endblock %}
 
 {% block content %}
@@ -52,10 +52,10 @@
             </fieldset>
 
             <div class="bo-form__actions">
-                <button type="submit" class="btn btn--primary btn--lg">
+                <button type="submit" class="bo-btn bo-btn--primary">
                     {% if is_new %}Crear producto{% else %}Guardar cambios{% endif %}
                 </button>
-                <a href="{% url 'backoffice:catalog_list' %}" class="btn btn--ghost btn--lg">Cancelar</a>
+                <a href="{% url 'backoffice:catalog_list' %}" class="bo-btn bo-btn--text">Cancelar</a>
             </div>
         </form>
     </div>
@@ -66,7 +66,7 @@
         <div class="bo-card">
             <div class="bo-section__header" style="margin-bottom:var(--space-md)">
                 <h2 class="bo-card__title" style="border:none;padding:0;margin:0">Variantes</h2>
-                <a href="{% url 'backoffice:variant_create' product.pk %}" class="btn btn--primary btn--sm">+ Nueva</a>
+                <a href="{% url 'backoffice:variant_create' product.pk %}" class="bo-btn bo-btn--primary bo-btn--sm">+ Nueva</a>
             </div>
             {% for variant in product.variants.all %}
             <div class="bo-variant-row">
@@ -76,7 +76,7 @@
                     <span class="bo-variant-row__price">{{ variant.price_no_tax|floatformat:2 }} €</span>
                     <span class="bo-variant-row__stock text-muted">Stock: {{ variant.stock_quantity }}</span>
                 </div>
-                <a href="{% url 'backoffice:variant_edit' variant.pk %}" class="btn btn--ghost btn--sm">Editar</a>
+                <a href="{% url 'backoffice:variant_edit' variant.pk %}" class="bo-btn bo-btn--outlined bo-btn--sm">Editar</a>
             </div>
             {% empty %}
             <p class="text-muted" style="font-size:.875rem">Sin variantes. Añade al menos una.</p>

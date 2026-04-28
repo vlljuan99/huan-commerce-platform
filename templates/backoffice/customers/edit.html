@@ -5,9 +5,9 @@
 
 {% block topbar_actions %}
 {% if is_new %}
-    <a href="{% url 'backoffice:customer_list' %}" class="btn btn--ghost btn--sm">← Volver</a>
+    <a href="{% url 'backoffice:customer_list' %}" class="bo-btn bo-btn--text">← Volver</a>
 {% else %}
-    <a href="{% url 'backoffice:customer_detail' customer.pk %}" class="btn btn--ghost btn--sm">← Volver</a>
+    <a href="{% url 'backoffice:customer_detail' customer.pk %}" class="bo-btn bo-btn--text">← Volver</a>
 {% endif %}
 {% endblock %}
 
@@ -55,13 +55,13 @@
             {% endif %}
 
             <div class="bo-form__actions">
-                <button type="submit" class="btn btn--primary btn--lg">
+                <button type="submit" class="bo-btn bo-btn--primary">
                     {% if is_new %}Crear cliente{% else %}Guardar cambios{% endif %}
                 </button>
                 {% if is_new %}
-                    <a href="{% url 'backoffice:customer_list' %}" class="btn btn--ghost btn--lg">Cancelar</a>
+                    <a href="{% url 'backoffice:customer_list' %}" class="bo-btn bo-btn--text">Cancelar</a>
                 {% else %}
-                    <a href="{% url 'backoffice:customer_detail' customer.pk %}" class="btn btn--ghost btn--lg">Cancelar</a>
+                    <a href="{% url 'backoffice:customer_detail' customer.pk %}" class="bo-btn bo-btn--text">Cancelar</a>
                 {% endif %}
             </div>
         </form>
@@ -87,7 +87,7 @@
             {% empty %}
                 <p class="text-muted" style="font-size:.875rem">Sin direcciones.</p>
             {% endfor %}
-            <a href="{% url 'backoffice:customer_address_create' customer.pk %}" class="btn btn--ghost btn--sm" style="margin-top:.5rem">+ Añadir dirección</a>
+            <a href="{% url 'backoffice:customer_address_create' customer.pk %}" class="bo-btn bo-btn--outlined bo-btn--sm" style="margin-top:.5rem">+ Añadir dirección</a>
         </div>
     </aside>
     {% endif %}

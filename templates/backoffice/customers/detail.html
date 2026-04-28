@@ -4,8 +4,8 @@
 {% block page_title %}{{ customer }}{% endblock %}
 
 {% block topbar_actions %}
-<a href="{% url 'backoffice:customer_list' %}" class="btn btn--ghost btn--sm">← Volver</a>
-<a href="{% url 'backoffice:customer_edit' customer.pk %}" class="btn btn--primary btn--sm">Editar</a>
+<a href="{% url 'backoffice:customer_list' %}" class="bo-btn bo-btn--text">← Volver</a>
+<a href="{% url 'backoffice:customer_edit' customer.pk %}" class="bo-btn bo-btn--primary">Editar</a>
 {% endblock %}
 
 {% block content %}

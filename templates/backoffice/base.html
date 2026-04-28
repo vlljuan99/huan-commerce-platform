@@ -21,7 +21,11 @@
 
 <div class="bo-mobile-header">
     <a href="{% url 'backoffice:dashboard' %}" class="bo-mobile-header__logo">
-        <span class="bo-mobile-header__logo-text">{{ branding.commercial_name|default:"Huan" }}</span>
+        {% if branding.logo %}
+            <img src="{{ branding.logo }}" alt="{{ branding.commercial_name }}" class="bo-mobile-header__logo-img" style="height:32px;width:auto;">
+        {% else %}
+            <span class="bo-mobile-header__logo-text">{{ branding.commercial_name|default:"Huan" }}</span>
+        {% endif %}
         <span class="bo-mobile-header__badge">Admin</span>
     </a>
     <button class="bo-menu-toggle" onclick="openSidebar()" aria-label="Abrir menú">&#9776;</button>
@@ -34,7 +38,11 @@
     <aside class="bo-sidebar">
         <div class="bo-sidebar__brand">
             <a href="{% url 'backoffice:dashboard' %}" class="bo-sidebar__logo">
-                <span class="bo-sidebar__logo-text">{{ branding.commercial_name|default:"Huan" }}</span>
+                {% if branding.logo %}
+                    <img src="{{ branding.logo }}" alt="{{ branding.commercial_name }}" class="bo-sidebar__logo-img" style="max-height:36px;width:auto;">
+                {% else %}
+                    <span class="bo-sidebar__logo-text">{{ branding.commercial_name|default:"Huan" }}</span>
+                {% endif %}
                 <span class="bo-sidebar__logo-badge">Admin</span>
             </a>
             <button class="bo-sidebar__close" onclick="closeSidebar()" aria-label="Cerrar menú">&#10005;</button>
@@ -123,7 +131,9 @@
             </a>
         </nav>
         <div class="bo-sidebar__footer">
-            <a href="{% url 'index' %}" class="bo-sidebar__back-link">&#8592; Ver tienda</a>
+            <a href="{% url 'index' %}" class="bo-nav__item bo-sidebar__home-link">
+                <span class="bo-nav__icon">&#127968;</span> Página principal
+            </a>
             <span class="bo-sidebar__user">{{ request.user.email }}</span>
         </div>
     </aside>

@@ -4,7 +4,7 @@
 {% block page_title %}Pedidos{% endblock %}
 
 {% block topbar_actions %}
-<a href="{% url 'backoffice:order_create' %}" class="btn btn--create">+ NUEVO PEDIDO</a>
+<a href="{% url 'backoffice:order_create' %}" class="bo-btn bo-btn--create">+ NUEVO PEDIDO</a>
 {% endblock %}
 
 {% block content %}
@@ -17,9 +17,9 @@
             <option value="{{ value }}" {% if current_status == value %}selected{% endif %}>{{ label }}</option>
         {% endfor %}
     </select>
-    <button type="submit" class="btn btn--primary">Filtrar</button>
+    <button type="submit" class="bo-btn bo-btn--primary">Filtrar</button>
     {% if q or current_status %}
-        <a href="{% url 'backoffice:order_list' %}" class="btn btn--ghost">Limpiar</a>
+        <a href="{% url 'backoffice:order_list' %}" class="bo-btn bo-btn--text">Limpiar</a>
     {% endif %}
 </form>
 
@@ -52,8 +52,8 @@
                 <td><strong>{{ order.total|floatformat:2 }} €</strong></td>
                 <td>{{ order.created_at|date:"d/m/Y" }}</td>
                 <td style="white-space:nowrap">
-                    <a href="{% url 'backoffice:order_detail' order.pk %}" class="btn btn--sm btn--primary">VER</a>
-                    <a href="{% url 'backoffice:order_edit' order.pk %}" class="btn btn--sm btn--primary">EDITAR</a>
+                    <a href="{% url 'backoffice:order_detail' order.pk %}" class="bo-btn bo-btn--primary bo-btn--sm">VER</a>
+                    <a href="{% url 'backoffice:order_edit' order.pk %}" class="bo-btn bo-btn--primary bo-btn--sm">EDITAR</a>
                 </td>
             </tr>
             {% empty %}

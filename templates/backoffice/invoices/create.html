@@ -4,7 +4,7 @@
 {% block page_title %}Nueva factura{% endblock %}
 
 {% block topbar_actions %}
-<a href="{% url 'backoffice:invoice_list' %}" class="btn btn--ghost btn--sm">← Volver</a>
+<a href="{% url 'backoffice:invoice_list' %}" class="bo-btn bo-btn--text">← Volver</a>
 {% endblock %}
 
 {% block content %}
@@ -27,8 +27,8 @@
             {% include "backoffice/_form_field.html" with field=form.notes %}
 
             <div class="bo-form__actions">
-                <button type="submit" class="btn btn--primary btn--lg">Crear factura</button>
-                <a href="{% url 'backoffice:invoice_list' %}" class="btn btn--ghost btn--lg">Cancelar</a>
+                <button type="submit" class="bo-btn bo-btn--primary">Crear factura</button>
+                <a href="{% url 'backoffice:invoice_list' %}" class="bo-btn bo-btn--text">Cancelar</a>
             </div>
         </form>
     </div>

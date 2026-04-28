@@ -357,6 +357,211 @@ class InvoiceUpdateView(BackofficeRequiredMixin, UpdateView):
         return reverse_lazy("backoffice:invoice_detail", kwargs={"pk": self.object.pk})
 
 
+class InvoiceGeneratePDFView(BackofficeRequiredMixin, View):
+    """Generate a PDF for an invoice using ReportLab canvas."""
+
+    def post(self, request, pk):
+        import io
+        import os
+        from django.conf import settings
+        from django.http import HttpResponse
+        from reportlab.pdfgen import canvas
+        from reportlab.lib.pagesizes import A4
+        from reportlab.lib import colors
+        from apps.core.instance import get_branding
+
+        invoice = get_object_or_404(
+            Invoice.objects.select_related("customer__user", "series", "order")
+            .prefetch_related("items__tax_rate"),
+            pk=pk,
+        )
+
+        branding = get_branding()
+        footer = branding.get("footer", {})
+
+        W, H = A4  # 595 x 842 pt
+        buffer = io.BytesIO()
+        c = canvas.Canvas(buffer, pagesize=A4)
+        c.setLineWidth(0.5)
+
+        # ── Logo ──────────────────────────────────────────────────────────────
+        from apps.core.instance import get_profile
+        instance_id = get_profile().get("instance_id", "")
+        logo_path = os.path.join(
+            settings.BASE_DIR, "instances", instance_id,
+            "static", instance_id, "logo_blanco.png"
+        )
+        if os.path.isfile(logo_path):
+            c.drawImage(
+                logo_path, 30, H - 80,
+                width=110, height=50,
+                preserveAspectRatio=True, mask="auto",
+            )
+
+        # ── Header (right) ────────────────────────────────────────────────────
+        c.setFont("Helvetica-Bold", 16)
+        c.drawString(400, H - 50, "FACTURA")
+        c.setFont("Helvetica-Bold", 9)
+        c.drawString(380, H - 66, "Núm. Factura:")
+        c.setFont("Helvetica", 9)
+        c.drawString(470, H - 66, invoice.invoice_number)
+        c.setFont("Helvetica-Bold", 9)
+        c.drawString(380, H - 79, "Fecha:")
+        c.setFont("Helvetica", 9)
+        c.drawString(470, H - 79, invoice.issued_at.strftime("%d/%m/%Y"))
+        if invoice.due_date:
+            c.setFont("Helvetica-Bold", 9)
+            c.drawString(380, H - 92, "Vencimiento:")
+            c.setFont("Helvetica", 9)
+            c.drawString(470, H - 92, invoice.due_date.strftime("%d/%m/%Y"))
+
+        # ── Separator ─────────────────────────────────────────────────────────
+        c.line(30, H - 105, W - 30, H - 105)
+
+        # ── Facturado por (left) ──────────────────────────────────────────────
+        y = H - 122
+        c.setFont("Helvetica-Bold", 10)
+        c.drawString(30, y, "Facturado por:")
+        y -= 14
+        c.setFont("Helvetica-Bold", 9)
+        c.drawString(30, y, footer.get("legal_name") or footer.get("company_name", ""))
+        y -= 13
+        c.setFont("Helvetica", 9)
+        if footer.get("address"):
+            c.drawString(30, y, footer["address"])
+            y -= 13
+        if footer.get("city") and footer.get("zip"):
+            c.drawString(30, y, f"{footer['city']}, {footer['zip']}")
+            y -= 13
+        if footer.get("tax_id"):
+            c.drawString(30, y, f"CIF/NIF: {footer['tax_id']}")
+            y -= 13
+        if footer.get("phone"):
+            c.drawString(30, y, f"Tel: {footer['phone']}")
+            y -= 13
+        if footer.get("email"):
+            c.drawString(30, y, f"Email: {footer['email']}")
+            y -= 13
+        company_bottom = y
+
+        # ── Facturado a (right) ───────────────────────────────────────────────
+        yc = H - 122
+        c.setFont("Helvetica-Bold", 10)
+        c.drawString(310, yc, "Facturado a:")
+        yc -= 14
+        c.setFont("Helvetica-Bold", 9)
+        c.drawString(310, yc, invoice.billing_name_snapshot or str(invoice.customer))
+        yc -= 13
+        c.setFont("Helvetica", 9)
+        if invoice.tax_id_snapshot:
+            c.drawString(310, yc, f"NIF/CIF: {invoice.tax_id_snapshot}")
+            yc -= 13
+        if invoice.billing_address_snapshot:
+            for line in invoice.billing_address_snapshot.splitlines():
+                if line.strip():
+                    c.drawString(310, yc, line.strip())
+                    yc -= 13
+        contact_email = (
+            invoice.customer.contact_email
+            or invoice.customer.user.email
+        )
+        if contact_email:
+            c.drawString(310, yc, f"Email: {contact_email}")
+            yc -= 13
+        client_bottom = yc
+
+        # ── Table header ──────────────────────────────────────────────────────
+        y = min(company_bottom, client_bottom) - 18
+        primary = colors.HexColor(
+            branding.get("colors", {}).get("primary", "#1a1a1a")
+        )
+        c.setFillColor(primary)
+        c.rect(30, y, W - 60, 17, stroke=0, fill=1)
+        c.setFillColor(colors.white)
+        c.setFont("Helvetica-Bold", 8)
+        c.drawString(35,       y + 5, "Descripción")
+        c.drawString(310,      y + 5, "Cant.")
+        c.drawString(355,      y + 5, "Precio unit.")
+        c.drawString(425,      y + 5, "IVA %")
+        c.drawString(462,      y + 5, "IVA €")
+        c.drawString(508,      y + 5, "Total s/IVA")
+        y -= 17
+
+        # ── Items ─────────────────────────────────────────────────────────────
+        c.setFont("Helvetica", 9)
+        row = 0
+        for item in invoice.items.all():
+            if row % 2 == 0:
+                c.setFillColor(colors.HexColor("#f3f4f6"))
+                c.rect(30, y - 3, W - 60, 15, stroke=0, fill=1)
+            c.setFillColor(colors.black)
+            desc = str(item.description)
+            c.drawString(35,  y + 3, desc[:48] + ("…" if len(desc) > 48 else ""))
+            c.drawString(310, y + 3, str(item.quantity))
+            c.drawString(355, y + 3, f"{item.unit_price:.2f} €")
+            c.drawString(425, y + 3, f"{item.tax_rate_pct:.0f}%")
+            c.drawString(462, y + 3, f"{item.tax_amount:.2f} €")
+            c.drawString(508, y + 3, f"{item.line_total:.2f} €")
+            y -= 16
+            row += 1
+
+        # ── Totals ────────────────────────────────────────────────────────────
+        y -= 8
+        c.line(370, y, W - 30, y)
+        y -= 12
+        c.setFont("Helvetica", 9)
+        c.setFillColor(colors.black)
+        c.drawString(375, y, "Subtotal:")
+        c.drawRightString(W - 30, y, f"{invoice.subtotal:.2f} €")
+        y -= 14
+        c.drawString(375, y, "IVA:")
+        c.drawRightString(W - 30, y, f"{invoice.tax_amount:.2f} €")
+        y -= 4
+        c.line(370, y, W - 30, y)
+        y -= 14
+        c.setFont("Helvetica-Bold", 10)
+        c.drawString(375, y, "TOTAL:")
+        c.drawRightString(W - 30, y, f"EUR {invoice.total:.2f}")
+
+        # ── Notes ─────────────────────────────────────────────────────────────
+        if invoice.notes:
+            y -= 24
+            c.setFont("Helvetica-Bold", 9)
+            c.drawString(30, y, "NOTAS")
+            y -= 5
+            c.line(30, y, W - 30, y)
+            y -= 13
+            c.setFont("Helvetica", 9)
+            c.drawString(30, y, invoice.notes)
+
+        # ── Observaciones ─────────────────────────────────────────────────────
+        y -= 28
+        c.setFont("Helvetica-Bold", 9)
+        c.drawString(30, y, "OBSERVACIONES")
+        y -= 5
+        c.line(30, y, W - 30, y)
+        y -= 13
+        c.setFont("Helvetica", 9)
+        obs = [
+            "Puede realizar el pago de esta factura en la siguiente cuenta bancaria:",
+            "",
+            f"Titular: {footer.get('legal_name') or footer.get('company_name', '')}",
+        ]
+        if footer.get("iban"):
+            obs.append(f"IBAN: {footer['iban']}")
+        for line in obs:
+            c.drawString(30, y, line)
+            y -= 13
+
+        c.save()
+        pdf_bytes = buffer.getvalue()
+
+        filename = f"{invoice.invoice_number}.pdf"
+        response = HttpResponse(pdf_bytes, content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        return response
+
+
 # ── Catalog ───────────────────────────────────────────────────────────────────
 
 class CatalogListView(BackofficeRequiredMixin, ListView):

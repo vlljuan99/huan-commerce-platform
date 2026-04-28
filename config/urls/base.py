@@ -5,9 +5,11 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic import RedirectView
 from apps.core.views import IndexView, CookiePolicyView
 
 urlpatterns = [
+    path('favicon.ico', RedirectView.as_view(url='/static/helvagres_demo/icono.png', permanent=False)),
     path('', IndexView.as_view(), name='index'),
     path('politica-de-cookies/', CookiePolicyView.as_view(), name='cookie_policy'),
     path('accounts/', include('apps.accounts.urls')),

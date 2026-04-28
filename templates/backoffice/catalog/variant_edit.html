@@ -4,7 +4,7 @@
 {% block page_title %}{% if is_new %}Nueva variante{% else %}Editar variante{% endif %}{% endblock %}
 
 {% block topbar_actions %}
-<a href="{% url 'backoffice:product_edit' product.pk %}" class="btn btn--ghost btn--sm">← {{ product.name }}</a>
+<a href="{% url 'backoffice:product_edit' product.pk %}" class="bo-btn bo-btn--text">← {{ product.name }}</a>
 {% endblock %}
 
 {% block content %}
@@ -35,10 +35,10 @@
             </div>
 
             <div class="bo-form__actions">
-                <button type="submit" class="btn btn--primary btn--lg">
+                <button type="submit" class="bo-btn bo-btn--primary">
                     {% if is_new %}Crear variante{% else %}Guardar cambios{% endif %}
                 </button>
-                <a href="{% url 'backoffice:product_edit' product.pk %}" class="btn btn--ghost btn--lg">Cancelar</a>
+                <a href="{% url 'backoffice:product_edit' product.pk %}" class="bo-btn bo-btn--text">Cancelar</a>
             </div>
         </form>
     </div>

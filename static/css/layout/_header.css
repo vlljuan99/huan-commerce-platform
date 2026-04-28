@@ -145,3 +145,28 @@
     color: #ffffff;
     border-bottom-color: var(--color-accent-light);
 }
+
+/* ── Mobile ─────────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+    .header-top__inner {
+        gap: var(--space-sm);
+    }
+
+    .header-search {
+        display: none;
+    }
+
+    .header-user {
+        gap: var(--space-xs);
+        margin-left: 0;
+    }
+
+    .header-user__name {
+        display: none;
+    }
+
+    .header-user .btn--ghost {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.75rem;
+    }
+}

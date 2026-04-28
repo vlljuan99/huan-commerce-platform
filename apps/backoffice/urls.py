@@ -26,6 +26,7 @@ urlpatterns = [
     path("facturas/nueva/", views.InvoiceCreateView.as_view(), name="invoice_create"),
     path("facturas/<int:pk>/", views.InvoiceDetailView.as_view(), name="invoice_detail"),
     path("facturas/<int:pk>/editar/", views.InvoiceUpdateView.as_view(), name="invoice_edit"),
+    path("facturas/<int:pk>/generar-pdf/", views.InvoiceGeneratePDFView.as_view(), name="invoice_generate_pdf"),
 
     # Catalog — products
     path("catalogo/", views.CatalogListView.as_view(), name="catalog_list"),

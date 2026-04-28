@@ -4,44 +4,77 @@
 
 {% block content %}
 <div class="catalog-pdf-page">
+    <div class="catalog-filter-bar" id="catalog-filter-bar">
+        <div class="container">
+            <div class="cfilter-row">
+
+                {% if brands %}
+                <div class="cfilter" id="cfilter-brand">
+                    <button class="cfilter__toggle" aria-expanded="false" aria-controls="cfilter-brand-panel"
+                            onclick="toggleFilter('cfilter-brand')">
+                        <span class="cfilter__name">Marca</span>
+                        {% if active_brand %}
+                            <span class="cfilter__val">{{ active_brand }}</span>
+                        {% endif %}
+                        <svg class="cfilter__arrow" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                            <path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                    <div class="cfilter__panel" id="cfilter-brand-panel" role="listbox">
+                        <a href="?{% if active_year %}ano={{ active_year }}{% endif %}"
+                           class="cfilter__option {% if not active_brand %}cfilter__option--active{% endif %}">
+                            Todas las marcas
+                        </a>
+                        {% for brand in brands %}
+                        <a href="?marca={{ brand.slug }}{% if active_year %}&ano={{ active_year }}{% endif %}"
+                           class="cfilter__option {% if active_brand == brand.slug %}cfilter__option--active{% endif %}">
+                            {{ brand.name }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if years %}
+                <div class="cfilter" id="cfilter-year">
+                    <button class="cfilter__toggle" aria-expanded="false" aria-controls="cfilter-year-panel"
+                            onclick="toggleFilter('cfilter-year')">
+                        <span class="cfilter__name">Año</span>
+                        {% if active_year %}
+                            <span class="cfilter__val">{{ active_year }}</span>
+                        {% endif %}
+                        <svg class="cfilter__arrow" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                            <path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                    <div class="cfilter__panel" id="cfilter-year-panel" role="listbox">
+                        <a href="?{% if active_brand %}marca={{ active_brand }}{% endif %}"
+                           class="cfilter__option {% if not active_year %}cfilter__option--active{% endif %}">
+                            Todos los años
+                        </a>
+                        {% for year in years %}
+                        <a href="?{% if active_brand %}marca={{ active_brand }}&{% endif %}ano={{ year }}"
+                           class="cfilter__option {% if active_year == year|stringformat:"s" %}cfilter__option--active{% endif %}">
+                            {{ year }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if active_brand or active_year %}
+                <a href="{% url 'catalog:catalog_pdf_list' %}" class="cfilter__clear">✕ Limpiar filtros</a>
+                {% endif %}
+
+                <span class="cfilter-count">
+                    {{ paginator.count }} catálogo{{ paginator.count|pluralize }}
+                </span>
+
+            </div>
+        </div>
+    </div>
+
     <div class="container">
-        <header class="page-header">
-            <h1 class="page-header__title">Catálogos</h1>
-            <p class="page-header__sub">Descarga nuestros catálogos en formato PDF</p>
-        </header>
-
-        <form class="catalog-filters" method="get" action="">
-            <div class="catalog-filters__group">
-                <label for="marca" class="catalog-filters__label">Marca</label>
-                <select id="marca" name="marca" class="catalog-filters__select" onchange="this.form.submit()">
-                    <option value="">Todas las marcas</option>
-                    {% for brand in brands %}
-                    <option value="{{ brand.slug }}" {% if active_brand == brand.slug %}selected{% endif %}>
-                        {{ brand.name }}
-                    </option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            {% if years %}
-            <div class="catalog-filters__group">
-                <label for="ano" class="catalog-filters__label">Año</label>
-                <select id="ano" name="ano" class="catalog-filters__select" onchange="this.form.submit()">
-                    <option value="">Todos los años</option>
-                    {% for year in years %}
-                    <option value="{{ year }}" {% if active_year == year|stringformat:"s" %}selected{% endif %}>
-                        {{ year }}
-                    </option>
-                    {% endfor %}
-                </select>
-            </div>
-            {% endif %}
-
-            {% if active_brand or active_year %}
-            <a href="{% url 'catalog:catalog_pdf_list' %}" class="catalog-filters__reset">Limpiar filtros</a>
-            {% endif %}
-        </form>
-
         {% if catalogs %}
         <div class="catalog-pdf-grid">
             {% for catalog in catalogs %}
@@ -93,4 +126,30 @@
         {% endif %}
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleFilter(id) {
+    const el = document.getElementById(id);
+    const btn = el.querySelector('.cfilter__toggle');
+    const isOpen = el.classList.contains('cfilter--open');
+    document.querySelectorAll('.cfilter--open').forEach(f => {
+        f.classList.remove('cfilter--open');
+        f.querySelector('.cfilter__toggle').setAttribute('aria-expanded', 'false');
+    });
+    if (!isOpen) {
+        el.classList.add('cfilter--open');
+        btn.setAttribute('aria-expanded', 'true');
+    }
+}
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.cfilter')) {
+        document.querySelectorAll('.cfilter--open').forEach(f => {
+            f.classList.remove('cfilter--open');
+            f.querySelector('.cfilter__toggle').setAttribute('aria-expanded', 'false');
+        });
+    }
+});
+</script>
 {% endblock %}
