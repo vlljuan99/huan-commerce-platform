@@ -54,11 +54,15 @@ class CartDetailView(View):
         items = cart.items.select_related(
             "variant__product__category", "variant__product__brand"
         ).order_by("added_at")
-        return render(request, "cart/cart.html", {
-            "cart": cart,
-            "items": items,
-            "total": cart.get_total(),
-        })
+        return render(
+            request,
+            "cart/cart.html",
+            {
+                "cart": cart,
+                "items": items,
+                "total": cart.get_total(),
+            },
+        )
 
 
 class CartAddView(View):

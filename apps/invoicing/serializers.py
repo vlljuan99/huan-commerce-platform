@@ -7,18 +7,20 @@ from .models import Invoice, InvoiceLineItem
 
 
 class InvoiceLineItemSerializer(serializers.ModelSerializer):
-    tax_rate_name = serializers.CharField(
-        source='tax_rate.name',
-        read_only=True
-    )
+    tax_rate_name = serializers.CharField(source="tax_rate.name", read_only=True)
 
     class Meta:
         model = InvoiceLineItem
         fields = [
-            'id', 'description', 'quantity', 'unit_price',
-            'line_total', 'tax_rate', 'tax_rate_name'
+            "id",
+            "description",
+            "quantity",
+            "unit_price",
+            "line_total",
+            "tax_rate",
+            "tax_rate_name",
         ]
-        read_only_fields = ['id', 'line_total']
+        read_only_fields = ["id", "line_total"]
 
 
 class InvoiceSerializer(serializers.ModelSerializer):
@@ -28,11 +30,19 @@ class InvoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Invoice
         fields = [
-            'id', 'invoice_number', 'customer_name', 'status',
-            'issued_at', 'subtotal', 'tax_amount', 'total',
-            'items', 'pdf_file', 'created_at'
+            "id",
+            "invoice_number",
+            "customer_name",
+            "status",
+            "issued_at",
+            "subtotal",
+            "tax_amount",
+            "total",
+            "items",
+            "pdf_file",
+            "created_at",
         ]
-        read_only_fields = ['id', 'invoice_number', 'total', 'created_at']
+        read_only_fields = ["id", "invoice_number", "total", "created_at"]
 
     def get_customer_name(self, obj):
         return str(obj.customer)

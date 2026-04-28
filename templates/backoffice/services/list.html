@@ -8,8 +8,8 @@
 {% endblock %}
 
 {% block content %}
-<form method="get" class="bo-filter-bar">
-    <select name="category" class="bo-filter__select" onchange="this.form.submit()">
+<form method="get" class="bo-filters">
+    <select name="category" class="bo-filters__select">
         <option value="">Todas las categorías</option>
         {% for cat in category_list %}
         <option value="{{ cat.pk }}" {% if current_category == cat.pk|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>

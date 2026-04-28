@@ -13,27 +13,24 @@ class Cart(models.Model):
     """
     Cart session (not persisted per se, can be session-based or user-based).
     """
+
     user = models.OneToOneField(
-        'accounts.User',
+        "accounts.User",
         on_delete=models.CASCADE,
-        related_name='cart',
+        related_name="cart",
         null=True,
         blank=True,
-        verbose_name=_('User')
+        verbose_name=_("User"),
     )
     session_key = models.CharField(
-        max_length=40,
-        unique=True,
-        null=True,
-        blank=True,
-        verbose_name=_('Session key')
+        max_length=40, unique=True, null=True, blank=True, verbose_name=_("Session key")
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = _('Shopping Cart')
-        verbose_name_plural = _('Shopping Carts')
+        verbose_name = _("Shopping Cart")
+        verbose_name_plural = _("Shopping Carts")
 
     def __str__(self):
         if self.user:
@@ -47,46 +44,40 @@ class Cart(models.Model):
 
 class CartLineItem(models.Model):
     """Individual item in a cart."""
-    
+
     cart = models.ForeignKey(
-        Cart,
-        on_delete=models.CASCADE,
-        related_name='items',
-        verbose_name=_('Cart')
+        Cart, on_delete=models.CASCADE, related_name="items", verbose_name=_("Cart")
     )
     variant = models.ForeignKey(
         ProductVariant,
         on_delete=models.CASCADE,
         null=True,
         blank=True,
-        verbose_name=_('Product variant')
+        verbose_name=_("Product variant"),
     )
     service = models.ForeignKey(
         Service,
         on_delete=models.CASCADE,
         null=True,
         blank=True,
-        verbose_name=_('Service')
+        verbose_name=_("Service"),
     )
-    quantity = models.PositiveIntegerField(
-        default=1,
-        verbose_name=_('Quantity')
-    )
+    quantity = models.PositiveIntegerField(default=1, verbose_name=_("Quantity"))
     added_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name = _('Cart Line Item')
-        verbose_name_plural = _('Cart Line Items')
+        verbose_name = _("Cart Line Item")
+        verbose_name_plural = _("Cart Line Items")
         constraints = [
             models.UniqueConstraint(
-                fields=['cart', 'variant'],
+                fields=["cart", "variant"],
                 condition=models.Q(variant__isnull=False),
-                name='unique_cart_variant',
+                name="unique_cart_variant",
             ),
             models.UniqueConstraint(
-                fields=['cart', 'service'],
+                fields=["cart", "service"],
                 condition=models.Q(service__isnull=False),
-                name='unique_cart_service',
+                name="unique_cart_service",
             ),
         ]
 

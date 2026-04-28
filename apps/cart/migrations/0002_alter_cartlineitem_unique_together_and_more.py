@@ -5,34 +5,53 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('cart', '0001_initial'),
-        ('catalog', '0002_catalogpdf'),
-        ('services', '0001_initial'),
+        ("cart", "0001_initial"),
+        ("catalog", "0002_catalogpdf"),
+        ("services", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterUniqueTogether(
-            name='cartlineitem',
+            name="cartlineitem",
             unique_together=set(),
         ),
         migrations.AddField(
-            model_name='cartlineitem',
-            name='service',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='services.service', verbose_name='Service'),
+            model_name="cartlineitem",
+            name="service",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to="services.service",
+                verbose_name="Service",
+            ),
         ),
         migrations.AlterField(
-            model_name='cartlineitem',
-            name='variant',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='catalog.productvariant', verbose_name='Product variant'),
+            model_name="cartlineitem",
+            name="variant",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to="catalog.productvariant",
+                verbose_name="Product variant",
+            ),
         ),
         migrations.AddConstraint(
-            model_name='cartlineitem',
-            constraint=models.UniqueConstraint(condition=models.Q(('variant__isnull', False)), fields=('cart', 'variant'), name='unique_cart_variant'),
+            model_name="cartlineitem",
+            constraint=models.UniqueConstraint(
+                condition=models.Q(("variant__isnull", False)),
+                fields=("cart", "variant"),
+                name="unique_cart_variant",
+            ),
         ),
         migrations.AddConstraint(
-            model_name='cartlineitem',
-            constraint=models.UniqueConstraint(condition=models.Q(('service__isnull', False)), fields=('cart', 'service'), name='unique_cart_service'),
+            model_name="cartlineitem",
+            constraint=models.UniqueConstraint(
+                condition=models.Q(("service__isnull", False)),
+                fields=("cart", "service"),
+                name="unique_cart_service",
+            ),
         ),
     ]

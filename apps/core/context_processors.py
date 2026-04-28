@@ -20,6 +20,7 @@ def _get_db_branding(instance_id: str) -> dict:
     """
     try:
         from apps.core.models import BrandingSettings
+
         obj = BrandingSettings.objects.filter(instance_id=instance_id).first()
         return obj.as_dict() if obj else {}
     except Exception:
@@ -46,19 +47,19 @@ def branding(request):
     instance_id = get_instance_id()
     json_branding = get_branding()
     db_branding = _get_db_branding(instance_id)
-    return {'branding': _merge_branding(json_branding, db_branding)}
+    return {"branding": _merge_branding(json_branding, db_branding)}
 
 
 def features(request):
     """Expone las feature flags de la instancia al template."""
-    return {'features': get_features()}
+    return {"features": get_features()}
 
 
 def instance(request):
     """Expone el id y perfil de la instancia activa al template."""
     return {
-        'instance_id': get_instance_id(),
-        'instance_profile': get_profile(),
+        "instance_id": get_instance_id(),
+        "instance_profile": get_profile(),
     }
 
 
@@ -67,13 +68,18 @@ def cart_count(request):
     count = 0
     try:
         from apps.cart.models import Cart
+
         if request.user.is_authenticated:
             cart = Cart.objects.filter(user=request.user).first()
         else:
             session_key = request.session.session_key
-            cart = Cart.objects.filter(session_key=session_key).first() if session_key else None
+            cart = (
+                Cart.objects.filter(session_key=session_key).first()
+                if session_key
+                else None
+            )
         if cart:
             count = cart.items.count()
     except Exception:
         pass
-    return {'cart_count': count}
+    return {"cart_count": count}

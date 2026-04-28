@@ -13,7 +13,9 @@ class ServiceListView(View):
     paginate_by = 24
 
     def get(self, request):
-        qs = Service.objects.filter(is_active=True).select_related("category", "company")
+        qs = Service.objects.filter(is_active=True).select_related(
+            "category", "company"
+        )
 
         category_slug = request.GET.get("categoria", "").strip()
         company_slug = request.GET.get("empresa", "").strip()
@@ -23,7 +25,9 @@ class ServiceListView(View):
         active_company = None
 
         if category_slug:
-            cat = ServiceCategory.objects.filter(slug=category_slug, is_active=True).first()
+            cat = ServiceCategory.objects.filter(
+                slug=category_slug, is_active=True
+            ).first()
             if cat:
                 active_category = cat
                 qs = qs.filter(category=cat)
@@ -40,21 +44,26 @@ class ServiceListView(View):
 
         # Pagination
         from django.core.paginator import Paginator
+
         paginator = Paginator(qs, self.paginate_by)
         page_number = request.GET.get("page", 1)
         page_obj = paginator.get_page(page_number)
 
-        return render(request, self.template_name, {
-            "services": page_obj,
-            "page_obj": page_obj,
-            "paginator": paginator,
-            "is_paginated": paginator.num_pages > 1,
-            "categories": ServiceCategory.objects.filter(is_active=True),
-            "companies": Company.objects.filter(is_active=True),
-            "active_category": active_category,
-            "active_company": active_company,
-            "q": q,
-        })
+        return render(
+            request,
+            self.template_name,
+            {
+                "services": page_obj,
+                "page_obj": page_obj,
+                "paginator": paginator,
+                "is_paginated": paginator.num_pages > 1,
+                "categories": ServiceCategory.objects.filter(is_active=True),
+                "companies": Company.objects.filter(is_active=True),
+                "active_category": active_category,
+                "active_company": active_company,
+                "q": q,
+            },
+        )
 
 
 class ServiceDetailView(View):
@@ -65,7 +74,11 @@ class ServiceDetailView(View):
         related = Service.objects.filter(
             category=service.category, is_active=True
         ).exclude(pk=service.pk)[:4]
-        return render(request, self.template_name, {
-            "service": service,
-            "related": related,
-        })
+        return render(
+            request,
+            self.template_name,
+            {
+                "service": service,
+                "related": related,
+            },
+        )

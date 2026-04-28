@@ -14,31 +14,32 @@ import os
 
 # Directorio raíz de esta instancia
 INSTANCE_DIR = Path(__file__).resolve().parent
-INSTANCE_ID = 'helvagres_demo'
+INSTANCE_ID = "helvagres_demo"
 
 # Cargar .env de la instancia si existe (sobrescribe el global)
-if os.path.isfile(INSTANCE_DIR / '.env'):
+if os.path.isfile(INSTANCE_DIR / ".env"):
     import environ
+
     _env = environ.Env()
-    environ.Env.read_env(str(INSTANCE_DIR / '.env'))
+    environ.Env.read_env(str(INSTANCE_DIR / ".env"))
 
 # ── Base de datos (SQLite dedicada por instancia en dev) ──────────────────────
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / f'db_{INSTANCE_ID}.sqlite3',  # noqa: F405
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / f"db_{INSTANCE_ID}.sqlite3",  # noqa: F405
     }
 }
 
 # ── Localización de instancia ─────────────────────────────────────────────────
-LANGUAGE_CODE = 'es-es'
-TIME_ZONE = 'Europe/Madrid'
+LANGUAGE_CODE = "es-es"
+TIME_ZONE = "Europe/Madrid"
 
 # ── Templates: el directorio de instancia tiene prioridad sobre el global ─────
 # Los templates de instances/helvagres_demo/templates/ sobreescriben los base.
-TEMPLATES[0]['DIRS'] = [  # noqa: F405
-    INSTANCE_DIR / 'templates',   # overrides específicos de instancia (primero)
-    BASE_DIR / 'templates',       # noqa: F405  # templates globales del proyecto
+TEMPLATES[0]["DIRS"] = [  # noqa: F405
+    INSTANCE_DIR / "templates",  # overrides específicos de instancia (primero)
+    BASE_DIR / "templates",  # noqa: F405  # templates globales del proyecto
 ]
 
 # ── Branding & features: cargados por el loader en apps.core.instance ─────────
@@ -54,6 +55,6 @@ except ImportError:
 # ── Ficheros estáticos específicos de instancia ───────────────────────────────
 # Redefinido después de local.py para que no sea sobrescrito por base.py.
 STATICFILES_DIRS = [
-    INSTANCE_DIR / 'static',  # primero: assets de la instancia (con namespace <id>/)
-    BASE_DIR / 'static',       # noqa: F405  # después: assets globales
+    INSTANCE_DIR / "static",  # primero: assets de la instancia (con namespace <id>/)
+    BASE_DIR / "static",  # noqa: F405  # después: assets globales
 ]

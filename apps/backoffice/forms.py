@@ -4,10 +4,16 @@ from django import forms
 from django.contrib.auth.hashers import make_password
 
 from apps.accounts.models import User
-from apps.catalog.models import Product, ProductVariant, ProductCategory, ProductBrand, CatalogPDF
+from apps.catalog.models import (
+    Product,
+    ProductVariant,
+    ProductCategory,
+    ProductBrand,
+    CatalogPDF,
+)
 from apps.services.models import Company, ServiceCategory, Service
 from apps.customers.models import Customer, CustomerAddress
-from apps.invoicing.models import Invoice, InvoiceSeries
+from apps.invoicing.models import Invoice
 from apps.orders.models import Order
 
 _C = {"class": "bo-form__control"}
@@ -17,6 +23,7 @@ _TA3 = {"class": "bo-form__control", "rows": "3"}
 
 
 # ── Orders ────────────────────────────────────────────────────────────────────
+
 
 class OrderStatusForm(forms.ModelForm):
     class Meta:
@@ -34,30 +41,38 @@ class OrderStatusForm(forms.ModelForm):
 
 # ── Customers ─────────────────────────────────────────────────────────────────
 
+
 class CustomerForm(forms.ModelForm):
     class Meta:
         model = Customer
         fields = [
-            "segment", "company_name", "fiscal_name", "tax_id",
-            "phone", "contact_email", "notes",
+            "segment",
+            "company_name",
+            "fiscal_name",
+            "tax_id",
+            "phone",
+            "contact_email",
+            "notes",
         ]
         widgets = {
-            "segment":       forms.Select(attrs=_C),
-            "company_name":  forms.TextInput(attrs=_C),
-            "fiscal_name":   forms.TextInput(attrs=_C),
-            "tax_id":        forms.TextInput(attrs=_C),
-            "phone":         forms.TextInput(attrs={**_C, "type": "tel", "autocomplete": "tel"}),
+            "segment": forms.Select(attrs=_C),
+            "company_name": forms.TextInput(attrs=_C),
+            "fiscal_name": forms.TextInput(attrs=_C),
+            "tax_id": forms.TextInput(attrs=_C),
+            "phone": forms.TextInput(
+                attrs={**_C, "type": "tel", "autocomplete": "tel"}
+            ),
             "contact_email": forms.EmailInput(attrs={**_C, "autocomplete": "email"}),
-            "notes":         forms.Textarea(attrs=_TA3),
+            "notes": forms.Textarea(attrs=_TA3),
         }
         labels = {
-            "segment":       "Segmento",
-            "company_name":  "Empresa (nombre comercial)",
-            "fiscal_name":   "Razón social (para facturas)",
-            "tax_id":        "NIF / CIF",
-            "phone":         "Teléfono",
+            "segment": "Segmento",
+            "company_name": "Empresa (nombre comercial)",
+            "fiscal_name": "Razón social (para facturas)",
+            "tax_id": "NIF / CIF",
+            "phone": "Teléfono",
             "contact_email": "Email de contacto (facturas)",
-            "notes":         "Notas internas",
+            "notes": "Notas internas",
         }
 
 
@@ -65,11 +80,14 @@ class CustomerCreateForm(forms.Form):
     """Creates a User + Customer together from the backoffice."""
 
     first_name = forms.CharField(
-        max_length=150, label="Nombre",
+        max_length=150,
+        label="Nombre",
         widget=forms.TextInput(attrs={**_C, "autocomplete": "given-name"}),
     )
     last_name = forms.CharField(
-        max_length=150, label="Apellidos", required=False,
+        max_length=150,
+        label="Apellidos",
+        required=False,
         widget=forms.TextInput(attrs={**_C, "autocomplete": "family-name"}),
     )
     email = forms.EmailField(
@@ -78,15 +96,42 @@ class CustomerCreateForm(forms.Form):
     )
 
     segment = forms.ChoiceField(
-        choices=Customer.SEGMENT_CHOICES, label="Segmento",
+        choices=Customer.SEGMENT_CHOICES,
+        label="Segmento",
         widget=forms.Select(attrs=_C),
     )
-    company_name  = forms.CharField(max_length=255, label="Empresa", required=False, widget=forms.TextInput(attrs=_C))
-    fiscal_name   = forms.CharField(max_length=255, label="Razón social", required=False, widget=forms.TextInput(attrs=_C))
-    tax_id        = forms.CharField(max_length=50,  label="NIF / CIF", required=False, widget=forms.TextInput(attrs=_C))
-    phone         = forms.CharField(max_length=20,  label="Teléfono", required=False, widget=forms.TextInput(attrs={**_C, "type": "tel"}))
-    contact_email = forms.EmailField(label="Email de contacto (facturas)", required=False, widget=forms.EmailInput(attrs=_C))
-    notes         = forms.CharField(label="Notas internas", required=False, widget=forms.Textarea(attrs=_TA3))
+    company_name = forms.CharField(
+        max_length=255,
+        label="Empresa",
+        required=False,
+        widget=forms.TextInput(attrs=_C),
+    )
+    fiscal_name = forms.CharField(
+        max_length=255,
+        label="Razón social",
+        required=False,
+        widget=forms.TextInput(attrs=_C),
+    )
+    tax_id = forms.CharField(
+        max_length=50,
+        label="NIF / CIF",
+        required=False,
+        widget=forms.TextInput(attrs=_C),
+    )
+    phone = forms.CharField(
+        max_length=20,
+        label="Teléfono",
+        required=False,
+        widget=forms.TextInput(attrs={**_C, "type": "tel"}),
+    )
+    contact_email = forms.EmailField(
+        label="Email de contacto (facturas)",
+        required=False,
+        widget=forms.EmailInput(attrs=_C),
+    )
+    notes = forms.CharField(
+        label="Notas internas", required=False, widget=forms.Textarea(attrs=_TA3)
+    )
 
     def clean_email(self):
         email = self.cleaned_data["email"]
@@ -120,63 +165,83 @@ class CustomerAddressForm(forms.ModelForm):
     class Meta:
         model = CustomerAddress
         fields = [
-            "name", "address_type", "street_address",
-            "city", "postal_code", "region", "country", "is_default",
+            "name",
+            "address_type",
+            "street_address",
+            "city",
+            "postal_code",
+            "region",
+            "country",
+            "is_default",
         ]
         widgets = {
-            "name":           forms.TextInput(attrs=_C),
-            "address_type":   forms.Select(attrs=_C),
-            "street_address": forms.TextInput(attrs={**_C, "autocomplete": "street-address"}),
-            "city":           forms.TextInput(attrs={**_C, "autocomplete": "address-level2"}),
-            "postal_code":    forms.TextInput(attrs={**_C, "autocomplete": "postal-code", "inputmode": "numeric"}),
-            "region":         forms.TextInput(attrs=_C),
-            "country":        forms.TextInput(attrs={**_C, "autocomplete": "country-name"}),
+            "name": forms.TextInput(attrs=_C),
+            "address_type": forms.Select(attrs=_C),
+            "street_address": forms.TextInput(
+                attrs={**_C, "autocomplete": "street-address"}
+            ),
+            "city": forms.TextInput(attrs={**_C, "autocomplete": "address-level2"}),
+            "postal_code": forms.TextInput(
+                attrs={**_C, "autocomplete": "postal-code", "inputmode": "numeric"}
+            ),
+            "region": forms.TextInput(attrs=_C),
+            "country": forms.TextInput(attrs={**_C, "autocomplete": "country-name"}),
         }
         labels = {
-            "name":           "Nombre de la dirección",
-            "address_type":   "Tipo",
+            "name": "Nombre de la dirección",
+            "address_type": "Tipo",
             "street_address": "Dirección",
-            "city":           "Ciudad",
-            "postal_code":    "Código postal",
-            "region":         "Provincia / Región",
-            "country":        "País",
-            "is_default":     "Dirección por defecto",
+            "city": "Ciudad",
+            "postal_code": "Código postal",
+            "region": "Provincia / Región",
+            "country": "País",
+            "is_default": "Dirección por defecto",
         }
 
 
 # ── Catalog ───────────────────────────────────────────────────────────────────
 
+
 class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
         fields = [
-            "name", "description", "category", "brand",
-            "sku_base", "unit_of_measure", "weight",
-            "is_featured", "is_active",
-            "seo_title", "seo_description",
+            "name",
+            "description",
+            "category",
+            "brand",
+            "sku_base",
+            "unit_of_measure",
+            "weight",
+            "is_featured",
+            "is_active",
+            "seo_title",
+            "seo_description",
         ]
         widgets = {
-            "name":            forms.TextInput(attrs=_C),
-            "description":     forms.Textarea(attrs=_TA),
-            "category":        forms.Select(attrs=_C),
-            "brand":           forms.Select(attrs=_C),
-            "sku_base":        forms.TextInput(attrs=_C_MONO),
+            "name": forms.TextInput(attrs=_C),
+            "description": forms.Textarea(attrs=_TA),
+            "category": forms.Select(attrs=_C),
+            "brand": forms.Select(attrs=_C),
+            "sku_base": forms.TextInput(attrs=_C_MONO),
             "unit_of_measure": forms.TextInput(attrs=_C),
-            "weight":          forms.NumberInput(attrs={**_C, "step": "0.01", "inputmode": "decimal"}),
-            "seo_title":       forms.TextInput(attrs=_C),
+            "weight": forms.NumberInput(
+                attrs={**_C, "step": "0.01", "inputmode": "decimal"}
+            ),
+            "seo_title": forms.TextInput(attrs=_C),
             "seo_description": forms.TextInput(attrs=_C),
         }
         labels = {
-            "name":            "Nombre del producto",
-            "description":     "Descripción",
-            "category":        "Categoría",
-            "brand":           "Marca",
-            "sku_base":        "SKU base",
+            "name": "Nombre del producto",
+            "description": "Descripción",
+            "category": "Categoría",
+            "brand": "Marca",
+            "sku_base": "SKU base",
             "unit_of_measure": "Unidad de medida (unit, m2, caja…)",
-            "weight":          "Peso (kg)",
-            "is_featured":     "Producto destacado",
-            "is_active":       "Activo (visible en catálogo)",
-            "seo_title":       "Título SEO",
+            "weight": "Peso (kg)",
+            "is_featured": "Producto destacado",
+            "is_active": "Activo (visible en catálogo)",
+            "seo_title": "Título SEO",
             "seo_description": "Meta descripción SEO",
         }
 
@@ -186,117 +251,143 @@ class ProductVariantForm(forms.ModelForm):
         model = ProductVariant
         fields = ["sku", "name", "price_no_tax", "stock_quantity", "image", "is_active"]
         widgets = {
-            "sku":            forms.TextInput(attrs=_C_MONO),
-            "name":           forms.TextInput(attrs=_C),
-            "price_no_tax":   forms.NumberInput(attrs={**_C, "step": "0.01", "inputmode": "decimal"}),
+            "sku": forms.TextInput(attrs=_C_MONO),
+            "name": forms.TextInput(attrs=_C),
+            "price_no_tax": forms.NumberInput(
+                attrs={**_C, "step": "0.01", "inputmode": "decimal"}
+            ),
             "stock_quantity": forms.NumberInput(attrs={**_C, "inputmode": "numeric"}),
-            "image":          forms.FileInput(attrs=_C),
+            "image": forms.FileInput(attrs=_C),
         }
         labels = {
-            "sku":            "SKU",
-            "name":           "Nombre de la variante (color, talla…)",
-            "price_no_tax":   "Precio sin IVA (€)",
+            "sku": "SKU",
+            "name": "Nombre de la variante (color, talla…)",
+            "price_no_tax": "Precio sin IVA (€)",
             "stock_quantity": "Stock (-1 = ilimitado)",
-            "image":          "Imagen del producto",
-            "is_active":      "Activa",
+            "image": "Imagen del producto",
+            "is_active": "Activa",
         }
 
 
 # ── Catalog — categories ──────────────────────────────────────────────────────
+
 
 class ProductCategoryForm(forms.ModelForm):
     class Meta:
         model = ProductCategory
         fields = ["name", "description", "parent", "display_order", "is_active"]
         widgets = {
-            "name":         forms.TextInput(attrs=_C),
-            "description":  forms.Textarea(attrs=_TA3),
-            "parent":       forms.Select(attrs=_C),
+            "name": forms.TextInput(attrs=_C),
+            "description": forms.Textarea(attrs=_TA3),
+            "parent": forms.Select(attrs=_C),
             "display_order": forms.NumberInput(attrs={**_C, "inputmode": "numeric"}),
         }
         labels = {
-            "name":          "Nombre",
-            "description":   "Descripción",
-            "parent":        "Categoría padre (opcional)",
+            "name": "Nombre",
+            "description": "Descripción",
+            "parent": "Categoría padre (opcional)",
             "display_order": "Orden de visualización",
-            "is_active":     "Activa",
+            "is_active": "Activa",
         }
 
 
 # ── Catalog — brands ──────────────────────────────────────────────────────────
+
 
 class ProductBrandForm(forms.ModelForm):
     class Meta:
         model = ProductBrand
         fields = ["name", "description", "logo", "is_active"]
         widgets = {
-            "name":        forms.TextInput(attrs=_C),
+            "name": forms.TextInput(attrs=_C),
             "description": forms.Textarea(attrs=_TA3),
-            "logo":        forms.FileInput(attrs=_C),
+            "logo": forms.FileInput(attrs=_C),
         }
         labels = {
-            "name":        "Nombre",
+            "name": "Nombre",
             "description": "Descripción",
-            "logo":        "Logo (PNG, SVG recomendado)",
-            "is_active":   "Activa",
+            "logo": "Logo (PNG, SVG recomendado)",
+            "is_active": "Activa",
         }
 
 
 # ── Catalog — PDF catalogs ────────────────────────────────────────────────────
 
+
 class CatalogPDFForm(forms.ModelForm):
     class Meta:
         model = CatalogPDF
-        fields = ["title", "description", "brand", "year", "pdf_file", "cover_image", "is_active"]
+        fields = [
+            "title",
+            "description",
+            "brand",
+            "year",
+            "pdf_file",
+            "cover_image",
+            "is_active",
+        ]
         widgets = {
-            "title":       forms.TextInput(attrs=_C),
+            "title": forms.TextInput(attrs=_C),
             "description": forms.Textarea(attrs=_TA3),
-            "brand":       forms.Select(attrs=_C),
-            "year":        forms.NumberInput(attrs={**_C, "inputmode": "numeric", "min": "2000", "max": "2100"}),
-            "pdf_file":    forms.FileInput(attrs=_C),
+            "brand": forms.Select(attrs=_C),
+            "year": forms.NumberInput(
+                attrs={**_C, "inputmode": "numeric", "min": "2000", "max": "2100"}
+            ),
+            "pdf_file": forms.FileInput(attrs=_C),
             "cover_image": forms.FileInput(attrs=_C),
         }
         labels = {
-            "title":       "Título",
+            "title": "Título",
             "description": "Descripción",
-            "brand":       "Marca (opcional)",
-            "year":        "Año",
-            "pdf_file":    "Archivo PDF",
+            "brand": "Marca (opcional)",
+            "year": "Año",
+            "pdf_file": "Archivo PDF",
             "cover_image": "Imagen de portada (opcional)",
-            "is_active":   "Activo (visible en la tienda)",
+            "is_active": "Activo (visible en la tienda)",
         }
 
 
 # ── Services ──────────────────────────────────────────────────────────────────
 
+
 class ServiceForm(forms.ModelForm):
     class Meta:
         model = Service
         fields = [
-            "name", "sku", "description", "category", "company",
-            "price", "unit", "image", "is_featured", "is_active",
+            "name",
+            "sku",
+            "description",
+            "category",
+            "company",
+            "price",
+            "unit",
+            "image",
+            "is_featured",
+            "is_active",
         ]
         widgets = {
-            "name":        forms.TextInput(attrs=_C),
-            "sku":         forms.TextInput(attrs=_C_MONO),
+            "name": forms.TextInput(attrs=_C),
+            "sku": forms.TextInput(attrs=_C_MONO),
             "description": forms.Textarea(attrs=_TA),
-            "category":    forms.Select(attrs=_C),
-            "company":     forms.Select(attrs=_C),
-            "price":       forms.NumberInput(attrs={**_C, "step": "0.01", "inputmode": "decimal"}),
-            "unit":        forms.Select(attrs=_C),
-            "image":       forms.FileInput(attrs=_C),
+            "category": forms.Select(attrs=_C),
+            "company": forms.Select(attrs=_C),
+            "price": forms.NumberInput(
+                attrs={**_C, "step": "0.01", "inputmode": "decimal"}
+            ),
+            "unit": forms.Select(attrs=_C),
+            "image": forms.FileInput(attrs=_C),
         }
         labels = {
-            "name":        "Nombre del servicio",
-            "sku":         "Código (SKU)",
+            "name": "Nombre del servicio",
+            "sku": "Código (SKU)",
             "description": "Descripción",
-            "category":    "Categoría",
-            "company":     "Empresa que lo presta",
-            "price":       "Precio sin IVA (€)",
-            "unit":        "Unidad",
-            "image":       "Imagen",
+            "category": "Categoría",
+            "company": "Empresa que lo presta",
+            "price": "Precio sin IVA (€)",
+            "unit": "Unidad",
+            "image": "Imagen",
             "is_featured": "Destacado",
-            "is_active":   "Activo (visible en la web)",
+            "is_active": "Activo (visible en la web)",
         }
 
 
@@ -305,15 +396,15 @@ class ServiceCategoryForm(forms.ModelForm):
         model = ServiceCategory
         fields = ["name", "slug", "display_order", "is_active"]
         widgets = {
-            "name":          forms.TextInput(attrs=_C),
-            "slug":          forms.TextInput(attrs=_C_MONO),
+            "name": forms.TextInput(attrs=_C),
+            "slug": forms.TextInput(attrs=_C_MONO),
             "display_order": forms.NumberInput(attrs={**_C, "inputmode": "numeric"}),
         }
         labels = {
-            "name":          "Nombre",
-            "slug":          "Slug (URL)",
+            "name": "Nombre",
+            "slug": "Slug (URL)",
             "display_order": "Orden de visualización",
-            "is_active":     "Activa",
+            "is_active": "Activa",
         }
 
 
@@ -321,49 +412,57 @@ class CompanyForm(forms.ModelForm):
     class Meta:
         model = Company
         fields = [
-            "name", "slug", "description", "logo",
-            "address", "phone", "email", "website",
-            "is_own", "is_active",
+            "name",
+            "slug",
+            "description",
+            "logo",
+            "address",
+            "phone",
+            "email",
+            "website",
+            "is_own",
+            "is_active",
         ]
         widgets = {
-            "name":        forms.TextInput(attrs=_C),
-            "slug":        forms.TextInput(attrs=_C_MONO),
+            "name": forms.TextInput(attrs=_C),
+            "slug": forms.TextInput(attrs=_C_MONO),
             "description": forms.Textarea(attrs=_TA3),
-            "logo":        forms.FileInput(attrs=_C),
-            "address":     forms.Textarea(attrs={**_C, "rows": "2"}),
-            "phone":       forms.TextInput(attrs={**_C, "type": "tel"}),
-            "email":       forms.EmailInput(attrs=_C),
-            "website":     forms.URLInput(attrs=_C),
+            "logo": forms.FileInput(attrs=_C),
+            "address": forms.Textarea(attrs={**_C, "rows": "2"}),
+            "phone": forms.TextInput(attrs={**_C, "type": "tel"}),
+            "email": forms.EmailInput(attrs=_C),
+            "website": forms.URLInput(attrs=_C),
         }
         labels = {
-            "name":        "Nombre",
-            "slug":        "Slug (URL)",
+            "name": "Nombre",
+            "slug": "Slug (URL)",
             "description": "Descripción",
-            "logo":        "Logo",
-            "address":     "Dirección",
-            "phone":       "Teléfono",
-            "email":       "Email",
-            "website":     "Web",
-            "is_own":      "Es nuestra empresa (gestora de la plataforma)",
-            "is_active":   "Activa",
+            "logo": "Logo",
+            "address": "Dirección",
+            "phone": "Teléfono",
+            "email": "Email",
+            "website": "Web",
+            "is_own": "Es nuestra empresa (gestora de la plataforma)",
+            "is_active": "Activa",
         }
 
 
 # ── Invoices ──────────────────────────────────────────────────────────────────
+
 
 class InvoiceStatusForm(forms.ModelForm):
     class Meta:
         model = Invoice
         fields = ["status", "due_date", "notes"]
         widgets = {
-            "status":   forms.Select(attrs=_C),
+            "status": forms.Select(attrs=_C),
             "due_date": forms.DateInput(attrs={**_C, "type": "date"}),
-            "notes":    forms.Textarea(attrs=_TA3),
+            "notes": forms.Textarea(attrs=_TA3),
         }
         labels = {
-            "status":   "Estado",
+            "status": "Estado",
             "due_date": "Fecha de vencimiento",
-            "notes":    "Notas",
+            "notes": "Notas",
         }
 
 
@@ -372,24 +471,25 @@ class InvoiceCreateForm(forms.ModelForm):
         model = Invoice
         fields = ["customer", "order", "series", "issued_at", "due_date", "notes"]
         widgets = {
-            "customer":  forms.Select(attrs=_C),
-            "order":     forms.Select(attrs=_C),
-            "series":    forms.Select(attrs=_C),
+            "customer": forms.Select(attrs=_C),
+            "order": forms.Select(attrs=_C),
+            "series": forms.Select(attrs=_C),
             "issued_at": forms.DateInput(attrs={**_C, "type": "date"}),
-            "due_date":  forms.DateInput(attrs={**_C, "type": "date"}),
-            "notes":     forms.Textarea(attrs=_TA3),
+            "due_date": forms.DateInput(attrs={**_C, "type": "date"}),
+            "notes": forms.Textarea(attrs=_TA3),
         }
         labels = {
-            "customer":  "Cliente",
-            "order":     "Pedido relacionado (opcional)",
-            "series":    "Serie de facturación",
+            "customer": "Cliente",
+            "order": "Pedido relacionado (opcional)",
+            "series": "Serie de facturación",
             "issued_at": "Fecha de emisión",
-            "due_date":  "Fecha de vencimiento",
-            "notes":     "Notas",
+            "due_date": "Fecha de vencimiento",
+            "notes": "Notas",
         }
 
 
 # ── Orders create ─────────────────────────────────────────────────────────────
+
 
 class OrderCreateForm(forms.ModelForm):
     class Meta:
@@ -397,9 +497,9 @@ class OrderCreateForm(forms.ModelForm):
         fields = ["customer", "notes"]
         widgets = {
             "customer": forms.Select(attrs=_C),
-            "notes":    forms.Textarea(attrs=_TA),
+            "notes": forms.Textarea(attrs=_TA),
         }
         labels = {
             "customer": "Cliente",
-            "notes":    "Notas / descripción del pedido",
+            "notes": "Notas / descripción del pedido",
         }

@@ -5,20 +5,31 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('core', '0001_initial'),
+        ("core", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='brandingsettings',
-            name='favicon',
-            field=models.ImageField(blank=True, help_text='ICO o PNG cuadrado, 32×32 px.', null=True, upload_to=apps.core.models._branding_favicon_path, verbose_name='Favicon'),
+            model_name="brandingsettings",
+            name="favicon",
+            field=models.ImageField(
+                blank=True,
+                help_text="ICO o PNG cuadrado, 32×32 px.",
+                null=True,
+                upload_to=apps.core.models._branding_favicon_path,
+                verbose_name="Favicon",
+            ),
         ),
         migrations.AlterField(
-            model_name='brandingsettings',
-            name='logo',
-            field=models.ImageField(blank=True, help_text='PNG o SVG recomendado. Altura óptima: 36-48 px.', null=True, upload_to=apps.core.models._branding_logo_path, verbose_name='Logo'),
+            model_name="brandingsettings",
+            name="logo",
+            field=models.ImageField(
+                blank=True,
+                help_text="PNG o SVG recomendado. Altura óptima: 36-48 px.",
+                null=True,
+                upload_to=apps.core.models._branding_logo_path,
+                verbose_name="Logo",
+            ),
         ),
     ]

@@ -10,11 +10,15 @@ from apps.services.models import Company, ServiceCategory, Service
 
 
 CATEGORIES = [
-    {"name": "Instalación y montaje",   "slug": "instalacion-montaje",   "display_order": 1},
-    {"name": "Alicatado y solado",       "slug": "alicatado-solado",       "display_order": 2},
-    {"name": "Fontanería",               "slug": "fontaneria",             "display_order": 3},
-    {"name": "Pintura y acabados",       "slug": "pintura-acabados",       "display_order": 4},
-    {"name": "Electricidad",             "slug": "electricidad",           "display_order": 5},
+    {
+        "name": "Instalación y montaje",
+        "slug": "instalacion-montaje",
+        "display_order": 1,
+    },
+    {"name": "Alicatado y solado", "slug": "alicatado-solado", "display_order": 2},
+    {"name": "Fontanería", "slug": "fontaneria", "display_order": 3},
+    {"name": "Pintura y acabados", "slug": "pintura-acabados", "display_order": 4},
+    {"name": "Electricidad", "slug": "electricidad", "display_order": 5},
 ]
 
 SERVICES = [
@@ -207,4 +211,6 @@ class Command(BaseCommand):
             if created:
                 self.stdout.write(f"  Servicio creado: {svc}")
 
-        self.stdout.write(self.style.SUCCESS("Servicios iniciales cargados correctamente."))
+        self.stdout.write(
+            self.style.SUCCESS("Servicios iniciales cargados correctamente.")
+        )

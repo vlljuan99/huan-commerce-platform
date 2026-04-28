@@ -5,7 +5,7 @@ Define the boundaries between core and strategies/extensions.
 
 from abc import ABC, abstractmethod
 from decimal import Decimal
-from typing import Optional, Dict, Any
+from typing import Optional, Dict
 
 
 class PricingEngine(ABC):
@@ -15,7 +15,9 @@ class PricingEngine(ABC):
     """
 
     @abstractmethod
-    def calculate_line_price(self, variant, quantity: Decimal, customer=None) -> Decimal:
+    def calculate_line_price(
+        self, variant, quantity: Decimal, customer=None
+    ) -> Decimal:
         """
         Calculate the unit price after applying pricing logic.
         Args:
@@ -72,7 +74,9 @@ class CheckoutStrategy(ABC):
         pass
 
     @abstractmethod
-    def process_checkout(self, cart, shipping_address, billing_address) -> 'Order':
+    def process_checkout(
+        self, cart, shipping_address, billing_address
+    ) -> "Order":  # noqa: F821
         """
         Process the checkout and return an Order.
         """
@@ -86,7 +90,7 @@ class PaymentProvider(ABC):
     """
 
     @abstractmethod
-    def charge(self, order, amount: Decimal) -> 'PaymentTransaction':
+    def charge(self, order, amount: Decimal) -> "PaymentTransaction":  # noqa: F821
         """
         Charge the customer for the order.
         Returns PaymentTransaction with status.
@@ -136,7 +140,7 @@ class InvoicingEngine(ABC):
     """
 
     @abstractmethod
-    def create_invoice(self, order) -> 'Invoice':
+    def create_invoice(self, order) -> "Invoice":  # noqa: F821
         """
         Create an invoice from an order.
         """

@@ -4,7 +4,7 @@ Accounts views: login, logout, customer portal, order request, checkout.
 
 from decimal import Decimal
 
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
@@ -21,13 +21,12 @@ def _next_order_number():
     year = timezone.now().year
     prefix = f"ORD-{year}-"
     last = (
-        Order.objects
-        .filter(order_number__startswith=prefix)
+        Order.objects.filter(order_number__startswith=prefix)
         .order_by("-order_number")
         .first()
     )
     try:
-        n = int(last.order_number[len(prefix):]) + 1 if last else 1
+        n = int(last.order_number[len(prefix) :]) + 1 if last else 1
     except (ValueError, IndexError):
         n = 1
     return f"{prefix}{n:04d}"
@@ -78,10 +77,14 @@ class CustomerPortalView(LoginRequiredMixin, View):
             if customer
             else []
         )
-        return render(request, self.template_name, {
-            "customer": customer,
-            "orders": orders,
-        })
+        return render(
+            request,
+            self.template_name,
+            {
+                "customer": customer,
+                "orders": orders,
+            },
+        )
 
 
 class OrderRequestView(LoginRequiredMixin, View):
@@ -104,7 +107,9 @@ class OrderRequestView(LoginRequiredMixin, View):
 
         notes = request.POST.get("notes", "").strip()
         reference = request.POST.get("reference", "").strip()
-        full_notes = f"Ref. cliente: {reference}\n\n{notes}".strip() if reference else notes
+        full_notes = (
+            f"Ref. cliente: {reference}\n\n{notes}".strip() if reference else notes
+        )
 
         with transaction.atomic():
             Order.objects.create(
@@ -129,12 +134,16 @@ class CheckoutView(LoginRequiredMixin, View):
         items = cart.items.select_related(
             "variant__product__category", "variant__product__brand"
         ).order_by("added_at")
-        return render(request, self.template_name, {
-            "customer": customer,
-            "cart": cart,
-            "items": items,
-            "total": cart.get_total(),
-        })
+        return render(
+            request,
+            self.template_name,
+            {
+                "customer": customer,
+                "cart": cart,
+                "items": items,
+                "total": cart.get_total(),
+            },
+        )
 
     def post(self, request):
         customer = self._get_customer(request)

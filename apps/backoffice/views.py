@@ -15,11 +15,15 @@ from django.views import View
 from django.views.generic import DetailView, FormView, ListView, TemplateView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
-logger = logging.getLogger(__name__)
-
-from apps.catalog.models import Product, ProductVariant, ProductCategory, ProductBrand, CatalogPDF
+from apps.catalog.models import (
+    Product,
+    ProductVariant,
+    ProductCategory,
+    ProductBrand,
+    CatalogPDF,
+)
 from apps.customers.models import Customer, CustomerAddress
-from apps.invoicing.models import Invoice, InvoiceSeries
+from apps.invoicing.models import Invoice
 from apps.orders.models import Order
 from apps.services.models import Company, ServiceCategory, Service
 
@@ -41,6 +45,8 @@ from .forms import (
     ServiceForm,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class BackofficeRequiredMixin(LoginRequiredMixin):
     login_url = "/accounts/login/"
@@ -48,12 +54,15 @@ class BackofficeRequiredMixin(LoginRequiredMixin):
     def dispatch(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
             return self.handle_no_permission()
-        if not (request.user.is_superuser or request.user.role in ("admin", "commercial")):
+        if not (
+            request.user.is_superuser or request.user.role in ("admin", "commercial")
+        ):
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
 
 
 # ── Dashboard ─────────────────────────────────────────────────────────────────
+
 
 class DashboardView(BackofficeRequiredMixin, TemplateView):
     template_name = "backoffice/dashboard.html"
@@ -79,16 +88,17 @@ class DashboardView(BackofficeRequiredMixin, TemplateView):
             status__in=["draft", "issued"]
         ).count()
         ctx["invoices_overdue"] = Invoice.objects.filter(status="overdue").count()
-        ctx["recent_orders"] = (
-            Order.objects.select_related("customer__user").order_by("-created_at")[:10]
-        )
-        ctx["recent_invoices"] = (
-            Invoice.objects.select_related("customer__user").order_by("-issued_at")[:5]
-        )
+        ctx["recent_orders"] = Order.objects.select_related("customer__user").order_by(
+            "-created_at"
+        )[:10]
+        ctx["recent_invoices"] = Invoice.objects.select_related(
+            "customer__user"
+        ).order_by("-issued_at")[:5]
         return ctx
 
 
 # ── Orders ────────────────────────────────────────────────────────────────────
+
 
 class OrderListView(BackofficeRequiredMixin, ListView):
     template_name = "backoffice/orders/list.html"
@@ -107,7 +117,9 @@ class OrderListView(BackofficeRequiredMixin, ListView):
         direction = self.request.GET.get("dir", "desc")
         order_field = sort_map.get(sort, "created_at")
         prefix = "" if direction == "asc" else "-"
-        qs = Order.objects.select_related("customer__user").order_by(f"{prefix}{order_field}")
+        qs = Order.objects.select_related("customer__user").order_by(
+            f"{prefix}{order_field}"
+        )
         status = self.request.GET.get("status")
         q = self.request.GET.get("q", "").strip()
         if status:
@@ -144,7 +156,9 @@ class OrderUpdateView(BackofficeRequiredMixin, UpdateView):
     context_object_name = "order"
 
     def form_valid(self, form):
-        messages.success(self.request, f"Pedido {self.object.order_number} actualizado.")
+        messages.success(
+            self.request, f"Pedido {self.object.order_number} actualizado."
+        )
         return super().form_valid(form)
 
     def get_success_url(self):
@@ -152,6 +166,7 @@ class OrderUpdateView(BackofficeRequiredMixin, UpdateView):
 
 
 # ── Customers ─────────────────────────────────────────────────────────────────
+
 
 class CustomerListView(BackofficeRequiredMixin, ListView):
     template_name = "backoffice/customers/list.html"
@@ -289,6 +304,7 @@ class CustomerAddressUpdateView(BackofficeRequiredMixin, UpdateView):
 
 # ── Invoices ──────────────────────────────────────────────────────────────────
 
+
 class InvoiceListView(BackofficeRequiredMixin, ListView):
     template_name = "backoffice/invoices/list.html"
     context_object_name = "invoices"
@@ -371,8 +387,9 @@ class InvoiceGeneratePDFView(BackofficeRequiredMixin, View):
         from apps.core.instance import get_branding
 
         invoice = get_object_or_404(
-            Invoice.objects.select_related("customer__user", "series", "order")
-            .prefetch_related("items__tax_rate"),
+            Invoice.objects.select_related(
+                "customer__user", "series", "order"
+            ).prefetch_related("items__tax_rate"),
             pk=pk,
         )
 
@@ -386,16 +403,25 @@ class InvoiceGeneratePDFView(BackofficeRequiredMixin, View):
 
         # ── Logo ──────────────────────────────────────────────────────────────
         from apps.core.instance import get_profile
+
         instance_id = get_profile().get("instance_id", "")
         logo_path = os.path.join(
-            settings.BASE_DIR, "instances", instance_id,
-            "static", instance_id, "logo_blanco.png"
+            settings.BASE_DIR,
+            "instances",
+            instance_id,
+            "static",
+            instance_id,
+            "logo_blanco.png",
         )
         if os.path.isfile(logo_path):
             c.drawImage(
-                logo_path, 30, H - 80,
-                width=110, height=50,
-                preserveAspectRatio=True, mask="auto",
+                logo_path,
+                30,
+                H - 80,
+                width=110,
+                height=50,
+                preserveAspectRatio=True,
+                mask="auto",
             )
 
         # ── Header (right) ────────────────────────────────────────────────────
@@ -461,10 +487,7 @@ class InvoiceGeneratePDFView(BackofficeRequiredMixin, View):
                 if line.strip():
                     c.drawString(310, yc, line.strip())
                     yc -= 13
-        contact_email = (
-            invoice.customer.contact_email
-            or invoice.customer.user.email
-        )
+        contact_email = invoice.customer.contact_email or invoice.customer.user.email
         if contact_email:
             c.drawString(310, yc, f"Email: {contact_email}")
             yc -= 13
@@ -472,19 +495,17 @@ class InvoiceGeneratePDFView(BackofficeRequiredMixin, View):
 
         # ── Table header ──────────────────────────────────────────────────────
         y = min(company_bottom, client_bottom) - 18
-        primary = colors.HexColor(
-            branding.get("colors", {}).get("primary", "#1a1a1a")
-        )
+        primary = colors.HexColor(branding.get("colors", {}).get("primary", "#1a1a1a"))
         c.setFillColor(primary)
         c.rect(30, y, W - 60, 17, stroke=0, fill=1)
         c.setFillColor(colors.white)
         c.setFont("Helvetica-Bold", 8)
-        c.drawString(35,       y + 5, "Descripción")
-        c.drawString(310,      y + 5, "Cant.")
-        c.drawString(355,      y + 5, "Precio unit.")
-        c.drawString(425,      y + 5, "IVA %")
-        c.drawString(462,      y + 5, "IVA €")
-        c.drawString(508,      y + 5, "Total s/IVA")
+        c.drawString(35, y + 5, "Descripción")
+        c.drawString(310, y + 5, "Cant.")
+        c.drawString(355, y + 5, "Precio unit.")
+        c.drawString(425, y + 5, "IVA %")
+        c.drawString(462, y + 5, "IVA €")
+        c.drawString(508, y + 5, "Total s/IVA")
         y -= 17
 
         # ── Items ─────────────────────────────────────────────────────────────
@@ -496,7 +517,7 @@ class InvoiceGeneratePDFView(BackofficeRequiredMixin, View):
                 c.rect(30, y - 3, W - 60, 15, stroke=0, fill=1)
             c.setFillColor(colors.black)
             desc = str(item.description)
-            c.drawString(35,  y + 3, desc[:48] + ("…" if len(desc) > 48 else ""))
+            c.drawString(35, y + 3, desc[:48] + ("…" if len(desc) > 48 else ""))
             c.drawString(310, y + 3, str(item.quantity))
             c.drawString(355, y + 3, f"{item.unit_price:.2f} €")
             c.drawString(425, y + 3, f"{item.tax_rate_pct:.0f}%")
@@ -564,6 +585,7 @@ class InvoiceGeneratePDFView(BackofficeRequiredMixin, View):
 
 # ── Catalog ───────────────────────────────────────────────────────────────────
 
+
 class CatalogListView(BackofficeRequiredMixin, ListView):
     template_name = "backoffice/catalog/list.html"
     context_object_name = "products"
@@ -603,7 +625,9 @@ class CatalogListView(BackofficeRequiredMixin, ListView):
         ctx["current_dir"] = self.request.GET.get("dir", "asc")
         ctx["current_category"] = self.request.GET.get("category", "")
         ctx["current_brand"] = self.request.GET.get("brand", "")
-        ctx["category_list"] = ProductCategory.objects.filter(is_active=True).order_by("name")
+        ctx["category_list"] = ProductCategory.objects.filter(is_active=True).order_by(
+            "name"
+        )
         ctx["brand_list"] = ProductBrand.objects.filter(is_active=True).order_by("name")
         return ctx
 
@@ -688,6 +712,7 @@ class ProductVariantUpdateView(BackofficeRequiredMixin, UpdateView):
 
 # ── Categories ───────────────────────────────────────────────────────────────
 
+
 class CategoryListView(BackofficeRequiredMixin, ListView):
     template_name = "backoffice/catalog/category_list.html"
     context_object_name = "categories"
@@ -698,7 +723,9 @@ class CategoryListView(BackofficeRequiredMixin, ListView):
         direction = self.request.GET.get("dir", "asc")
         order_field = sort_map.get(sort, "display_order")
         prefix = "" if direction == "asc" else "-"
-        return ProductCategory.objects.select_related("parent").order_by(f"{prefix}{order_field}", "name")
+        return ProductCategory.objects.select_related("parent").order_by(
+            f"{prefix}{order_field}", "name"
+        )
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -739,6 +766,7 @@ class CategoryUpdateView(BackofficeRequiredMixin, UpdateView):
 
 
 # ── Brands ────────────────────────────────────────────────────────────────────
+
 
 class BrandListView(BackofficeRequiredMixin, ListView):
     template_name = "backoffice/catalog/brand_list.html"
@@ -791,6 +819,7 @@ class BrandUpdateView(BackofficeRequiredMixin, UpdateView):
 
 
 # ── Catalog PDFs ──────────────────────────────────────────────────────────────
+
 
 class CatalogPDFListView(BackofficeRequiredMixin, ListView):
     template_name = "backoffice/catalog/pdf_list.html"
@@ -846,6 +875,7 @@ class CatalogPDFDeleteView(BackofficeRequiredMixin, DeleteView):
 
 # ── Invoice create ────────────────────────────────────────────────────────────
 
+
 class InvoiceCreateView(BackofficeRequiredMixin, CreateView):
     template_name = "backoffice/invoices/create.html"
     form_class = InvoiceCreateForm
@@ -854,11 +884,7 @@ class InvoiceCreateView(BackofficeRequiredMixin, CreateView):
         invoice = form.save(commit=False)
         series = form.cleaned_data["series"]
         num = series.get_next_number()
-        year = (
-            invoice.issued_at.year
-            if invoice.issued_at
-            else timezone.now().year
-        )
+        year = invoice.issued_at.year if invoice.issued_at else timezone.now().year
         invoice.number = num
         invoice.invoice_number = f"{series.prefix}-{year}-{num:04d}"
         # Billing snapshots from customer
@@ -867,13 +893,12 @@ class InvoiceCreateView(BackofficeRequiredMixin, CreateView):
         invoice.tax_id_snapshot = customer.tax_id or ""
         invoice.status = "draft"
         invoice.save()
-        messages.success(
-            self.request, f"Factura {invoice.invoice_number} creada."
-        )
+        messages.success(self.request, f"Factura {invoice.invoice_number} creada.")
         return redirect("backoffice:invoice_detail", pk=invoice.pk)
 
 
 # ── Order create ──────────────────────────────────────────────────────────────
+
 
 class OrderCreateView(BackofficeRequiredMixin, CreateView):
     template_name = "backoffice/orders/create.html"
@@ -894,13 +919,12 @@ class OrderCreateView(BackofficeRequiredMixin, CreateView):
         order.order_number = f"ORD-{year}-{n:04d}"
         order.status = "draft"
         order.save()
-        messages.success(
-            self.request, f"Pedido {order.order_number} creado."
-        )
+        messages.success(self.request, f"Pedido {order.order_number} creado.")
         return redirect("backoffice:order_detail", pk=order.pk)
 
 
 # ── Services ──────────────────────────────────────────────────────────────────
+
 
 class ServiceListView(BackofficeRequiredMixin, ListView):
     template_name = "backoffice/services/list.html"
@@ -962,6 +986,7 @@ class ServiceUpdateView(BackofficeRequiredMixin, UpdateView):
 
 # ── Service categories ────────────────────────────────────────────────────────
 
+
 class ServiceCategoryListView(BackofficeRequiredMixin, ListView):
     template_name = "backoffice/services/category_list.html"
     context_object_name = "categories"
@@ -1006,6 +1031,7 @@ class ServiceCategoryUpdateView(BackofficeRequiredMixin, UpdateView):
 
 
 # ── Companies ─────────────────────────────────────────────────────────────────
+
 
 class CompanyListView(BackofficeRequiredMixin, ListView):
     template_name = "backoffice/services/company_list.html"
@@ -1052,9 +1078,11 @@ class CompanyUpdateView(BackofficeRequiredMixin, UpdateView):
 
 # ── Visualiza tu Obra (IA) ─────────────────────────────────────────────────────
 
+
 def _to_png_bytes(upload_file) -> bytes:
     """Convierte un fichero subido a bytes PNG con canal alfa."""
     from PIL import Image
+
     upload_file.seek(0)
     with Image.open(upload_file) as img:
         buf = io.BytesIO()
@@ -1064,12 +1092,14 @@ def _to_png_bytes(upload_file) -> bytes:
 
 def _build_reforma_prompt(color_hex: str, has_tile: bool) -> str:
     tile_part = (
-        "Sustituye el suelo por un material cerámico basado en la imagen de azulejo "
-        "proporcionada como referencia. Ajusta el patrón del suelo a la perspectiva real "
-        "(escala, orientación y repetición correctas). "
-        "Mantén realismo en juntas, textura y acabado (mate/brillo). "
-    ) if has_tile else (
-        "No modifiques el suelo. "
+        (
+            "Sustituye el suelo por un material cerámico basado en la imagen de azulejo "
+            "proporcionada como referencia. Ajusta el patrón del suelo a la perspectiva real "
+            "(escala, orientación y repetición correctas). "
+            "Mantén realismo en juntas, textura y acabado (mate/brillo). "
+        )
+        if has_tile
+        else ("No modifiques el suelo. ")
     )
     return (
         "Actúa como un sistema de visualización arquitectónica profesional. "
@@ -1100,11 +1130,14 @@ class VisualizaObraView(BackofficeRequiredMixin, TemplateView):
             import openai
         except ImportError:
             return JsonResponse(
-                {"error": "La librería openai no está instalada. Ejecuta: pip install openai"},
+                {
+                    "error": "La librería openai no está instalada. Ejecuta: pip install openai"
+                },
                 status=500,
             )
 
         from decouple import config as decouple_config
+
         api_key = decouple_config("OPENAI_API_KEY", default="").strip()
         if not api_key:
             return JsonResponse(
@@ -1118,7 +1151,9 @@ class VisualizaObraView(BackofficeRequiredMixin, TemplateView):
 
         # ── Validaciones ──────────────────────────────────────────────────────
         if not room_file:
-            return JsonResponse({"error": "Debes subir una imagen de la habitación."}, status=400)
+            return JsonResponse(
+                {"error": "Debes subir una imagen de la habitación."}, status=400
+            )
 
         if not (wall_color.startswith("#") and len(wall_color) in (4, 7)):
             return JsonResponse(
@@ -1129,9 +1164,14 @@ class VisualizaObraView(BackofficeRequiredMixin, TemplateView):
         for label, f in [("habitación", room_file)]:
             if f is None:
                 continue
-            if getattr(f, "content_type", None) and f.content_type not in self._ALLOWED_TYPES:
+            if (
+                getattr(f, "content_type", None)
+                and f.content_type not in self._ALLOWED_TYPES
+            ):
                 return JsonResponse(
-                    {"error": f"Formato de imagen de {label} no válido. Usa PNG, JPEG o WebP."},
+                    {
+                        "error": f"Formato de imagen de {label} no válido. Usa PNG, JPEG o WebP."
+                    },
                     status=400,
                 )
             if getattr(f, "size", 0) > self._MAX_SIZE:
@@ -1155,8 +1195,7 @@ class VisualizaObraView(BackofficeRequiredMixin, TemplateView):
 
             # gpt-image-1 acepta lista de imágenes en el parámetro image
             image_files = [
-                (name, io.BytesIO(data), mime)
-                for name, data, mime in images_param
+                (name, io.BytesIO(data), mime) for name, data, mime in images_param
             ]
 
             response = client.images.edit(
@@ -1178,7 +1217,9 @@ class VisualizaObraView(BackofficeRequiredMixin, TemplateView):
 
         except openai.OpenAIError as exc:
             logger.error("OpenAI API error en VisualizaObraView: %s", exc)
-            return JsonResponse({"error": f"Error de la API de OpenAI: {exc}"}, status=502)
+            return JsonResponse(
+                {"error": f"Error de la API de OpenAI: {exc}"}, status=502
+            )
         except Exception:
             logger.exception("Error inesperado en VisualizaObraView")
             return JsonResponse({"error": "Error interno del servidor."}, status=500)
@@ -1209,8 +1250,7 @@ class ProductImagePickerView(BackofficeRequiredMixin, View):
         brand_pk = request.GET.get("marca", "").strip()
 
         qs = (
-            Product.objects
-            .filter(is_active=True)
+            Product.objects.filter(is_active=True)
             .select_related("category", "brand")
             .prefetch_related("variants")
         )
@@ -1226,15 +1266,17 @@ class ProductImagePickerView(BackofficeRequiredMixin, View):
             for variant in product.variants.filter(is_active=True):
                 if not variant.image:
                     continue
-                results.append({
-                    "variant_pk": variant.pk,
-                    "product_name": product.name,
-                    "variant_name": variant.name or "",
-                    "sku": variant.sku,
-                    "image_url": request.build_absolute_uri(variant.image.url),
-                    "category": product.category.name if product.category else "",
-                    "brand": product.brand.name if product.brand else "",
-                })
+                results.append(
+                    {
+                        "variant_pk": variant.pk,
+                        "product_name": product.name,
+                        "variant_name": variant.name or "",
+                        "sku": variant.sku,
+                        "image_url": request.build_absolute_uri(variant.image.url),
+                        "category": product.category.name if product.category else "",
+                        "brand": product.brand.name if product.brand else "",
+                    }
+                )
 
         categories = list(
             ProductCategory.objects.filter(is_active=True)
@@ -1246,5 +1288,6 @@ class ProductImagePickerView(BackofficeRequiredMixin, View):
             .values("pk", "name")
             .order_by("name")
         )
-        return JsonResponse({"results": results, "categories": categories, "brands": brands})
-
+        return JsonResponse(
+            {"results": results, "categories": categories, "brands": brands}
+        )

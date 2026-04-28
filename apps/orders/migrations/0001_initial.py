@@ -6,65 +6,191 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('catalog', '0001_initial'),
-        ('customers', '0001_initial'),
+        ("catalog", "0001_initial"),
+        ("customers", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Order',
+            name="Order",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Created at')),
-                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='Updated at')),
-                ('is_active', models.BooleanField(default=True, verbose_name='Active')),
-                ('order_number', models.CharField(max_length=50, unique=True, verbose_name='Order number')),
-                ('status', models.CharField(choices=[('draft', 'Draft'), ('pending', 'Pending'), ('confirmed', 'Confirmed'), ('processing', 'Processing'), ('shipped', 'Shipped'), ('delivered', 'Delivered'), ('cancelled', 'Cancelled')], default='draft', max_length=20, verbose_name='Status')),
-                ('subtotal', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=10, verbose_name='Subtotal')),
-                ('tax_amount', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=10, verbose_name='Tax amount')),
-                ('shipping_cost', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=10, verbose_name='Shipping cost')),
-                ('total', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=10, verbose_name='Total')),
-                ('notes', models.TextField(blank=True, verbose_name='Notes')),
-                ('customer', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='orders', to='customers.customer', verbose_name='Customer')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="Created at"),
+                ),
+                (
+                    "updated_at",
+                    models.DateTimeField(auto_now=True, verbose_name="Updated at"),
+                ),
+                ("is_active", models.BooleanField(default=True, verbose_name="Active")),
+                (
+                    "order_number",
+                    models.CharField(
+                        max_length=50, unique=True, verbose_name="Order number"
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("draft", "Draft"),
+                            ("pending", "Pending"),
+                            ("confirmed", "Confirmed"),
+                            ("processing", "Processing"),
+                            ("shipped", "Shipped"),
+                            ("delivered", "Delivered"),
+                            ("cancelled", "Cancelled"),
+                        ],
+                        default="draft",
+                        max_length=20,
+                        verbose_name="Status",
+                    ),
+                ),
+                (
+                    "subtotal",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=Decimal("0.00"),
+                        max_digits=10,
+                        verbose_name="Subtotal",
+                    ),
+                ),
+                (
+                    "tax_amount",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=Decimal("0.00"),
+                        max_digits=10,
+                        verbose_name="Tax amount",
+                    ),
+                ),
+                (
+                    "shipping_cost",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=Decimal("0.00"),
+                        max_digits=10,
+                        verbose_name="Shipping cost",
+                    ),
+                ),
+                (
+                    "total",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=Decimal("0.00"),
+                        max_digits=10,
+                        verbose_name="Total",
+                    ),
+                ),
+                ("notes", models.TextField(blank=True, verbose_name="Notes")),
+                (
+                    "customer",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="orders",
+                        to="customers.customer",
+                        verbose_name="Customer",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Order',
-                'verbose_name_plural': 'Orders',
-                'ordering': ['-created_at'],
+                "verbose_name": "Order",
+                "verbose_name_plural": "Orders",
+                "ordering": ["-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='OrderLineItem',
+            name="OrderLineItem",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Created at')),
-                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='Updated at')),
-                ('is_active', models.BooleanField(default=True, verbose_name='Active')),
-                ('quantity', models.DecimalField(decimal_places=2, max_digits=10, verbose_name='Quantity')),
-                ('unit_price', models.DecimalField(decimal_places=2, max_digits=10, verbose_name='Unit price (without tax)')),
-                ('line_total', models.DecimalField(decimal_places=2, max_digits=10, verbose_name='Line total (without tax)')),
-                ('order', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='items', to='orders.order', verbose_name='Order')),
-                ('variant', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='catalog.productvariant', verbose_name='Product variant')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="Created at"),
+                ),
+                (
+                    "updated_at",
+                    models.DateTimeField(auto_now=True, verbose_name="Updated at"),
+                ),
+                ("is_active", models.BooleanField(default=True, verbose_name="Active")),
+                (
+                    "quantity",
+                    models.DecimalField(
+                        decimal_places=2, max_digits=10, verbose_name="Quantity"
+                    ),
+                ),
+                (
+                    "unit_price",
+                    models.DecimalField(
+                        decimal_places=2,
+                        max_digits=10,
+                        verbose_name="Unit price (without tax)",
+                    ),
+                ),
+                (
+                    "line_total",
+                    models.DecimalField(
+                        decimal_places=2,
+                        max_digits=10,
+                        verbose_name="Line total (without tax)",
+                    ),
+                ),
+                (
+                    "order",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="items",
+                        to="orders.order",
+                        verbose_name="Order",
+                    ),
+                ),
+                (
+                    "variant",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        to="catalog.productvariant",
+                        verbose_name="Product variant",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Order Line Item',
-                'verbose_name_plural': 'Order Line Items',
+                "verbose_name": "Order Line Item",
+                "verbose_name_plural": "Order Line Items",
             },
         ),
         migrations.AddIndex(
-            model_name='order',
-            index=models.Index(fields=['customer'], name='orders_orde_custome_59b6fb_idx'),
+            model_name="order",
+            index=models.Index(
+                fields=["customer"], name="orders_orde_custome_59b6fb_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='order',
-            index=models.Index(fields=['status'], name='orders_orde_status_c6dd84_idx'),
+            model_name="order",
+            index=models.Index(fields=["status"], name="orders_orde_status_c6dd84_idx"),
         ),
         migrations.AddIndex(
-            model_name='order',
-            index=models.Index(fields=['-created_at'], name='orders_orde_created_f0ce29_idx'),
+            model_name="order",
+            index=models.Index(
+                fields=["-created_at"], name="orders_orde_created_f0ce29_idx"
+            ),
         ),
     ]
