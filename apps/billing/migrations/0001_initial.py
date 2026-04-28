@@ -4,26 +4,51 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='TaxRate',
+            name="TaxRate",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100, unique=True, verbose_name='Name')),
-                ('rate', models.DecimalField(decimal_places=2, help_text='e.g., 21.00 for 21%', max_digits=5, verbose_name='Rate (%)')),
-                ('code', models.CharField(help_text='e.g., VAT_ES_STANDARD, VAT_ES_REDUCED', max_length=20, unique=True, verbose_name='Code')),
-                ('is_active', models.BooleanField(default=True, verbose_name='Active')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "name",
+                    models.CharField(max_length=100, unique=True, verbose_name="Name"),
+                ),
+                (
+                    "rate",
+                    models.DecimalField(
+                        decimal_places=2,
+                        help_text="e.g., 21.00 for 21%",
+                        max_digits=5,
+                        verbose_name="Rate (%)",
+                    ),
+                ),
+                (
+                    "code",
+                    models.CharField(
+                        help_text="e.g., VAT_ES_STANDARD, VAT_ES_REDUCED",
+                        max_length=20,
+                        unique=True,
+                        verbose_name="Code",
+                    ),
+                ),
+                ("is_active", models.BooleanField(default=True, verbose_name="Active")),
             ],
             options={
-                'verbose_name': 'Tax Rate',
-                'verbose_name_plural': 'Tax Rates',
-                'ordering': ['name'],
+                "verbose_name": "Tax Rate",
+                "verbose_name_plural": "Tax Rates",
+                "ordering": ["name"],
             },
         ),
     ]

@@ -6,95 +6,279 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('billing', '0001_initial'),
-        ('customers', '0001_initial'),
-        ('orders', '0001_initial'),
+        ("billing", "0001_initial"),
+        ("customers", "0001_initial"),
+        ("orders", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Invoice',
+            name="Invoice",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Created at')),
-                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='Updated at')),
-                ('is_active', models.BooleanField(default=True, verbose_name='Active')),
-                ('number', models.IntegerField(verbose_name='Invoice number')),
-                ('invoice_number', models.CharField(help_text='e.g., INV-001', max_length=50, unique=True, verbose_name='Full invoice number (formatted)')),
-                ('issued_at', models.DateTimeField(verbose_name='Issued at')),
-                ('status', models.CharField(choices=[('draft', 'Draft'), ('issued', 'Issued'), ('paid', 'Paid'), ('overdue', 'Overdue'), ('cancelled', 'Cancelled')], default='draft', max_length=20, verbose_name='Status')),
-                ('subtotal', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=10, verbose_name='Subtotal (without tax)')),
-                ('tax_amount', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=10, verbose_name='Tax amount')),
-                ('total', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=10, verbose_name='Total (with tax)')),
-                ('pdf_file', models.FileField(blank=True, null=True, upload_to='invoices/', verbose_name='PDF file')),
-                ('customer', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='invoices', to='customers.customer', verbose_name='Customer')),
-                ('order', models.ForeignKey(blank=True, help_text='1 invoice can come from 1 order, but 1 order can have N invoices', null=True, on_delete=django.db.models.deletion.SET_NULL, to='orders.order', verbose_name='Related order')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="Created at"),
+                ),
+                (
+                    "updated_at",
+                    models.DateTimeField(auto_now=True, verbose_name="Updated at"),
+                ),
+                ("is_active", models.BooleanField(default=True, verbose_name="Active")),
+                ("number", models.IntegerField(verbose_name="Invoice number")),
+                (
+                    "invoice_number",
+                    models.CharField(
+                        help_text="e.g., INV-001",
+                        max_length=50,
+                        unique=True,
+                        verbose_name="Full invoice number (formatted)",
+                    ),
+                ),
+                ("issued_at", models.DateTimeField(verbose_name="Issued at")),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("draft", "Draft"),
+                            ("issued", "Issued"),
+                            ("paid", "Paid"),
+                            ("overdue", "Overdue"),
+                            ("cancelled", "Cancelled"),
+                        ],
+                        default="draft",
+                        max_length=20,
+                        verbose_name="Status",
+                    ),
+                ),
+                (
+                    "subtotal",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=Decimal("0.00"),
+                        max_digits=10,
+                        verbose_name="Subtotal (without tax)",
+                    ),
+                ),
+                (
+                    "tax_amount",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=Decimal("0.00"),
+                        max_digits=10,
+                        verbose_name="Tax amount",
+                    ),
+                ),
+                (
+                    "total",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=Decimal("0.00"),
+                        max_digits=10,
+                        verbose_name="Total (with tax)",
+                    ),
+                ),
+                (
+                    "pdf_file",
+                    models.FileField(
+                        blank=True,
+                        null=True,
+                        upload_to="invoices/",
+                        verbose_name="PDF file",
+                    ),
+                ),
+                (
+                    "customer",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="invoices",
+                        to="customers.customer",
+                        verbose_name="Customer",
+                    ),
+                ),
+                (
+                    "order",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="1 invoice can come from 1 order, but 1 order can have N invoices",
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="orders.order",
+                        verbose_name="Related order",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Invoice',
-                'verbose_name_plural': 'Invoices',
-                'ordering': ['-issued_at'],
+                "verbose_name": "Invoice",
+                "verbose_name_plural": "Invoices",
+                "ordering": ["-issued_at"],
             },
         ),
         migrations.CreateModel(
-            name='InvoiceSeries',
+            name="InvoiceSeries",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Created at')),
-                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='Updated at')),
-                ('is_active', models.BooleanField(default=True, verbose_name='Active')),
-                ('name', models.CharField(max_length=50, unique=True, verbose_name='Series name')),
-                ('prefix', models.CharField(default='INV', help_text='e.g., INV, FACT', max_length=10, verbose_name='Prefix')),
-                ('next_number', models.IntegerField(default=1, verbose_name='Next number')),
-                ('year', models.IntegerField(blank=True, help_text='Reset number each year if set', null=True, verbose_name='Year')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="Created at"),
+                ),
+                (
+                    "updated_at",
+                    models.DateTimeField(auto_now=True, verbose_name="Updated at"),
+                ),
+                ("is_active", models.BooleanField(default=True, verbose_name="Active")),
+                (
+                    "name",
+                    models.CharField(
+                        max_length=50, unique=True, verbose_name="Series name"
+                    ),
+                ),
+                (
+                    "prefix",
+                    models.CharField(
+                        default="INV",
+                        help_text="e.g., INV, FACT",
+                        max_length=10,
+                        verbose_name="Prefix",
+                    ),
+                ),
+                (
+                    "next_number",
+                    models.IntegerField(default=1, verbose_name="Next number"),
+                ),
+                (
+                    "year",
+                    models.IntegerField(
+                        blank=True,
+                        help_text="Reset number each year if set",
+                        null=True,
+                        verbose_name="Year",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Invoice Series',
-                'verbose_name_plural': 'Invoice Series',
+                "verbose_name": "Invoice Series",
+                "verbose_name_plural": "Invoice Series",
             },
         ),
         migrations.CreateModel(
-            name='InvoiceLineItem',
+            name="InvoiceLineItem",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Created at')),
-                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='Updated at')),
-                ('is_active', models.BooleanField(default=True, verbose_name='Active')),
-                ('description', models.CharField(max_length=255, verbose_name='Description')),
-                ('quantity', models.DecimalField(decimal_places=2, max_digits=10, verbose_name='Quantity')),
-                ('unit_price', models.DecimalField(decimal_places=2, max_digits=10, verbose_name='Unit price (without tax)')),
-                ('line_total', models.DecimalField(decimal_places=2, max_digits=10, verbose_name='Line total (without tax)')),
-                ('invoice', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='items', to='invoicing.invoice', verbose_name='Invoice')),
-                ('tax_rate', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, to='billing.taxrate', verbose_name='Tax rate')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="Created at"),
+                ),
+                (
+                    "updated_at",
+                    models.DateTimeField(auto_now=True, verbose_name="Updated at"),
+                ),
+                ("is_active", models.BooleanField(default=True, verbose_name="Active")),
+                (
+                    "description",
+                    models.CharField(max_length=255, verbose_name="Description"),
+                ),
+                (
+                    "quantity",
+                    models.DecimalField(
+                        decimal_places=2, max_digits=10, verbose_name="Quantity"
+                    ),
+                ),
+                (
+                    "unit_price",
+                    models.DecimalField(
+                        decimal_places=2,
+                        max_digits=10,
+                        verbose_name="Unit price (without tax)",
+                    ),
+                ),
+                (
+                    "line_total",
+                    models.DecimalField(
+                        decimal_places=2,
+                        max_digits=10,
+                        verbose_name="Line total (without tax)",
+                    ),
+                ),
+                (
+                    "invoice",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="items",
+                        to="invoicing.invoice",
+                        verbose_name="Invoice",
+                    ),
+                ),
+                (
+                    "tax_rate",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.PROTECT,
+                        to="billing.taxrate",
+                        verbose_name="Tax rate",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Invoice Line Item',
-                'verbose_name_plural': 'Invoice Line Items',
+                "verbose_name": "Invoice Line Item",
+                "verbose_name_plural": "Invoice Line Items",
             },
         ),
         migrations.AddField(
-            model_name='invoice',
-            name='series',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='invoicing.invoiceseries', verbose_name='Invoice series'),
+            model_name="invoice",
+            name="series",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT,
+                to="invoicing.invoiceseries",
+                verbose_name="Invoice series",
+            ),
         ),
         migrations.AddIndex(
-            model_name='invoice',
-            index=models.Index(fields=['customer'], name='invoicing_i_custome_2dd43d_idx'),
+            model_name="invoice",
+            index=models.Index(
+                fields=["customer"], name="invoicing_i_custome_2dd43d_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='invoice',
-            index=models.Index(fields=['status'], name='invoicing_i_status_2eeee5_idx'),
+            model_name="invoice",
+            index=models.Index(fields=["status"], name="invoicing_i_status_2eeee5_idx"),
         ),
         migrations.AddIndex(
-            model_name='invoice',
-            index=models.Index(fields=['-issued_at'], name='invoicing_i_issued__cfa9f5_idx'),
+            model_name="invoice",
+            index=models.Index(
+                fields=["-issued_at"], name="invoicing_i_issued__cfa9f5_idx"
+            ),
         ),
         migrations.AlterUniqueTogether(
-            name='invoice',
-            unique_together={('series', 'number')},
+            name="invoice",
+            unique_together={("series", "number")},
         ),
     ]

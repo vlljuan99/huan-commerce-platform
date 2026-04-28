@@ -6,44 +6,109 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('orders', '0001_initial'),
+        ("orders", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ShippingMethod',
+            name="ShippingMethod",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100, verbose_name='Name')),
-                ('code', models.CharField(max_length=50, unique=True, verbose_name='Code')),
-                ('base_cost', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=10, verbose_name='Base cost')),
-                ('is_active', models.BooleanField(default=True, verbose_name='Active')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=100, verbose_name="Name")),
+                (
+                    "code",
+                    models.CharField(max_length=50, unique=True, verbose_name="Code"),
+                ),
+                (
+                    "base_cost",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=Decimal("0.00"),
+                        max_digits=10,
+                        verbose_name="Base cost",
+                    ),
+                ),
+                ("is_active", models.BooleanField(default=True, verbose_name="Active")),
             ],
             options={
-                'verbose_name': 'Shipping Method',
-                'verbose_name_plural': 'Shipping Methods',
+                "verbose_name": "Shipping Method",
+                "verbose_name_plural": "Shipping Methods",
             },
         ),
         migrations.CreateModel(
-            name='Shipment',
+            name="Shipment",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('status', models.CharField(choices=[('pending', 'Pending'), ('shipped', 'Shipped'), ('in_transit', 'In transit'), ('delivered', 'Delivered'), ('failed', 'Failed')], default='pending', max_length=20, verbose_name='Status')),
-                ('tracking_number', models.CharField(blank=True, max_length=255, verbose_name='Tracking number')),
-                ('cost', models.DecimalField(decimal_places=2, max_digits=10, verbose_name='Shipping cost')),
-                ('shipped_at', models.DateTimeField(blank=True, null=True)),
-                ('delivered_at', models.DateTimeField(blank=True, null=True)),
-                ('method', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='shipping.shippingmethod', verbose_name='Shipping method')),
-                ('order', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='shipments', to='orders.order', verbose_name='Order')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("pending", "Pending"),
+                            ("shipped", "Shipped"),
+                            ("in_transit", "In transit"),
+                            ("delivered", "Delivered"),
+                            ("failed", "Failed"),
+                        ],
+                        default="pending",
+                        max_length=20,
+                        verbose_name="Status",
+                    ),
+                ),
+                (
+                    "tracking_number",
+                    models.CharField(
+                        blank=True, max_length=255, verbose_name="Tracking number"
+                    ),
+                ),
+                (
+                    "cost",
+                    models.DecimalField(
+                        decimal_places=2, max_digits=10, verbose_name="Shipping cost"
+                    ),
+                ),
+                ("shipped_at", models.DateTimeField(blank=True, null=True)),
+                ("delivered_at", models.DateTimeField(blank=True, null=True)),
+                (
+                    "method",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        to="shipping.shippingmethod",
+                        verbose_name="Shipping method",
+                    ),
+                ),
+                (
+                    "order",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="shipments",
+                        to="orders.order",
+                        verbose_name="Order",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Shipment',
-                'verbose_name_plural': 'Shipments',
-                'ordering': ['-shipped_at'],
+                "verbose_name": "Shipment",
+                "verbose_name_plural": "Shipments",
+                "ordering": ["-shipped_at"],
             },
         ),
     ]

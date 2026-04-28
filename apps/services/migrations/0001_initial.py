@@ -5,69 +5,176 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Company',
+            name="Company",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=200, verbose_name='Nombre')),
-                ('slug', models.SlugField(max_length=220, unique=True)),
-                ('description', models.TextField(blank=True, verbose_name='Descripción')),
-                ('logo', models.ImageField(blank=True, null=True, upload_to='companies/logos/', verbose_name='Logo')),
-                ('address', models.TextField(blank=True, verbose_name='Dirección')),
-                ('phone', models.CharField(blank=True, max_length=20, verbose_name='Teléfono')),
-                ('email', models.EmailField(blank=True, max_length=254, verbose_name='Email')),
-                ('website', models.URLField(blank=True, verbose_name='Web')),
-                ('is_own', models.BooleanField(default=False, help_text='Marcar si es la empresa gestora de esta plataforma', verbose_name='Es nuestra empresa')),
-                ('is_active', models.BooleanField(default=True, verbose_name='Activa')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=200, verbose_name="Nombre")),
+                ("slug", models.SlugField(max_length=220, unique=True)),
+                (
+                    "description",
+                    models.TextField(blank=True, verbose_name="Descripción"),
+                ),
+                (
+                    "logo",
+                    models.ImageField(
+                        blank=True,
+                        null=True,
+                        upload_to="companies/logos/",
+                        verbose_name="Logo",
+                    ),
+                ),
+                ("address", models.TextField(blank=True, verbose_name="Dirección")),
+                (
+                    "phone",
+                    models.CharField(
+                        blank=True, max_length=20, verbose_name="Teléfono"
+                    ),
+                ),
+                (
+                    "email",
+                    models.EmailField(blank=True, max_length=254, verbose_name="Email"),
+                ),
+                ("website", models.URLField(blank=True, verbose_name="Web")),
+                (
+                    "is_own",
+                    models.BooleanField(
+                        default=False,
+                        help_text="Marcar si es la empresa gestora de esta plataforma",
+                        verbose_name="Es nuestra empresa",
+                    ),
+                ),
+                ("is_active", models.BooleanField(default=True, verbose_name="Activa")),
             ],
             options={
-                'verbose_name': 'Empresa',
-                'verbose_name_plural': 'Empresas',
-                'ordering': ['-is_own', 'name'],
+                "verbose_name": "Empresa",
+                "verbose_name_plural": "Empresas",
+                "ordering": ["-is_own", "name"],
             },
         ),
         migrations.CreateModel(
-            name='ServiceCategory',
+            name="ServiceCategory",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100, verbose_name='Nombre')),
-                ('slug', models.SlugField(max_length=120, unique=True)),
-                ('display_order', models.PositiveSmallIntegerField(default=0, verbose_name='Orden')),
-                ('is_active', models.BooleanField(default=True, verbose_name='Activa')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=100, verbose_name="Nombre")),
+                ("slug", models.SlugField(max_length=120, unique=True)),
+                (
+                    "display_order",
+                    models.PositiveSmallIntegerField(default=0, verbose_name="Orden"),
+                ),
+                ("is_active", models.BooleanField(default=True, verbose_name="Activa")),
             ],
             options={
-                'verbose_name': 'Categoría de servicio',
-                'verbose_name_plural': 'Categorías de servicio',
-                'ordering': ['display_order', 'name'],
+                "verbose_name": "Categoría de servicio",
+                "verbose_name_plural": "Categorías de servicio",
+                "ordering": ["display_order", "name"],
             },
         ),
         migrations.CreateModel(
-            name='Service',
+            name="Service",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=200, verbose_name='Nombre')),
-                ('slug', models.SlugField(max_length=220, unique=True)),
-                ('sku', models.CharField(blank=True, max_length=100, verbose_name='Código')),
-                ('description', models.TextField(blank=True, verbose_name='Descripción')),
-                ('price', models.DecimalField(decimal_places=2, max_digits=10, verbose_name='Precio sin IVA (€)')),
-                ('unit', models.CharField(choices=[('ud', 'Unidad'), ('m2', 'm²'), ('ml', 'Metro lineal'), ('h', 'Hora'), ('m3', 'm³')], default='ud', max_length=5, verbose_name='Unidad')),
-                ('image', models.ImageField(blank=True, null=True, upload_to='services/images/', verbose_name='Imagen')),
-                ('is_featured', models.BooleanField(default=False, verbose_name='Destacado')),
-                ('is_active', models.BooleanField(default=True, verbose_name='Activo')),
-                ('company', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='services', to='services.company', verbose_name='Empresa')),
-                ('category', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='services', to='services.servicecategory', verbose_name='Categoría')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=200, verbose_name="Nombre")),
+                ("slug", models.SlugField(max_length=220, unique=True)),
+                (
+                    "sku",
+                    models.CharField(blank=True, max_length=100, verbose_name="Código"),
+                ),
+                (
+                    "description",
+                    models.TextField(blank=True, verbose_name="Descripción"),
+                ),
+                (
+                    "price",
+                    models.DecimalField(
+                        decimal_places=2,
+                        max_digits=10,
+                        verbose_name="Precio sin IVA (€)",
+                    ),
+                ),
+                (
+                    "unit",
+                    models.CharField(
+                        choices=[
+                            ("ud", "Unidad"),
+                            ("m2", "m²"),
+                            ("ml", "Metro lineal"),
+                            ("h", "Hora"),
+                            ("m3", "m³"),
+                        ],
+                        default="ud",
+                        max_length=5,
+                        verbose_name="Unidad",
+                    ),
+                ),
+                (
+                    "image",
+                    models.ImageField(
+                        blank=True,
+                        null=True,
+                        upload_to="services/images/",
+                        verbose_name="Imagen",
+                    ),
+                ),
+                (
+                    "is_featured",
+                    models.BooleanField(default=False, verbose_name="Destacado"),
+                ),
+                ("is_active", models.BooleanField(default=True, verbose_name="Activo")),
+                (
+                    "company",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="services",
+                        to="services.company",
+                        verbose_name="Empresa",
+                    ),
+                ),
+                (
+                    "category",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="services",
+                        to="services.servicecategory",
+                        verbose_name="Categoría",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Servicio',
-                'verbose_name_plural': 'Servicios',
-                'ordering': ['category__display_order', 'name'],
+                "verbose_name": "Servicio",
+                "verbose_name_plural": "Servicios",
+                "ordering": ["category__display_order", "name"],
             },
         ),
     ]

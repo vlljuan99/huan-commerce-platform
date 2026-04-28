@@ -14,8 +14,8 @@ def _create_default_groups(sender, **kwargs):
     """
     from django.contrib.auth.models import Group, Permission
 
-    admin_group, _ = Group.objects.get_or_create(name='Administrador')
-    Group.objects.get_or_create(name='Comercial')
+    admin_group, _ = Group.objects.get_or_create(name="Administrador")
+    Group.objects.get_or_create(name="Comercial")
 
     # Administrador gets all permissions (superuser should be used instead,
     # but the group acts as a label for non-superuser admins)
@@ -24,9 +24,9 @@ def _create_default_groups(sender, **kwargs):
 
 
 class AccountsConfig(AppConfig):
-    default_auto_field = 'django.db.models.BigAutoField'
-    name = 'apps.accounts'
-    verbose_name = 'Accounts'
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "apps.accounts"
+    verbose_name = "Accounts"
 
     def ready(self):
         post_migrate.connect(_create_default_groups, sender=self)

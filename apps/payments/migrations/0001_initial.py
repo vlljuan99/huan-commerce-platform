@@ -5,31 +5,88 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('orders', '0001_initial'),
+        ("orders", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='PaymentTransaction',
+            name="PaymentTransaction",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('amount', models.DecimalField(decimal_places=2, max_digits=10, verbose_name='Amount')),
-                ('status', models.CharField(choices=[('pending', 'Pending'), ('processing', 'Processing'), ('authorized', 'Authorized'), ('captured', 'Captured'), ('failed', 'Failed'), ('cancelled', 'Cancelled'), ('refunded', 'Refunded')], default='pending', max_length=20, verbose_name='Status')),
-                ('provider', models.CharField(help_text='e.g., redsys, stripe', max_length=100, verbose_name='Payment provider')),
-                ('provider_transaction_id', models.CharField(blank=True, max_length=255, verbose_name='Provider transaction ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('order', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='payment_transactions', to='orders.order', verbose_name='Order')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "amount",
+                    models.DecimalField(
+                        decimal_places=2, max_digits=10, verbose_name="Amount"
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("pending", "Pending"),
+                            ("processing", "Processing"),
+                            ("authorized", "Authorized"),
+                            ("captured", "Captured"),
+                            ("failed", "Failed"),
+                            ("cancelled", "Cancelled"),
+                            ("refunded", "Refunded"),
+                        ],
+                        default="pending",
+                        max_length=20,
+                        verbose_name="Status",
+                    ),
+                ),
+                (
+                    "provider",
+                    models.CharField(
+                        help_text="e.g., redsys, stripe",
+                        max_length=100,
+                        verbose_name="Payment provider",
+                    ),
+                ),
+                (
+                    "provider_transaction_id",
+                    models.CharField(
+                        blank=True,
+                        max_length=255,
+                        verbose_name="Provider transaction ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "order",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="payment_transactions",
+                        to="orders.order",
+                        verbose_name="Order",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Payment Transaction',
-                'verbose_name_plural': 'Payment Transactions',
-                'ordering': ['-created_at'],
-                'indexes': [models.Index(fields=['order'], name='payments_pa_order_i_d65105_idx'), models.Index(fields=['status'], name='payments_pa_status_b6726a_idx')],
+                "verbose_name": "Payment Transaction",
+                "verbose_name_plural": "Payment Transactions",
+                "ordering": ["-created_at"],
+                "indexes": [
+                    models.Index(
+                        fields=["order"], name="payments_pa_order_i_d65105_idx"
+                    ),
+                    models.Index(
+                        fields=["status"], name="payments_pa_status_b6726a_idx"
+                    ),
+                ],
             },
         ),
     ]

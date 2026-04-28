@@ -1,1 +1,1 @@
-default_app_config = 'apps.backoffice.apps.BackofficeConfig'
+default_app_config = "apps.backoffice.apps.BackofficeConfig"

@@ -8,26 +8,30 @@ from rest_framework import viewsets, filters
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Product, ProductVariant, ProductCategory, ProductBrand, CatalogPDF
 from .serializers import (
-    ProductListSerializer, ProductDetailSerializer,
-    ProductCategorySerializer, ProductBrandSerializer,
-    ProductVariantSerializer
+    ProductListSerializer,
+    ProductDetailSerializer,
+    ProductCategorySerializer,
+    ProductBrandSerializer,
+    ProductVariantSerializer,
 )
 
 
 class ProductCategoryViewSet(viewsets.ReadOnlyModelViewSet):
     """List and retrieve product categories."""
+
     queryset = ProductCategory.objects.filter(is_active=True)
     serializer_class = ProductCategorySerializer
-    lookup_field = 'slug'
+    lookup_field = "slug"
     filter_backends = [filters.OrderingFilter]
-    ordering = ['display_order', 'name']
+    ordering = ["display_order", "name"]
 
 
 class ProductBrandViewSet(viewsets.ReadOnlyModelViewSet):
     """List and retrieve product brands."""
+
     queryset = ProductBrand.objects.filter(is_active=True)
     serializer_class = ProductBrandSerializer
-    lookup_field = 'slug'
+    lookup_field = "slug"
 
 
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
@@ -35,16 +39,21 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     ViewSet for products.
     List and retrieve products with variants.
     """
+
     queryset = Product.objects.filter(is_active=True)
-    lookup_field = 'slug'
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['category', 'brand', 'is_featured']
-    search_fields = ['name', 'description', 'sku_base']
-    ordering = ['-created_at']
+    lookup_field = "slug"
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        filters.OrderingFilter,
+    ]
+    filterset_fields = ["category", "brand", "is_featured"]
+    search_fields = ["name", "description", "sku_base"]
+    ordering = ["-created_at"]
 
     def get_serializer_class(self):
         """Use detailed serializer for retrieve, list serializer for list."""
-        if self.action == 'retrieve':
+        if self.action == "retrieve":
             return ProductDetailSerializer
         return ProductListSerializer
 
@@ -54,76 +63,72 @@ class ProductVariantViewSet(viewsets.ReadOnlyModelViewSet):
     ViewSet for product variants.
     Get available variants for a product.
     """
+
     queryset = ProductVariant.objects.filter(is_active=True)
     serializer_class = ProductVariantSerializer
-    lookup_field = 'sku'
+    lookup_field = "sku"
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['product']
+    filterset_fields = ["product"]
 
 
 # ── HTML Views ────────────────────────────────────────────────────────────────
 
+
 class ProductListView(ListView):
     """Catálogo público: listado de productos activos con filtro por categoría."""
-    template_name = 'catalog/product_list.html'
-    context_object_name = 'products'
+
+    template_name = "catalog/product_list.html"
+    context_object_name = "products"
     paginate_by = 24
 
     def get_queryset(self):
         qs = (
-            Product.objects
-            .filter(is_active=True)
-            .select_related('category', 'brand')
+            Product.objects.filter(is_active=True)
+            .select_related("category", "brand")
             .prefetch_related(
                 Prefetch(
-                    'variants',
-                    queryset=ProductVariant.objects
-                        .filter(is_active=True)
-                        .order_by('display_order'),
+                    "variants",
+                    queryset=ProductVariant.objects.filter(is_active=True).order_by(
+                        "display_order"
+                    ),
                 )
             )
-            .order_by('category__display_order', 'name')
+            .order_by("category__display_order", "name")
         )
-        category_slug = self.request.GET.get('categoria')
+        category_slug = self.request.GET.get("categoria")
         if category_slug:
             qs = qs.filter(category__slug=category_slug)
-        brand_slug = self.request.GET.get('marca')
+        brand_slug = self.request.GET.get("marca")
         if brand_slug:
             qs = qs.filter(brand__slug=brand_slug)
         return qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['categories'] = (
-            ProductCategory.objects
-            .filter(is_active=True)
-            .order_by('display_order', 'name')
+        context["categories"] = ProductCategory.objects.filter(is_active=True).order_by(
+            "display_order", "name"
         )
-        context['brands'] = (
-            ProductBrand.objects
-            .filter(is_active=True)
-            .order_by('name')
-        )
-        context['active_category'] = self.request.GET.get('categoria', '')
-        context['active_brand'] = self.request.GET.get('marca', '')
+        context["brands"] = ProductBrand.objects.filter(is_active=True).order_by("name")
+        context["active_category"] = self.request.GET.get("categoria", "")
+        context["active_brand"] = self.request.GET.get("marca", "")
         return context
 
 
 class CatalogPDFListView(ListView):
     """Catálogos descargables en PDF, filtrables por marca y año."""
-    template_name = 'catalog/catalog_pdf_list.html'
-    context_object_name = 'catalogs'
+
+    template_name = "catalog/catalog_pdf_list.html"
+    context_object_name = "catalogs"
     paginate_by = 12
 
     def get_queryset(self):
         qs = (
-            CatalogPDF.objects
-            .filter(is_active=True)
-            .select_related('brand')
-            .order_by('-year', 'title')
+            CatalogPDF.objects.filter(is_active=True)
+            .select_related("brand")
+            .order_by("-year", "title")
         )
-        brand_slug = self.request.GET.get('marca')
-        year = self.request.GET.get('ano')
+        brand_slug = self.request.GET.get("marca")
+        year = self.request.GET.get("ano")
         if brand_slug:
             qs = qs.filter(brand__slug=brand_slug)
         if year:
@@ -135,56 +140,54 @@ class CatalogPDFListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['brands'] = ProductBrand.objects.filter(is_active=True).order_by('name')
-        year_range = (
-            CatalogPDF.objects
-            .filter(is_active=True, year__isnull=False)
-            .aggregate(min_year=Min('year'), max_year=Max('year'))
-        )
-        if year_range['min_year'] and year_range['max_year']:
-            context['years'] = list(range(year_range['max_year'], year_range['min_year'] - 1, -1))
+        context["brands"] = ProductBrand.objects.filter(is_active=True).order_by("name")
+        year_range = CatalogPDF.objects.filter(
+            is_active=True, year__isnull=False
+        ).aggregate(min_year=Min("year"), max_year=Max("year"))
+        if year_range["min_year"] and year_range["max_year"]:
+            context["years"] = list(
+                range(year_range["max_year"], year_range["min_year"] - 1, -1)
+            )
         else:
-            context['years'] = []
-        context['active_brand'] = self.request.GET.get('marca')
-        context['active_year'] = self.request.GET.get('ano')
+            context["years"] = []
+        context["active_brand"] = self.request.GET.get("marca")
+        context["active_year"] = self.request.GET.get("ano")
         return context
 
 
 class ProductDetailView(DetailView):
     """Catálogo público: detalle de un producto con variantes."""
-    template_name = 'catalog/product_detail.html'
-    context_object_name = 'product'
-    slug_field = 'slug'
+
+    template_name = "catalog/product_detail.html"
+    context_object_name = "product"
+    slug_field = "slug"
 
     def get_queryset(self):
         return (
-            Product.objects
-            .filter(is_active=True)
-            .select_related('category', 'brand')
+            Product.objects.filter(is_active=True)
+            .select_related("category", "brand")
             .prefetch_related(
                 Prefetch(
-                    'variants',
-                    queryset=ProductVariant.objects
-                        .filter(is_active=True)
-                        .order_by('display_order')
-                        .prefetch_related('additional_images'),
+                    "variants",
+                    queryset=ProductVariant.objects.filter(is_active=True)
+                    .order_by("display_order")
+                    .prefetch_related("additional_images"),
                 )
             )
         )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['related'] = (
-            Product.objects
-            .filter(is_active=True, category=self.object.category)
+        context["related"] = (
+            Product.objects.filter(is_active=True, category=self.object.category)
             .exclude(pk=self.object.pk)
-            .select_related('category')
+            .select_related("category")
             .prefetch_related(
                 Prefetch(
-                    'variants',
-                    queryset=ProductVariant.objects
-                        .filter(is_active=True)
-                        .order_by('display_order'),
+                    "variants",
+                    queryset=ProductVariant.objects.filter(is_active=True).order_by(
+                        "display_order"
+                    ),
                 )
             )[:6]
         )

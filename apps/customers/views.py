@@ -15,6 +15,7 @@ class CustomerViewSet(viewsets.ReadOnlyModelViewSet):
     ViewSet for Customer profile (read-only).
     Only authenticated users can see their own profile.
     """
+
     serializer_class = CustomerSerializer
     permission_classes = [IsAuthenticated]
 
@@ -23,7 +24,7 @@ class CustomerViewSet(viewsets.ReadOnlyModelViewSet):
         user = self.request.user
         return Customer.objects.filter(user=user)
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=["get"])
     def my_profile(self, request):
         """Get current user's customer profile."""
         try:
@@ -32,11 +33,11 @@ class CustomerViewSet(viewsets.ReadOnlyModelViewSet):
             return Response(serializer.data)
         except Customer.DoesNotExist:
             return Response(
-                {'detail': 'Customer profile not found.'},
-                status=status.HTTP_404_NOT_FOUND
+                {"detail": "Customer profile not found."},
+                status=status.HTTP_404_NOT_FOUND,
             )
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=["get"])
     def addresses(self, request):
         """Get all addresses for the current user."""
         try:
@@ -46,8 +47,8 @@ class CustomerViewSet(viewsets.ReadOnlyModelViewSet):
             return Response(serializer.data)
         except Customer.DoesNotExist:
             return Response(
-                {'detail': 'Customer profile not found.'},
-                status=status.HTTP_404_NOT_FOUND
+                {"detail": "Customer profile not found."},
+                status=status.HTTP_404_NOT_FOUND,
             )
 
 
@@ -56,6 +57,7 @@ class CustomerAddressViewSet(viewsets.ModelViewSet):
     ViewSet for CustomerAddress.
     Only allows CRUD on own addresses.
     """
+
     serializer_class = CustomerAddressSerializer
     permission_classes = [IsAuthenticated]
 

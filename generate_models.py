@@ -133,7 +133,7 @@ class OrderLineItem(BaseModel):
         return f"{self.order} - {self.variant}"
 '''
 
-orders_file = BASE_DIR / 'apps' / 'orders' / 'models.py'
+orders_file = BASE_DIR / "apps" / "orders" / "models.py"
 orders_file.write_text(orders_models)
 print(f"✓ Created {orders_file}")
 
@@ -217,7 +217,7 @@ class CartLineItem(models.Model):
         return Decimal(self.quantity) * self.variant.price_no_tax
 '''
 
-cart_file = BASE_DIR / 'apps' / 'cart' / 'models.py'
+cart_file = BASE_DIR / "apps" / "cart" / "models.py"
 cart_file.write_text(cart_models)
 print(f"✓ Created {cart_file}")
 
@@ -399,7 +399,7 @@ class InvoiceLineItem(BaseModel):
         return f"{self.invoice} - {self.description}"
 '''
 
-invoicing_file = BASE_DIR / 'apps' / 'invoicing' / 'models.py'
+invoicing_file = BASE_DIR / "apps" / "invoicing" / "models.py"
 invoicing_file.write_text(invoicing_models)
 print(f"✓ Created {invoicing_file}")
 
@@ -444,7 +444,7 @@ class TaxRate(models.Model):
         return (amount * self.rate) / Decimal('100')
 '''
 
-billing_file = BASE_DIR / 'apps' / 'billing' / 'models.py'
+billing_file = BASE_DIR / "apps" / "billing" / "models.py"
 billing_file.write_text(billing_models)
 print(f"✓ Created {billing_file}")
 
@@ -519,7 +519,7 @@ class PaymentTransaction(models.Model):
         return f"Payment {self.id} - {self.order} - {self.status}"
 '''
 
-payments_file = BASE_DIR / 'apps' / 'payments' / 'models.py'
+payments_file = BASE_DIR / "apps" / "payments" / "models.py"
 payments_file.write_text(payments_models)
 print(f"✓ Created {payments_file}")
 
@@ -609,7 +609,7 @@ class Shipment(models.Model):
         return f"Shipment {self.tracking_number} ({self.status})"
 '''
 
-shipping_file = BASE_DIR / 'apps' / 'shipping' / 'models.py'
+shipping_file = BASE_DIR / "apps" / "shipping" / "models.py"
 shipping_file.write_text(shipping_models)
 print(f"✓ Created {shipping_file}")
 

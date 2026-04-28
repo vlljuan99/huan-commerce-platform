@@ -17,17 +17,17 @@ from config.settings.base import *  # noqa: F401, F403
 DEBUG = True
 
 # Todas las IPs locales permitidas
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ["*"]
 
 # Panel de debug (instalar django-debug-toolbar si hace falta)
 # INSTALLED_APPS += ['debug_toolbar']
 
 # Email en consola
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 # Caché en memoria (sin Redis en local)
 CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
     }
 }
