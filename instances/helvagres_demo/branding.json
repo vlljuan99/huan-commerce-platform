@@ -6,21 +6,21 @@
     "tagline": "Materiales cerámicos para profesionales",
     "hero_image": "/static/helvagres_demo/hero.jpg",
     "colors": {
-        "primary": "#1a3a2a",
-        "primary_light": "#2a5a40",
-        "accent": "#c8a84b",
-        "accent_light": "#e2c97a"
+        "primary": "#012A64",
+        "primary_light": "#2864A2",
+        "accent": "#00306A",
+        "accent_light": "#6880A7"
     },
     "footer": {
         "company_name": "Helvagres S.L.",
-        "address": "Polígono Industrial La Cerámica, s/n",
-        "city": "Castellón de la Plana",
-        "zip": "12005",
+        "address": "Ctra. Badajoz, km. 57",
+        "city": "Almendralejo",
+        "zip": "06200",
         "country": "España",
-        "phone": "+34 964 000 000",
-        "email": "info@helvagres.es",
+        "phone": "+34 924 66 34 97",
+        "email": "helvagres@hotmail.com",
         "legal_name": "Helvagres S.L.",
-        "tax_id": "B-12345678"
+        "tax_id": "B-21365945"
     },
     "social": {
         "linkedin": "",
