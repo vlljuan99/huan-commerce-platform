@@ -11,7 +11,7 @@ from apps.core.views import IndexView, CookiePolicyView
 urlpatterns = [
     path(
         "favicon.ico",
-        RedirectView.as_view(url="/static/helvagres_demo/icono.png", permanent=False),
+        RedirectView.as_view(url=f"{settings.STATIC_URL}helvagres_demo/icono.png", permanent=False),
     ),
     path("", IndexView.as_view(), name="index"),
     path("politica-de-cookies/", CookiePolicyView.as_view(), name="cookie_policy"),

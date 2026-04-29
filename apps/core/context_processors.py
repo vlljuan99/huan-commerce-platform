@@ -10,7 +10,25 @@ Exponen al contexto de todos los templates:
 Prioridad de branding: BrandingSettings (BD) > branding.json > defaults internos
 """
 
+from django.conf import settings
+
 from apps.core.instance import get_branding, get_features, get_instance_id, get_profile
+
+
+def _resolve_static_paths(d: dict) -> dict:
+    """
+    Recorre el dict de branding y reemplaza las rutas /static/...
+    por la URL correcta según STATIC_URL (puede apuntar a Azure u otro backend).
+    """
+    result = {}
+    for k, v in d.items():
+        if isinstance(v, str) and v.startswith("/static/"):
+            result[k] = settings.STATIC_URL + v[len("/static/"):]
+        elif isinstance(v, dict):
+            result[k] = _resolve_static_paths(v)
+        else:
+            result[k] = v
+    return result
 
 
 def _get_db_branding(instance_id: str) -> dict:
@@ -47,7 +65,8 @@ def branding(request):
     instance_id = get_instance_id()
     json_branding = get_branding()
     db_branding = _get_db_branding(instance_id)
-    return {"branding": _merge_branding(json_branding, db_branding)}
+    merged = _merge_branding(json_branding, db_branding)
+    return {"branding": _resolve_static_paths(merged)}
 
 
 def features(request):
