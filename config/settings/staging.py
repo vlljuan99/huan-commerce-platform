@@ -24,8 +24,16 @@ INSTALLED_APPS += ["storages"]  # noqa: F405
 AZURE_ACCOUNT_NAME = env("AZURE_STORAGE_ACCOUNT_NAME")
 AZURE_ACCOUNT_KEY = env("AZURE_STORAGE_ACCOUNT_KEY")
 AZURE_STATIC_CONTAINER = env("AZURE_STATIC_CONTAINER", default="static")
+AZURE_CONTAINER = AZURE_STATIC_CONTAINER  # django-storages reads AZURE_CONTAINER
 
-STATICFILES_STORAGE = "storages.backends.azure_storage.AzureStorage"
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "storages.backends.azure_storage.AzureStorage",
+    },
+}
 AZURE_CUSTOM_DOMAIN = f"{AZURE_ACCOUNT_NAME}.blob.core.windows.net"
 STATIC_URL = f"https://{AZURE_CUSTOM_DOMAIN}/{AZURE_STATIC_CONTAINER}/"
 
