@@ -50,6 +50,16 @@ urlpatterns = [
         views.InvoiceGeneratePDFView.as_view(),
         name="invoice_generate_pdf",
     ),
+    # Proforma invoices
+    path("proformas/", views.ProformaListView.as_view(), name="proforma_list"),
+    path("proformas/nueva/", views.ProformaCreateView.as_view(), name="proforma_create"),
+    path("proformas/<int:pk>/", views.ProformaDetailView.as_view(), name="proforma_detail"),
+    path("proformas/<int:pk>/editar/", views.ProformaUpdateView.as_view(), name="proforma_edit"),
+    path(
+        "proformas/<int:pk>/generar-pdf/",
+        views.ProformaGeneratePDFView.as_view(),
+        name="proforma_generate_pdf",
+    ),
     # Catalog — products
     path("catalogo/", views.CatalogListView.as_view(), name="catalog_list"),
     path("catalogo/nuevo/", views.ProductCreateView.as_view(), name="product_create"),

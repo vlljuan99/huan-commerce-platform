@@ -30,7 +30,8 @@
       "Bash(venv/Scripts/python manage.py makemigrations services cart)",
       "Bash(venv/Scripts/python manage.py migrate)",
       "Bash(venv/Scripts/python manage.py seed_services)",
-      "Bash(venv/Scripts/pip show *)"
+      "Bash(venv/Scripts/pip show *)",
+      "Bash(python -m py_compile apps/backoffice/views.py apps/backoffice/urls.py)"
     ]
   }
 }

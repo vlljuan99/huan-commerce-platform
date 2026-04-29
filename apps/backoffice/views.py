@@ -23,7 +23,7 @@ from apps.catalog.models import (
     CatalogPDF,
 )
 from apps.customers.models import Customer, CustomerAddress
-from apps.invoicing.models import Invoice
+from apps.invoicing.models import Invoice, ProformaInvoice
 from apps.orders.models import Order
 from apps.services.models import Company, ServiceCategory, Service
 
@@ -374,22 +374,25 @@ class InvoiceUpdateView(BackofficeRequiredMixin, UpdateView):
 
 
 class InvoiceGeneratePDFView(BackofficeRequiredMixin, View):
-    """Generate a PDF for an invoice using ReportLab canvas."""
+    """
+    Generate a PDF for a regular invoice (FACTURA DE VENTA).
+    Layout matches the Fra H6 reference document.
+    """
 
     def post(self, request, pk):
         import io
         import os
+        import textwrap
         from django.conf import settings
         from django.http import HttpResponse
         from reportlab.pdfgen import canvas
         from reportlab.lib.pagesizes import A4
         from reportlab.lib import colors
-        from apps.core.instance import get_branding
+        from apps.core.instance import get_branding, get_profile
 
         invoice = get_object_or_404(
-            Invoice.objects.select_related(
-                "customer__user", "series", "order"
-            ).prefetch_related("items__tax_rate"),
+            Invoice.objects.select_related("customer__user", "series", "order")
+            .prefetch_related("items__tax_rate"),
             pk=pk,
         )
 
@@ -401,183 +404,488 @@ class InvoiceGeneratePDFView(BackofficeRequiredMixin, View):
         c = canvas.Canvas(buffer, pagesize=A4)
         c.setLineWidth(0.5)
 
-        # ── Logo ──────────────────────────────────────────────────────────────
-        from apps.core.instance import get_profile
+        instance_id = get_profile().get("instance_id", "")
+        logo_path = os.path.join(
+            settings.BASE_DIR, "instances", instance_id,
+            "static", instance_id, "logo_blanco.png",
+        )
+
+        # ── HEADER ────────────────────────────────────────────────────────────
+        # Left: company text block
+        y = H - 28
+        c.setFont("Helvetica-Bold", 10)
+        c.drawString(30, y, footer.get("legal_name") or footer.get("company_name", ""))
+        y -= 13
+        c.setFont("Helvetica", 8.5)
+        if footer.get("tax_id"):
+            c.drawString(30, y, f"C.I.F.: {footer['tax_id']}")
+            y -= 12
+        if footer.get("address"):
+            c.drawString(30, y, footer["address"])
+            y -= 12
+        if footer.get("zip") and footer.get("city"):
+            city_line = f"{footer['zip']} {footer['city']}"
+            if footer.get("province"):
+                city_line += f" ({footer['province']})"
+            c.drawString(30, y, city_line)
+            y -= 12
+        if footer.get("phone"):
+            c.drawString(30, y, f"Tlf. {footer['phone']}")
+            y -= 12
+        if footer.get("email"):
+            c.drawString(30, y, footer["email"])
+
+        # Center: QR placeholder
+        qr_x, qr_y, qr_w, qr_h = 212, H - 105, 85, 82
+        c.setFont("Helvetica-Bold", 6.5)
+        c.drawCentredString(qr_x + qr_w / 2, H - 22, "QR tributario:")
+        c.setStrokeColor(colors.black)
+        c.setFillColor(colors.white)
+        c.rect(qr_x, qr_y, qr_w, qr_h, stroke=1, fill=1)
+        # Simple QR-like inner pattern (placeholder)
+        c.setFillColor(colors.HexColor("#dddddd"))
+        cell = 8
+        for row in range(9):
+            for col in range(9):
+                if (row + col) % 2 == 0:
+                    c.rect(qr_x + 4 + col * cell, qr_y + 4 + row * cell, cell - 1, cell - 1, stroke=0, fill=1)
+        c.setFillColor(colors.black)
+        c.setFont("Helvetica-Bold", 7)
+        c.drawCentredString(qr_x + qr_w / 2, qr_y - 10, "VERI*FACTU")
+
+        # Right: logo + title
+        logo_drawn = False
+        if os.path.isfile(logo_path):
+            try:
+                c.drawImage(logo_path, 315, H - 78, width=120, height=52,
+                            preserveAspectRatio=True, mask="auto")
+                logo_drawn = True
+            except Exception:
+                pass
+        if not logo_drawn:
+            c.setFont("Helvetica-Bold", 14)
+            c.drawString(315, H - 55, footer.get("company_name", ""))
+        c.setFont("Helvetica-Bold", 13)
+        c.drawString(315, H - 95, "FACTURA DE VENTA")
+
+        # ── SEPARATOR ────────────────────────────────────────────────────────
+        c.setStrokeColor(colors.black)
+        c.line(30, H - 108, W - 30, H - 108)
+
+        # ── CLIENT BOX (left) + INVOICE DATA BOX (right) ─────────────────────
+        box_top = H - 112
+        box_h = 88
+        box_bottom = box_top - box_h
+
+        # Left box: client data
+        c.setStrokeColor(colors.black)
+        c.setFillColor(colors.white)
+        c.rect(30, box_bottom, 252, box_h, stroke=1, fill=0)
+
+        addr_lines = [l.strip() for l in invoice.billing_address_snapshot.splitlines() if l.strip()]
+        street = addr_lines[0] if len(addr_lines) > 0 else ""
+        postal_city = addr_lines[1] if len(addr_lines) > 1 else ""
+
+        left_rows = [
+            ("CLIENTE:", invoice.billing_name_snapshot or str(invoice.customer)),
+            ("DIRECCION:", street),
+            ("C.P. / POBLACION:", postal_city),
+            ("PROVINCIA:", invoice.billing_province_snapshot),
+        ]
+        ry = box_top - 14
+        for label, value in left_rows:
+            c.setFont("Helvetica-Bold", 8)
+            c.setFillColor(colors.black)
+            c.drawString(34, ry, label)
+            c.setFont("Helvetica", 8)
+            c.drawString(120, ry, str(value)[:38])
+            ry -= 14
+
+        # Right box: invoice metadata
+        c.setFillColor(colors.white)
+        c.rect(290, box_bottom, 275, box_h, stroke=1, fill=0)
+
+        right_rows = [
+            ("Nº FACTURA:", invoice.invoice_number),
+            ("FECHA:", invoice.issued_at.strftime("%d/%m/%Y")),
+            ("COD. CLIENTE:", invoice.customer_code_snapshot),
+            ("CIF.:", invoice.tax_id_snapshot),
+            ("TELEFONO:", invoice.customer_phone_snapshot),
+            ("FORMA PAGO:", invoice.payment_method),
+        ]
+        ry = box_top - 14
+        for label, value in right_rows:
+            c.setFont("Helvetica-Bold", 8)
+            c.setFillColor(colors.black)
+            c.drawString(294, ry, label)
+            c.setFont("Helvetica", 8)
+            c.drawString(390, ry, str(value)[:28])
+            ry -= 14
+
+        # ── LINE ITEMS TABLE ──────────────────────────────────────────────────
+        # Columns: CANTIDAD(60) | DESCRIPCION(290) | PRECIO(85) | IMPORTE(100)
+        COL_X = [30, 90, 380, 465]  # left edge of each column
+        COL_W = [60, 290, 85, 100]
+        TH = box_bottom - 15  # table header top
+
+        c.setFillColor(colors.black)
+        c.setStrokeColor(colors.black)
+        c.rect(30, TH - 17, W - 60, 17, stroke=1, fill=1)
+        c.setFillColor(colors.white)
+        c.setFont("Helvetica-Bold", 8)
+        headers = ["CANTIDAD", "DESCRIPCION", "PRECIO", "IMPORTE"]
+        for i, h in enumerate(headers):
+            c.drawString(COL_X[i] + 3, TH - 12, h)
+
+        y = TH - 17
+        c.setFillColor(colors.black)
+        row = 0
+        for item in invoice.items.all():
+            if row % 2 == 0:
+                c.setFillColor(colors.HexColor("#f3f4f6"))
+                c.rect(30, y - 15, W - 60, 15, stroke=0, fill=1)
+                c.setFillColor(colors.black)
+            c.setFont("Helvetica", 8.5)
+            c.drawString(COL_X[0] + 3, y - 10, f"{item.quantity:,.2f}".replace(",", "."))
+            desc = str(item.description)
+            c.drawString(COL_X[1] + 3, y - 10, desc[:52] + ("..." if len(desc) > 52 else ""))
+            c.drawRightString(COL_X[2] + COL_W[2] - 3, y - 10, f"{item.unit_price:,.2f}".replace(",", "."))
+            c.drawRightString(COL_X[3] + COL_W[3] - 3, y - 10, f"{item.line_total:,.2f}".replace(",", "."))
+            y -= 15
+            row += 1
+
+        # ── BOTTOM SECTION ────────────────────────────────────────────────────
+        # Totals (right side) and bank info (left side) side by side
+        totals_y = y - 12
+        c.setStrokeColor(colors.black)
+        c.line(30, y - 5, W - 30, y - 5)
+
+        # Right: totals box
+        tx = 370
+        ty = totals_y
+        c.setFont("Helvetica", 9)
+        c.setFillColor(colors.black)
+
+        c.setFillColor(colors.HexColor("#f3f4f6"))
+        c.rect(tx, ty - 17, W - 30 - tx, 17, stroke=1, fill=1)
+        c.setFillColor(colors.black)
+        c.setFont("Helvetica-Bold", 9)
+        c.drawString(tx + 4, ty - 12, "SUBTOTAL")
+        c.drawRightString(W - 33, ty - 12, f"{invoice.subtotal:,.2f}".replace(",", "."))
+        ty -= 17
+
+        # IVA lines — group by rate
+        from collections import defaultdict
+        iva_groups: dict = defaultdict(lambda: {"base": 0, "tax": 0})
+        for item in invoice.items.all():
+            pct = float(item.tax_rate_pct)
+            iva_groups[pct]["base"] += float(item.line_total)
+            iva_groups[pct]["tax"] += float(item.tax_amount)
+
+        for pct, vals in sorted(iva_groups.items()):
+            c.setFillColor(colors.white)
+            c.rect(tx, ty - 17, W - 30 - tx, 17, stroke=1, fill=1)
+            c.setFillColor(colors.black)
+            c.setFont("Helvetica", 9)
+            c.drawString(tx + 4, ty - 12, f"IVA ({pct:.0f} %)")
+            c.drawRightString(W - 33, ty - 12, f"{vals['tax']:,.2f}".replace(",", "."))
+            ty -= 17
+
+        c.setFillColor(colors.black)
+        c.rect(tx, ty - 20, W - 30 - tx, 20, stroke=1, fill=1)
+        c.setFillColor(colors.white)
+        c.setFont("Helvetica-Bold", 10)
+        c.drawString(tx + 4, ty - 14, "TOTAL €")
+        c.drawRightString(W - 33, ty - 14, f"{invoice.total:,.2f}".replace(",", "."))
+
+        # Left: bank info
+        bx = 30
+        by = totals_y
+        c.setFillColor(colors.black)
+        c.setFont("Helvetica-Bold", 8.5)
+        c.drawString(bx, by - 12, "BANCO:")
+        by -= 14
+        c.setFont("Helvetica-Bold", 8.5)
+        c.drawString(bx, by - 12, "Nº CUENTA:")
+        c.setFont("Helvetica", 8.5)
+        iban = footer.get("iban", "")
+        # Partially mask IBAN as ES** XXXX-XXXX-XX-XXXXXXXX****
+        c.drawString(bx + 65, by - 12, iban)
+        by -= 14
+        if invoice.due_date:
+            c.setFont("Helvetica-Bold", 8.5)
+            c.drawString(bx, by - 12, "VENCIMIENTOS:")
+            c.setFont("Helvetica", 8.5)
+            c.drawString(bx + 80, by - 12, invoice.due_date.strftime("%d/%m/%y"))
+            by -= 14
+            c.setFont("Helvetica-Bold", 8.5)
+            c.drawString(bx, by - 12, "IMPORTES:")
+            c.setFont("Helvetica", 8.5)
+            c.drawString(bx + 65, by - 12, f"{invoice.total:,.2f}".replace(",", "."))
+
+        # ── NOTES ────────────────────────────────────────────────────────────
+        note_y = min(ty - 25, by - 25)
+        if invoice.notes:
+            note_y -= 5
+            c.setFont("Helvetica-Bold", 8)
+            c.setFillColor(colors.black)
+            c.drawString(30, note_y, invoice.notes[:120])
+            note_y -= 12
+
+        # ── LOPD FOOTER ───────────────────────────────────────────────────────
+        lopd = (
+            "Información Básica sobre Protección de Datos — "
+            f"Responsable: {footer.get('legal_name') or footer.get('company_name', '')}. "
+            "Finalidad: Gestión de Clientes. Legitimación: El propio interesado. "
+            "Destinatarios: No se cederán a terceros, salvo obligación legal. "
+            "Derechos: Tiene derecho a acceder, rectificar y suprimir los datos, así como otros derechos "
+            "indicados en la información adicional, que puede solicitar enviando un correo a: "
+            f"{footer.get('email', '')}. "
+            "Información adicional: Puede solicitar información adicional y detallada sobre protección de "
+            f"datos enviando un correo a {footer.get('email', '')}"
+        )
+        c.setFont("Helvetica", 5.5)
+        c.setFillColor(colors.HexColor("#444444"))
+        wrapped = textwrap.wrap(lopd, width=175)
+        fy = 38
+        for line in wrapped[:4]:
+            c.drawCentredString(W / 2, fy, line)
+            fy -= 8
+
+        c.save()
+        pdf_bytes = buffer.getvalue()
+        filename = f"{invoice.invoice_number}.pdf"
+        response = HttpResponse(pdf_bytes, content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        return response
+
+
+class ProformaGeneratePDFView(BackofficeRequiredMixin, View):
+    """
+    Generate a PDF for a proforma invoice (FACTURA PROFORMA).
+    Layout matches the Pre reference document.
+    """
+
+    def post(self, request, pk):
+        import io
+        import os
+        from django.conf import settings
+        from django.http import HttpResponse
+        from reportlab.pdfgen import canvas
+        from reportlab.lib.pagesizes import A4
+        from reportlab.lib import colors
+        from apps.core.instance import get_branding, get_profile
+
+        proforma = get_object_or_404(
+            ProformaInvoice.objects.select_related("customer__user")
+            .prefetch_related("items__tax_rate"),
+            pk=pk,
+        )
+
+        branding = get_branding()
+        footer = branding.get("footer", {})
+
+        W, H = A4  # 595 x 842 pt
+        buffer = io.BytesIO()
+        c = canvas.Canvas(buffer, pagesize=A4)
+        c.setLineWidth(0.5)
 
         instance_id = get_profile().get("instance_id", "")
         logo_path = os.path.join(
-            settings.BASE_DIR,
-            "instances",
-            instance_id,
-            "static",
-            instance_id,
-            "logo_blanco.png",
+            settings.BASE_DIR, "instances", instance_id,
+            "static", instance_id, "logo_blanco.png",
         )
+
+        # ── HEADER ────────────────────────────────────────────────────────────
+        # Left: logo
         if os.path.isfile(logo_path):
-            c.drawImage(
-                logo_path,
-                30,
-                H - 80,
-                width=110,
-                height=50,
-                preserveAspectRatio=True,
-                mask="auto",
-            )
+            try:
+                c.drawImage(logo_path, 30, H - 80, width=130, height=52,
+                            preserveAspectRatio=True, mask="auto")
+            except Exception:
+                c.setFont("Helvetica-Bold", 14)
+                c.drawString(30, H - 60, footer.get("company_name", ""))
+        else:
+            c.setFont("Helvetica-Bold", 14)
+            c.drawString(30, H - 60, footer.get("company_name", ""))
 
-        # ── Header (right) ────────────────────────────────────────────────────
-        c.setFont("Helvetica-Bold", 16)
-        c.drawString(400, H - 50, "FACTURA")
-        c.setFont("Helvetica-Bold", 9)
-        c.drawString(380, H - 66, "Núm. Factura:")
-        c.setFont("Helvetica", 9)
-        c.drawString(470, H - 66, invoice.invoice_number)
-        c.setFont("Helvetica-Bold", 9)
-        c.drawString(380, H - 79, "Fecha:")
-        c.setFont("Helvetica", 9)
-        c.drawString(470, H - 79, invoice.issued_at.strftime("%d/%m/%Y"))
-        if invoice.due_date:
-            c.setFont("Helvetica-Bold", 9)
-            c.drawString(380, H - 92, "Vencimiento:")
-            c.setFont("Helvetica", 9)
-            c.drawString(470, H - 92, invoice.due_date.strftime("%d/%m/%Y"))
+        # Right: title
+        c.setFont("Helvetica-Bold", 20)
+        c.drawRightString(W - 30, H - 52, "FACTURA PROFORMA")
 
-        # ── Separator ─────────────────────────────────────────────────────────
-        c.line(30, H - 105, W - 30, H - 105)
+        # ── SEPARATOR ────────────────────────────────────────────────────────
+        c.setStrokeColor(colors.black)
+        c.line(30, H - 88, W - 30, H - 88)
 
-        # ── Facturado por (left) ──────────────────────────────────────────────
-        y = H - 122
-        c.setFont("Helvetica-Bold", 10)
-        c.drawString(30, y, "Facturado por:")
-        y -= 14
+        # ── EMISOR BLOCK (left) ───────────────────────────────────────────────
+        y = H - 104
         c.setFont("Helvetica-Bold", 9)
+        c.setFillColor(colors.black)
         c.drawString(30, y, footer.get("legal_name") or footer.get("company_name", ""))
         y -= 13
         c.setFont("Helvetica", 9)
         if footer.get("address"):
             c.drawString(30, y, footer["address"])
             y -= 13
-        if footer.get("city") and footer.get("zip"):
-            c.drawString(30, y, f"{footer['city']}, {footer['zip']}")
+        if footer.get("zip") and footer.get("city"):
+            c.drawString(30, y, f"{footer['zip']}  {footer['city'].upper()}")
+            y -= 13
+        if footer.get("province"):
+            c.drawString(30, y, footer["province"].upper())
             y -= 13
         if footer.get("tax_id"):
-            c.drawString(30, y, f"CIF/NIF: {footer['tax_id']}")
+            c.drawString(30, y, f"C.I.F.:  {footer['tax_id']}")
             y -= 13
         if footer.get("phone"):
-            c.drawString(30, y, f"Tel: {footer['phone']}")
+            c.drawString(30, y, f"Telf./Fax:  {footer['phone']}")
             y -= 13
         if footer.get("email"):
-            c.drawString(30, y, f"Email: {footer['email']}")
+            c.drawString(30, y, footer["email"])
             y -= 13
-        company_bottom = y
+        emisor_bottom = y
 
-        # ── Facturado a (right) ───────────────────────────────────────────────
-        yc = H - 122
-        c.setFont("Helvetica-Bold", 10)
-        c.drawString(310, yc, "Facturado a:")
-        yc -= 14
+        # ── MINI REFERENCE TABLE (left, below emisor) ─────────────────────────
+        mini_y = emisor_bottom - 8
+        mini_h = 34  # header(17) + value(17)
+        mini_w = 242
+        col_widths = [80, 80, 82]
+        col_labels = ["FRA PROFORMA", "FECHA", "Cod.Cliente"]
+        col_values = [
+            proforma.proforma_number,
+            proforma.issued_at.strftime("%d/%m/%Y"),
+            proforma.customer_code_snapshot,
+        ]
+        # Header row
+        c.setFillColor(colors.black)
+        c.rect(30, mini_y - mini_h, mini_w, mini_h, stroke=1, fill=0)
+        hdr_y = mini_y - 12
+        val_y = mini_y - 28
+        cx = 30
+        for i, (lbl, val) in enumerate(zip(col_labels, col_values)):
+            # vertical separator
+            if i > 0:
+                c.line(cx, mini_y, cx, mini_y - mini_h)
+            c.setFont("Helvetica-Bold", 8)
+            c.drawCentredString(cx + col_widths[i] / 2, hdr_y, lbl)
+            c.setFont("Helvetica", 9)
+            c.drawCentredString(cx + col_widths[i] / 2, val_y, str(val))
+            cx += col_widths[i]
+        # Horizontal divider between header and values
+        c.line(30, mini_y - 17, 30 + mini_w, mini_y - 17)
+        mini_table_bottom = mini_y - mini_h
+
+        # ── DESTINATARIO BOX (right) ──────────────────────────────────────────
+        dest_x = 290
+        dest_top = H - 100
+        dest_bottom = mini_table_bottom - 2
+        dest_h = dest_top - dest_bottom
+        c.setFillColor(colors.white)
+        c.setStrokeColor(colors.black)
+        c.rect(dest_x, dest_bottom, W - 30 - dest_x, dest_h, stroke=1, fill=0)
+
+        addr_lines = [l.strip() for l in proforma.billing_address_snapshot.splitlines() if l.strip()]
+        dy = dest_top - 14
         c.setFont("Helvetica-Bold", 9)
-        c.drawString(310, yc, invoice.billing_name_snapshot or str(invoice.customer))
-        yc -= 13
+        c.setFillColor(colors.black)
+        c.drawString(dest_x + 5, dy, proforma.billing_name_snapshot or str(proforma.customer))
+        dy -= 13
         c.setFont("Helvetica", 9)
-        if invoice.tax_id_snapshot:
-            c.drawString(310, yc, f"NIF/CIF: {invoice.tax_id_snapshot}")
-            yc -= 13
-        if invoice.billing_address_snapshot:
-            for line in invoice.billing_address_snapshot.splitlines():
-                if line.strip():
-                    c.drawString(310, yc, line.strip())
-                    yc -= 13
-        contact_email = invoice.customer.contact_email or invoice.customer.user.email
-        if contact_email:
-            c.drawString(310, yc, f"Email: {contact_email}")
-            yc -= 13
-        client_bottom = yc
+        for al in addr_lines[:2]:
+            c.drawString(dest_x + 5, dy, al)
+            dy -= 13
+        if proforma.billing_province_snapshot:
+            c.drawString(dest_x + 5, dy, proforma.billing_province_snapshot.upper())
+            dy -= 13
+        # TELF + CIF on same line
+        telf_str = f"TELF: {proforma.customer_phone_snapshot}" if proforma.customer_phone_snapshot else ""
+        cif_str = f"CIF.:  {proforma.tax_id_snapshot}" if proforma.tax_id_snapshot else ""
+        c.setFont("Helvetica-Bold", 8.5)
+        if telf_str:
+            c.drawString(dest_x + 5, dy, telf_str)
+        if cif_str:
+            c.drawString(dest_x + 5 + 110, dy, cif_str)
 
-        # ── Table header ──────────────────────────────────────────────────────
-        y = min(company_bottom, client_bottom) - 18
-        primary = colors.HexColor(branding.get("colors", {}).get("primary", "#1a1a1a"))
-        c.setFillColor(primary)
-        c.rect(30, y, W - 60, 17, stroke=0, fill=1)
+        # ── LINE ITEMS TABLE ──────────────────────────────────────────────────
+        # COD(55) | DESCRIPCION(195) | TONO(55) | UDS(65) | PVP(65) | IMPORTE(100)
+        P_COL_X = [30, 85, 280, 335, 400, 465]
+        P_COL_W = [55, 195, 55, 65, 65, 100]
+        P_HEADERS = ["COD.", "DESCRIPCION", "TONO", "UDS.", "PVP", "IMPORTE"]
+
+        table_top = mini_table_bottom - 12
+
+        c.setFillColor(colors.black)
+        c.setStrokeColor(colors.black)
+        c.rect(30, table_top - 17, W - 60, 17, stroke=1, fill=1)
         c.setFillColor(colors.white)
         c.setFont("Helvetica-Bold", 8)
-        c.drawString(35, y + 5, "Descripción")
-        c.drawString(310, y + 5, "Cant.")
-        c.drawString(355, y + 5, "Precio unit.")
-        c.drawString(425, y + 5, "IVA %")
-        c.drawString(462, y + 5, "IVA €")
-        c.drawString(508, y + 5, "Total s/IVA")
-        y -= 17
+        for i, h in enumerate(P_HEADERS):
+            if i < 2:
+                c.drawString(P_COL_X[i] + 3, table_top - 12, h)
+            else:
+                c.drawCentredString(P_COL_X[i] + P_COL_W[i] / 2, table_top - 12, h)
 
-        # ── Items ─────────────────────────────────────────────────────────────
-        c.setFont("Helvetica", 9)
+        y = table_top - 17
+        c.setFillColor(colors.black)
         row = 0
-        for item in invoice.items.all():
+        for item in proforma.items.all():
             if row % 2 == 0:
                 c.setFillColor(colors.HexColor("#f3f4f6"))
-                c.rect(30, y - 3, W - 60, 15, stroke=0, fill=1)
-            c.setFillColor(colors.black)
+                c.rect(30, y - 15, W - 60, 15, stroke=0, fill=1)
+                c.setFillColor(colors.black)
+            c.setFont("Helvetica", 8.5)
+            c.drawString(P_COL_X[0] + 3, y - 10, str(item.product_code)[:8])
             desc = str(item.description)
-            c.drawString(35, y + 3, desc[:48] + ("…" if len(desc) > 48 else ""))
-            c.drawString(310, y + 3, str(item.quantity))
-            c.drawString(355, y + 3, f"{item.unit_price:.2f} €")
-            c.drawString(425, y + 3, f"{item.tax_rate_pct:.0f}%")
-            c.drawString(462, y + 3, f"{item.tax_amount:.2f} €")
-            c.drawString(508, y + 3, f"{item.line_total:.2f} €")
-            y -= 16
+            c.drawString(P_COL_X[1] + 3, y - 10, desc[:32] + ("..." if len(desc) > 32 else ""))
+            c.drawCentredString(P_COL_X[2] + P_COL_W[2] / 2, y - 10, str(item.tono)[:8])
+            c.drawCentredString(P_COL_X[3] + P_COL_W[3] / 2, y - 10,
+                                f"{item.quantity:,.2f}".replace(",", "."))
+            c.drawCentredString(P_COL_X[4] + P_COL_W[4] / 2, y - 10,
+                                f"{item.unit_price:,.2f}".replace(",", "."))
+            c.drawRightString(P_COL_X[5] + P_COL_W[5] - 3, y - 10,
+                              f"{item.line_total:,.2f}".replace(",", "."))
+            y -= 15
             row += 1
 
-        # ── Totals ────────────────────────────────────────────────────────────
-        y -= 8
-        c.line(370, y, W - 30, y)
-        y -= 12
-        c.setFont("Helvetica", 9)
-        c.setFillColor(colors.black)
-        c.drawString(375, y, "Subtotal:")
-        c.drawRightString(W - 30, y, f"{invoice.subtotal:.2f} €")
-        y -= 14
-        c.drawString(375, y, "IVA:")
-        c.drawRightString(W - 30, y, f"{invoice.tax_amount:.2f} €")
-        y -= 4
-        c.line(370, y, W - 30, y)
-        y -= 14
-        c.setFont("Helvetica-Bold", 10)
-        c.drawString(375, y, "TOTAL:")
-        c.drawRightString(W - 30, y, f"EUR {invoice.total:.2f}")
-
-        # ── Notes ─────────────────────────────────────────────────────────────
-        if invoice.notes:
-            y -= 24
-            c.setFont("Helvetica-Bold", 9)
-            c.drawString(30, y, "NOTAS")
-            y -= 5
-            c.line(30, y, W - 30, y)
-            y -= 13
-            c.setFont("Helvetica", 9)
-            c.drawString(30, y, invoice.notes)
-
-        # ── Observaciones ─────────────────────────────────────────────────────
-        y -= 28
-        c.setFont("Helvetica-Bold", 9)
-        c.drawString(30, y, "OBSERVACIONES")
-        y -= 5
+        # Draw bottom border of items area
+        c.setStrokeColor(colors.black)
         c.line(30, y, W - 30, y)
-        y -= 13
-        c.setFont("Helvetica", 9)
-        obs = [
-            "Puede realizar el pago de esta factura en la siguiente cuenta bancaria:",
-            "",
-            f"Titular: {footer.get('legal_name') or footer.get('company_name', '')}",
+
+        # ── TOTALS ROW (horizontal 4-column table) ────────────────────────────
+        tot_y = y - 2
+        tot_row_h = 36  # header(18) + value(18)
+        tot_col_w = (W - 60) / 4  # ~133.75 each
+        tot_labels = ["IMP. BRUTO", "BASE IMPONIBLE", "IMPORTE IVA", "TOTAL EUR."]
+        tot_values = [
+            f"{proforma.subtotal:,.2f}".replace(",", "."),
+            f"{proforma.subtotal:,.2f}".replace(",", "."),
+            f"{proforma.tax_amount:,.2f}".replace(",", "."),
+            f"{proforma.total:,.2f}".replace(",", "."),
         ]
-        if footer.get("iban"):
-            obs.append(f"IBAN: {footer['iban']}")
-        for line in obs:
-            c.drawString(30, y, line)
-            y -= 13
+        c.setFillColor(colors.black)
+        c.rect(30, tot_y - tot_row_h, W - 60, tot_row_h, stroke=1, fill=0)
+        c.line(30, tot_y - 18, W - 30, tot_y - 18)  # row divider
+        for i in range(4):
+            cx = 30 + i * tot_col_w
+            if i > 0:
+                c.line(cx, tot_y, cx, tot_y - tot_row_h)  # vertical divider
+            c.setFont("Helvetica-Bold", 8)
+            c.drawCentredString(cx + tot_col_w / 2, tot_y - 13, tot_labels[i])
+            c.setFont("Helvetica", 9)
+            if i == 3:
+                c.setFont("Helvetica-Bold", 9)
+            c.drawCentredString(cx + tot_col_w / 2, tot_y - 30, tot_values[i])
+
+        # ── PAYMENT FOOTER ────────────────────────────────────────────────────
+        pay_y = tot_y - tot_row_h - 15
+        c.setFont("Helvetica", 8.5)
+        c.setFillColor(colors.black)
+        pay_method = proforma.payment_method or "TRANSF."
+        iban = footer.get("iban", "")
+        c.drawString(30, pay_y, f"Forma de Pago:   {pay_method}  {iban}   CCC:")
 
         c.save()
         pdf_bytes = buffer.getvalue()
-
-        filename = f"{invoice.invoice_number}.pdf"
+        filename = f"Proforma_{proforma.proforma_number}.pdf"
         response = HttpResponse(pdf_bytes, content_type="application/pdf")
         response["Content-Disposition"] = f'attachment; filename="{filename}"'
         return response
@@ -891,10 +1199,106 @@ class InvoiceCreateView(BackofficeRequiredMixin, CreateView):
         customer = form.cleaned_data["customer"]
         invoice.billing_name_snapshot = customer.billing_name
         invoice.tax_id_snapshot = customer.tax_id or ""
+        invoice.customer_code_snapshot = customer.customer_code
+        invoice.customer_phone_snapshot = customer.phone
         invoice.status = "draft"
         invoice.save()
         messages.success(self.request, f"Factura {invoice.invoice_number} creada.")
         return redirect("backoffice:invoice_detail", pk=invoice.pk)
+
+
+# ── Proforma invoices ─────────────────────────────────────────────────────────
+
+
+class ProformaListView(BackofficeRequiredMixin, ListView):
+    template_name = "backoffice/proformas/list.html"
+    context_object_name = "proformas"
+    paginate_by = 25
+
+    def get_queryset(self):
+        qs = ProformaInvoice.objects.select_related("customer__user").order_by("-issued_at")
+        status = self.request.GET.get("status")
+        q = self.request.GET.get("q", "").strip()
+        if status:
+            qs = qs.filter(status=status)
+        if q:
+            qs = qs.filter(proforma_number__icontains=q) | qs.filter(
+                customer__user__email__icontains=q
+            )
+        return qs
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["status_choices"] = ProformaInvoice.STATUS_CHOICES
+        ctx["current_status"] = self.request.GET.get("status", "")
+        ctx["q"] = self.request.GET.get("q", "")
+        return ctx
+
+
+class ProformaDetailView(BackofficeRequiredMixin, DetailView):
+    template_name = "backoffice/proformas/detail.html"
+    model = ProformaInvoice
+    context_object_name = "proforma"
+
+    def get_queryset(self):
+        return ProformaInvoice.objects.select_related("customer__user").prefetch_related(
+            "items__tax_rate"
+        )
+
+
+class ProformaCreateView(BackofficeRequiredMixin, View):
+    template_name = "backoffice/proformas/create.html"
+
+    def get(self, request):
+        from django.shortcuts import render
+        return render(request, self.template_name, {"customers": Customer.objects.all()})
+
+    def post(self, request):
+        from django.utils import timezone as tz
+
+        customer_id = request.POST.get("customer")
+        customer = get_object_or_404(Customer, pk=customer_id)
+        issued_at = tz.now()
+        year = issued_at.year
+        num, proforma_number = ProformaInvoice.create_number(year)
+
+        proforma = ProformaInvoice.objects.create(
+            customer=customer,
+            number=num,
+            proforma_number=proforma_number,
+            issued_at=issued_at,
+            status="draft",
+            billing_name_snapshot=customer.billing_name,
+            tax_id_snapshot=customer.tax_id or "",
+            customer_code_snapshot=customer.customer_code,
+            customer_phone_snapshot=customer.phone,
+            payment_method=request.POST.get("payment_method", ""),
+            notes=request.POST.get("notes", ""),
+        )
+        messages.success(request, f"Proforma {proforma.proforma_number} creada.")
+        return redirect("backoffice:proforma_detail", pk=proforma.pk)
+
+
+class ProformaUpdateView(BackofficeRequiredMixin, UpdateView):
+    template_name = "backoffice/proformas/edit.html"
+    model = ProformaInvoice
+    fields = [
+        "status",
+        "billing_name_snapshot",
+        "tax_id_snapshot",
+        "billing_address_snapshot",
+        "customer_code_snapshot",
+        "customer_phone_snapshot",
+        "billing_province_snapshot",
+        "payment_method",
+        "subtotal",
+        "tax_amount",
+        "total",
+        "notes",
+    ]
+
+    def get_success_url(self):
+        return reverse_lazy("backoffice:proforma_detail", kwargs={"pk": self.object.pk})
 
 
 # ── Order create ──────────────────────────────────────────────────────────────

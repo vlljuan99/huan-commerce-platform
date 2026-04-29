@@ -68,6 +68,13 @@ class Customer(BaseModel):
         verbose_name=_("Customer segment"),
     )
 
+    customer_code = models.CharField(
+        max_length=20,
+        blank=True,
+        verbose_name=_("Customer code"),
+        help_text=_("Código interno de cliente (Cod.Cliente en facturas)"),
+    )
+
     notes = models.TextField(blank=True, verbose_name=_("Internal notes"))
 
     class Meta:
