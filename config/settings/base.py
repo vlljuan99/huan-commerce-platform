@@ -132,6 +132,8 @@ STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
+    # Include static dirs from all instances (e.g. instances/helvagres_demo/static/)
+    *[str(p) for p in (BASE_DIR / "instances").glob("*/static") if p.is_dir()],
 ]
 
 # Media files
