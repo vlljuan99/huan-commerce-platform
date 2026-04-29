@@ -1,0 +1,127 @@
+{% extends "backoffice/base.html" %}
+
+{% block title %}Proforma {{ proforma.proforma_number }}{% endblock %}
+{% block page_title %}Proforma {{ proforma.proforma_number }}{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'backoffice:proforma_list' %}" class="bo-btn bo-btn--text">← Volver</a>
+<a href="{% url 'backoffice:proforma_edit' proforma.pk %}" class="bo-btn bo-btn--primary">Editar</a>
+<form method="post" action="{% url 'backoffice:proforma_generate_pdf' proforma.pk %}" style="display:inline">
+  {% csrf_token %}
+  <button type="submit" class="bo-btn bo-btn--outlined">Generar PDF</button>
+</form>
+{% endblock %}
+
+{% block content %}
+
+<div class="bo-detail-grid">
+
+    <div class="bo-card">
+        <h2 class="bo-card__title">Datos de la proforma</h2>
+        <dl class="bo-dl">
+            <dt>Estado</dt>
+            <dd><span class="badge badge--{{ proforma.status }}">{{ proforma.get_status_display }}</span></dd>
+            <dt>Cliente</dt>
+            <dd><a href="{% url 'backoffice:customer_detail' proforma.customer.pk %}" class="bo-link">{{ proforma.customer }}</a></dd>
+            <dt>Fecha emisión</dt>
+            <dd>{{ proforma.issued_at|date:"d/m/Y" }}</dd>
+            {% if proforma.payment_method %}
+            <dt>Forma de pago</dt>
+            <dd>{{ proforma.payment_method }}</dd>
+            {% endif %}
+            {% if proforma.notes %}
+            <dt>Notas</dt>
+            <dd>{{ proforma.notes }}</dd>
+            {% endif %}
+            {% if proforma.converted_to_invoice %}
+            <dt>Convertida en factura</dt>
+            <dd>
+                <a href="{% url 'backoffice:invoice_detail' proforma.converted_to_invoice.pk %}" class="bo-link">
+                    {{ proforma.converted_to_invoice.invoice_number }}
+                </a>
+            </dd>
+            {% endif %}
+        </dl>
+    </div>
+
+    <div class="bo-card">
+        <h2 class="bo-card__title">Datos fiscales (snapshot)</h2>
+        <dl class="bo-dl">
+            {% if proforma.billing_name_snapshot %}
+            <dt>Razón social</dt>
+            <dd>{{ proforma.billing_name_snapshot }}</dd>
+            {% endif %}
+            {% if proforma.tax_id_snapshot %}
+            <dt>NIF/CIF</dt>
+            <dd>{{ proforma.tax_id_snapshot }}</dd>
+            {% endif %}
+            {% if proforma.customer_code_snapshot %}
+            <dt>Cod. Cliente</dt>
+            <dd>{{ proforma.customer_code_snapshot }}</dd>
+            {% endif %}
+            {% if proforma.customer_phone_snapshot %}
+            <dt>Teléfono</dt>
+            <dd>{{ proforma.customer_phone_snapshot }}</dd>
+            {% endif %}
+            {% if proforma.billing_address_snapshot %}
+            <dt>Dirección</dt>
+            <dd class="bo-address">{{ proforma.billing_address_snapshot }}</dd>
+            {% endif %}
+            {% if proforma.billing_province_snapshot %}
+            <dt>Provincia</dt>
+            <dd>{{ proforma.billing_province_snapshot }}</dd>
+            {% endif %}
+        </dl>
+    </div>
+
+    <div class="bo-card">
+        <h2 class="bo-card__title">Importes</h2>
+        <dl class="bo-dl bo-dl--totals">
+            <dt>Base imponible</dt>
+            <dd>{{ proforma.subtotal|floatformat:2 }} €</dd>
+            <dt>IVA</dt>
+            <dd>{{ proforma.tax_amount|floatformat:2 }} €</dd>
+            <dt class="bo-dl__total-label">Total</dt>
+            <dd class="bo-dl__total-value">{{ proforma.total|floatformat:2 }} €</dd>
+        </dl>
+    </div>
+
+</div>
+
+<section class="bo-section">
+    <h2 class="bo-section__title">Líneas de la proforma</h2>
+    <div class="bo-table-wrap">
+        <table class="bo-table">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Descripción</th>
+                    <th>Tono</th>
+                    <th>Cantidad</th>
+                    <th>PVP (sin IVA)</th>
+                    <th>IVA %</th>
+                    <th>IVA €</th>
+                    <th>Total línea</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in proforma.items.all %}
+                <tr>
+                    <td><code>{{ item.product_code|default:"—" }}</code></td>
+                    <td>{{ item.description }}</td>
+                    <td>{{ item.tono|default:"—" }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.unit_price|floatformat:2 }} €</td>
+                    <td>{{ item.tax_rate_pct|floatformat:0 }}%</td>
+                    <td>{{ item.tax_amount|floatformat:2 }} €</td>
+                    <td><strong>{{ item.line_total|floatformat:2 }} €</strong></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="bo-table__empty">Sin líneas. Añádelas desde el administrador de Django.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% endblock %}

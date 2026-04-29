@@ -410,9 +410,34 @@ class InvoiceGeneratePDFView(BackofficeRequiredMixin, View):
             "static", instance_id, "logo_blanco.png",
         )
 
+        from reportlab.pdfbase.pdfmetrics import stringWidth
+
+        TABLE_COLOR = colors.HexColor("#012A64")
+
+        def wrap_cell(text, font_name, font_size, max_w):
+            """Return list of lines that fit within max_w pts."""
+            if not text:
+                return [""]
+            text = str(text)
+            if stringWidth(text, font_name, font_size) <= max_w:
+                return [text]
+            mid = len(text) // 2
+            left = text.rfind(" ", 0, mid)
+            right = text.find(" ", mid)
+            if left == -1 and right == -1:
+                return [text[:mid], text[mid:]]
+            if left == -1:
+                sp = right
+            elif right == -1:
+                sp = left
+            else:
+                sp = left if (mid - left) <= (right - mid) else right
+            l1, l2 = text[:sp].strip(), text[sp:].strip()
+            return [l for l in [l1, l2] if l]
+
         # ── HEADER ────────────────────────────────────────────────────────────
-        # Left: company text block
-        y = H - 28
+        # Left: company text block (x=30-185)
+        y = H - 30
         c.setFont("Helvetica-Bold", 10)
         c.drawString(30, y, footer.get("legal_name") or footer.get("company_name", ""))
         y -= 13
@@ -435,101 +460,121 @@ class InvoiceGeneratePDFView(BackofficeRequiredMixin, View):
         if footer.get("email"):
             c.drawString(30, y, footer["email"])
 
-        # Center: QR placeholder
-        qr_x, qr_y, qr_w, qr_h = 212, H - 105, 85, 82
+        # Center: QR placeholder (x=207-303, from H-22 top to H-112 bottom)
+        qr_x, qr_w, qr_h = 207, 96, 90
+        qr_top = H - 22   # top of box (y in RL = bottom + height)
+        qr_bottom = qr_top - qr_h  # H-112
         c.setFont("Helvetica-Bold", 6.5)
-        c.drawCentredString(qr_x + qr_w / 2, H - 22, "QR tributario:")
+        c.drawCentredString(qr_x + qr_w / 2, H - 18, "QR tributario:")
         c.setStrokeColor(colors.black)
         c.setFillColor(colors.white)
-        c.rect(qr_x, qr_y, qr_w, qr_h, stroke=1, fill=1)
-        # Simple QR-like inner pattern (placeholder)
-        c.setFillColor(colors.HexColor("#dddddd"))
-        cell = 8
-        for row in range(9):
-            for col in range(9):
-                if (row + col) % 2 == 0:
-                    c.rect(qr_x + 4 + col * cell, qr_y + 4 + row * cell, cell - 1, cell - 1, stroke=0, fill=1)
+        c.rect(qr_x, qr_bottom, qr_w, qr_h, stroke=1, fill=1)
+        # Checkerboard placeholder pattern
+        c.setFillColor(colors.HexColor("#cccccc"))
+        cell = 9
+        cols_q = int(qr_w / cell)
+        rows_q = int(qr_h / cell)
+        for ri in range(rows_q):
+            for ci in range(cols_q):
+                if (ri + ci) % 2 == 0:
+                    c.rect(qr_x + ci * cell, qr_bottom + ri * cell, cell - 1, cell - 1, stroke=0, fill=1)
         c.setFillColor(colors.black)
         c.setFont("Helvetica-Bold", 7)
-        c.drawCentredString(qr_x + qr_w / 2, qr_y - 10, "VERI*FACTU")
+        c.drawCentredString(qr_x + qr_w / 2, qr_bottom - 11, "VERI*FACTU")
 
-        # Right: logo + title
+        # Right: logo (big) + title, right-aligned (x=322-565)
         logo_drawn = False
         if os.path.isfile(logo_path):
             try:
-                c.drawImage(logo_path, 315, H - 78, width=120, height=52,
-                            preserveAspectRatio=True, mask="auto")
+                c.drawImage(logo_path, 322, H - 90, width=178, height=68,
+                            preserveAspectRatio=True, anchor="ne", mask="auto")
                 logo_drawn = True
             except Exception:
                 pass
         if not logo_drawn:
-            c.setFont("Helvetica-Bold", 14)
-            c.drawString(315, H - 55, footer.get("company_name", ""))
-        c.setFont("Helvetica-Bold", 13)
-        c.drawString(315, H - 95, "FACTURA DE VENTA")
+            c.setFont("Helvetica-Bold", 15)
+            c.drawRightString(W - 30, H - 55, footer.get("company_name", ""))
+        c.setFont("Helvetica-Bold", 14)
+        c.drawRightString(W - 30, H - 105, "FACTURA DE VENTA")
 
         # ── SEPARATOR ────────────────────────────────────────────────────────
+        # Place below VERI*FACTU text (qr_bottom - 11 - some gap)
+        sep_y = qr_bottom - 20  # H - 132
         c.setStrokeColor(colors.black)
-        c.line(30, H - 108, W - 30, H - 108)
+        c.line(30, sep_y, W - 30, sep_y)
 
         # ── CLIENT BOX (left) + INVOICE DATA BOX (right) ─────────────────────
-        box_top = H - 112
-        box_h = 88
+        box_top = sep_y - 4
+
+        # Pre-calculate rows with wrapping to determine box height
+        addr_lines = [l.strip() for l in invoice.billing_address_snapshot.splitlines() if l.strip()]
+        street = addr_lines[0] if addr_lines else ""
+        postal_city = addr_lines[1] if len(addr_lines) > 1 else ""
+
+        LEFT_VAL_W = 145   # available pts for value text in left box
+        RIGHT_VAL_W = 160  # available pts for value text in right box
+        ROW_H = 14
+
+        name_val = invoice.billing_name_snapshot or str(invoice.customer)
+        name_lines = wrap_cell(name_val, "Helvetica", 8, LEFT_VAL_W)
+        left_row_data = [
+            ("CLIENTE:", name_lines),
+            ("DIRECCION:", wrap_cell(street, "Helvetica", 8, LEFT_VAL_W)),
+            ("C.P. / POBLACION:", wrap_cell(postal_city, "Helvetica", 8, LEFT_VAL_W)),
+            ("PROVINCIA:", wrap_cell(invoice.billing_province_snapshot, "Helvetica", 8, LEFT_VAL_W)),
+        ]
+        left_total_lines = sum(len(v) for _, v in left_row_data)
+        left_box_h = 8 + left_total_lines * ROW_H + 4
+
+        right_row_data = [
+            ("Nº FACTURA:", wrap_cell(invoice.invoice_number, "Helvetica", 8, RIGHT_VAL_W)),
+            ("FECHA:", [invoice.issued_at.strftime("%d/%m/%Y")]),
+            ("COD. CLIENTE:", wrap_cell(invoice.customer_code_snapshot, "Helvetica", 8, RIGHT_VAL_W)),
+            ("CIF.:", wrap_cell(invoice.tax_id_snapshot, "Helvetica", 8, RIGHT_VAL_W)),
+            ("TELEFONO:", wrap_cell(invoice.customer_phone_snapshot, "Helvetica", 8, RIGHT_VAL_W)),
+            ("FORMA PAGO:", wrap_cell(invoice.payment_method, "Helvetica", 8, RIGHT_VAL_W)),
+        ]
+        right_total_lines = sum(len(v) for _, v in right_row_data)
+        right_box_h = 8 + right_total_lines * ROW_H + 4
+
+        box_h = max(left_box_h, right_box_h)
         box_bottom = box_top - box_h
 
-        # Left box: client data
+        # Left box
         c.setStrokeColor(colors.black)
         c.setFillColor(colors.white)
         c.rect(30, box_bottom, 252, box_h, stroke=1, fill=0)
-
-        addr_lines = [l.strip() for l in invoice.billing_address_snapshot.splitlines() if l.strip()]
-        street = addr_lines[0] if len(addr_lines) > 0 else ""
-        postal_city = addr_lines[1] if len(addr_lines) > 1 else ""
-
-        left_rows = [
-            ("CLIENTE:", invoice.billing_name_snapshot or str(invoice.customer)),
-            ("DIRECCION:", street),
-            ("C.P. / POBLACION:", postal_city),
-            ("PROVINCIA:", invoice.billing_province_snapshot),
-        ]
-        ry = box_top - 14
-        for label, value in left_rows:
+        ry = box_top - ROW_H + 2
+        for label, val_lines in left_row_data:
             c.setFont("Helvetica-Bold", 8)
             c.setFillColor(colors.black)
             c.drawString(34, ry, label)
             c.setFont("Helvetica", 8)
-            c.drawString(120, ry, str(value)[:38])
-            ry -= 14
+            for vl in val_lines:
+                c.drawString(128, ry, vl)
+                ry -= ROW_H
 
-        # Right box: invoice metadata
+        # Right box
         c.setFillColor(colors.white)
         c.rect(290, box_bottom, 275, box_h, stroke=1, fill=0)
-
-        right_rows = [
-            ("Nº FACTURA:", invoice.invoice_number),
-            ("FECHA:", invoice.issued_at.strftime("%d/%m/%Y")),
-            ("COD. CLIENTE:", invoice.customer_code_snapshot),
-            ("CIF.:", invoice.tax_id_snapshot),
-            ("TELEFONO:", invoice.customer_phone_snapshot),
-            ("FORMA PAGO:", invoice.payment_method),
-        ]
-        ry = box_top - 14
-        for label, value in right_rows:
+        ry = box_top - ROW_H + 2
+        for label, val_lines in right_row_data:
             c.setFont("Helvetica-Bold", 8)
             c.setFillColor(colors.black)
             c.drawString(294, ry, label)
             c.setFont("Helvetica", 8)
-            c.drawString(390, ry, str(value)[:28])
-            ry -= 14
+            for vl in val_lines:
+                c.drawString(390, ry, vl)
+                ry -= ROW_H
 
         # ── LINE ITEMS TABLE ──────────────────────────────────────────────────
         # Columns: CANTIDAD(60) | DESCRIPCION(290) | PRECIO(85) | IMPORTE(100)
-        COL_X = [30, 90, 380, 465]  # left edge of each column
+        COL_X = [30, 90, 380, 465]
         COL_W = [60, 290, 85, 100]
         TH = box_bottom - 15  # table header top
 
-        c.setFillColor(colors.black)
-        c.setStrokeColor(colors.black)
+        c.setFillColor(TABLE_COLOR)
+        c.setStrokeColor(TABLE_COLOR)
         c.rect(30, TH - 17, W - 60, 17, stroke=1, fill=1)
         c.setFillColor(colors.white)
         c.setFont("Helvetica-Bold", 8)
@@ -812,9 +857,10 @@ class ProformaGeneratePDFView(BackofficeRequiredMixin, View):
         P_HEADERS = ["COD.", "DESCRIPCION", "TONO", "UDS.", "PVP", "IMPORTE"]
 
         table_top = mini_table_bottom - 12
+        TABLE_COLOR_P = colors.HexColor("#012A64")
 
-        c.setFillColor(colors.black)
-        c.setStrokeColor(colors.black)
+        c.setFillColor(TABLE_COLOR_P)
+        c.setStrokeColor(TABLE_COLOR_P)
         c.rect(30, table_top - 17, W - 60, 17, stroke=1, fill=1)
         c.setFillColor(colors.white)
         c.setFont("Helvetica-Bold", 8)

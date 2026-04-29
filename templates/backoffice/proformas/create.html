@@ -1,0 +1,62 @@
+{% extends "backoffice/base.html" %}
+
+{% block title %}Nueva proforma{% endblock %}
+{% block page_title %}Nueva proforma{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'backoffice:proforma_list' %}" class="bo-btn bo-btn--text">← Volver</a>
+{% endblock %}
+
+{% block content %}
+<div class="bo-form-layout">
+
+    <div class="bo-form-card">
+        <div class="bo-form-card__header">
+            <h2 class="bo-form-card__title">Datos de la proforma</h2>
+            <p class="bo-form-card__subtitle">El número se generará automáticamente al guardar.</p>
+        </div>
+
+        <form method="post" novalidate>
+            {% csrf_token %}
+
+            <div class="bo-form-field">
+                <label class="bo-form-field__label" for="id_customer">Cliente</label>
+                <select name="customer" id="id_customer" class="bo-form-field__input" required>
+                    <option value="">— Selecciona un cliente —</option>
+                    {% for c in customers %}
+                        <option value="{{ c.pk }}">{{ c }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="bo-form-field">
+                <label class="bo-form-field__label" for="id_payment_method">Forma de pago</label>
+                <input type="text" name="payment_method" id="id_payment_method"
+                       class="bo-form-field__input" placeholder="e.g. TRANSF., GIRO A 30 DIAS">
+            </div>
+
+            <div class="bo-form-field">
+                <label class="bo-form-field__label" for="id_notes">Notas</label>
+                <textarea name="notes" id="id_notes" rows="3" class="bo-form-field__input"></textarea>
+            </div>
+
+            <div class="bo-form__actions">
+                <button type="submit" class="bo-btn bo-btn--primary">Crear proforma</button>
+                <a href="{% url 'backoffice:proforma_list' %}" class="bo-btn bo-btn--text">Cancelar</a>
+            </div>
+        </form>
+    </div>
+
+    <aside class="bo-form-aside">
+        <div class="bo-card">
+            <h2 class="bo-card__title">Información</h2>
+            <p style="font-size:.85rem;color:#6b7280;line-height:1.5">
+                La proforma se creará en estado <strong>Borrador</strong>.<br>
+                Los datos fiscales se copian automáticamente del cliente.<br>
+                Las líneas de detalle se añaden desde el administrador de Django o editando la proforma.
+            </p>
+        </div>
+    </aside>
+
+</div>
+{% endblock %}
