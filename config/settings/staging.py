@@ -28,7 +28,14 @@ AZURE_CONTAINER = AZURE_STATIC_CONTAINER  # django-storages reads AZURE_CONTAINE
 
 STORAGES = {
     "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "BACKEND": "storages.backends.azure_storage.AzureStorage",
+        "OPTIONS": {
+            "account_name": AZURE_ACCOUNT_NAME,
+            "account_key": AZURE_ACCOUNT_KEY,
+            "azure_container": AZURE_STATIC_CONTAINER,
+            "location": "media",  # uploaded files go to imgs/media/
+            "overwrite_files": True,
+        },
     },
     "staticfiles": {
         "BACKEND": "storages.backends.azure_storage.AzureStorage",
@@ -36,6 +43,7 @@ STORAGES = {
 }
 AZURE_CUSTOM_DOMAIN = f"{AZURE_ACCOUNT_NAME}.blob.core.windows.net"
 STATIC_URL = f"https://{AZURE_CUSTOM_DOMAIN}/{AZURE_STATIC_CONTAINER}/"
+MEDIA_URL = f"https://{AZURE_CUSTOM_DOMAIN}/{AZURE_STATIC_CONTAINER}/media/"
 
 # Email real (configurable vía vars de entorno en Heroku)
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
